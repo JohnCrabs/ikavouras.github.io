@@ -6,7 +6,7 @@ body {
     color: #222;
 }
 
-/* Header layout */
+/* Header */
 header {
     background-color: #111;
     color: #fff;
@@ -46,18 +46,51 @@ nav a:hover {
     text-decoration: underline;
 }
 
-/* Main content */
-main {
-    padding: 2rem;
-    text-align: center;
-}
-
+/* Intro Section */
 .intro {
-    max-width: 700px;
-    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 1rem;
 }
 
-.intro h2 {
-    font-size: 1.5rem;
+.intro-image img {
+    width: 300px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.intro-text {
+    max-width: 500px;
+    text-align: left;
+}
+
+.intro-text h2 {
+    font-size: 1.8rem;
     margin-bottom: 1rem;
+}
+
+.intro-text p {
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .intro {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .intro-text {
+        text-align: center;
+    }
+
+    .intro-image img {
+        width: 200px;
+    }
 }
