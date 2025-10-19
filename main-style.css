@@ -18,7 +18,7 @@ main {
     flex: 1;
     padding: 2rem;
     text-align: center;
-    background-color: #bbb;
+    background-color: #ccc;
 }
 
 /* Header */
@@ -67,8 +67,8 @@ nav a:hover {
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    max-width: 1500px;
     gap: 2rem;
-    max-width: 1000px;
     margin: 2rem auto;
     padding: 1rem;
 }
@@ -81,7 +81,8 @@ nav a:hover {
 }
 
 .intro-text {
-    max-width: 500px;
+    font-size: 20px;
+    max-width: 1000px;
     text-align: justify;
 }
 
