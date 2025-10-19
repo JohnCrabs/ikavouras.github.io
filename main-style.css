@@ -14,12 +14,7 @@ html, body {
 }
 
 /* Main content grows to fill available space */
-main {
-    flex: 1;
-    padding: 2rem;
-    text-align: center;
-    background-color: #bbb;
-}
+
 
 /* Header */
 header {
