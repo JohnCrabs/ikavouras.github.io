@@ -67,7 +67,7 @@ nav a:hover {
 
 .intro-text {
     max-width: 500px;
-    text-align: left;
+    text-align: justify;
 }
 
 .intro-text h2 {
