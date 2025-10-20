@@ -166,4 +166,48 @@ footer p {
 .social-links a:hover {
     color: #1e90ff;
 }
+
+.project-buttons {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 25px;
+}
+
+.project-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 350;
+    max-height: 250px;
+    border: none;
+    border-radius: 15px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    padding: 10px;
+}
+
+.project-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+}
+
+.project-btn img {
+    display: block;
+    max-width: 200;
+    max-height: 200px;
+    object-fit: contain;
+    margin-bottom: 8px;
+}
+
+.project-btn span {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: 500;
+}
+
 }
