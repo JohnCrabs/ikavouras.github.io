@@ -151,28 +151,31 @@ footer p {
     font-size: 0.9rem;
 }
 
-.social-links {
-    margin-top: 0.5rem;
-}
-
-.social-links a {
-    color: #fff;
-    text-decoration: none;
-    margin: 0 0.8rem;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.social-links a:hover {
-    color: #1e90ff;
-}
-
 .project-buttons {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: center;
     gap: 25px;
+}
+
+/* Projects wrapper */
+#projects {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #f9f9f9;
+}
+
+#projects h1 {
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 2em;
+}
+
+.project-main {
+  display: block;          /* makes anchor wrap the image only */
+  text-decoration: none;
+  color: inherit;
 }
 
 .project-btn {
@@ -205,9 +208,22 @@ footer p {
 }
 
 .project-btn span {
-    font-size: 0.9em;
+    display: block;
+    text-align: center;
+    font-size: 1em;
     color: #333;
     font-weight: 500;
+}
+
+/* Responsive: make cards narrower on small screens */
+@media (max-width: 520px) {
+  .project-btn {
+    width: 90%;
+  }
+
+  .project-meta {
+    justify-content: center;
+  }
 }
 
 }
