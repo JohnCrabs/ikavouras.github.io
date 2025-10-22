@@ -190,12 +190,14 @@ footer p {
 }
 
 .project-logos a {
+    color: #000;
     display: inline-block;
     text-decoration: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .project-logos a:hover {
+    color: #f00;
     transform: scale(1.1);
     text-decoration: underline;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -228,14 +230,6 @@ footer p {
     max-height: 128px;
     object-fit: contain;
     margin-bottom: 8px;
-}
-
-.project-btn span {
-    display: block;
-    text-align: center;
-    font-size: 1em;
-    color: #333;
-    font-weight: 500;
 }
 
 /* Responsive: make cards narrower on small screens */
