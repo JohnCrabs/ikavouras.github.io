@@ -110,6 +110,7 @@ footer p {
 /* Home Section */
 /* ************ */
 .home {
+    background-color: #f0f4f9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -162,6 +163,7 @@ footer p {
 /* Project Section */
 /* *************** */
 .project {
+    background-color: #f0f4f9;
     display: column;
     align-items: center;
     justify-content: center;
@@ -247,6 +249,7 @@ footer p {
 /* Contact Section */
 /* *************** */
 .contact {
+    background-color: #f0f4f9;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -282,4 +285,81 @@ footer p {
     .contact-text {
         text-align: justify;
     }
+}
+
+/* ************** */
+/* Skills Section */
+/* ************** */
+#skills {
+  background-color: #f0f4f9;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+#skills h1 {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 40px;
+}
+
+/* container for skill columns */
+.skills-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  max-width: 2000px;
+  margin: 0 auto;
+  justify-items: center;
+}
+
+/* each skill column */
+.skills-column {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px 30px;
+  width: 280px;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skills-column:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.skills-column h2 {
+  text-align: center;
+  color: #0073e6;
+  margin-bottom: 16px;
+  font-size: 1.2em;
+}
+
+.skills-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.skills-column li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95em;
+  color: #333;
+}
+
+.skills-column li:last-child {
+  border-bottom: none;
+}
+
+/* responsive for smaller screens */
+@media (max-width: 768px) {
+  .skills-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .skills-column {
+    width: 90%;
+  }
 }
