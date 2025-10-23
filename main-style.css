@@ -369,9 +369,9 @@ footer p {
 /* ******************** */
 /* Publications section */
 #publications {
-  background-color: #fff;
+  background-color: #f0f4f9;
   padding: 60px 20px;
-  text-align: center;
+  text-align: justify;
 }
 
 #publications h1 {
