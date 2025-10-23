@@ -363,3 +363,85 @@ footer p {
     width: 90%;
   }
 }
+
+/* ******************** */
+/* Publications Section */
+/* ******************** */
+/* Publications section */
+#publications {
+  background-color: #fff;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+#publications h1 {
+  font-size: 2em;
+  margin-bottom: 40px;
+  color: #333;
+}
+
+.pub-list {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.publication {
+  background-color: #f7f9fc;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.publication:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.publication h2 {
+  color: #0073e6;
+  margin-bottom: 8px;
+}
+
+.pub-links {
+  margin-top: 10px;
+}
+
+.pub-btn {
+  display: inline-block;
+  margin-right: 10px;
+  background-color: #0073e6;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+
+.pub-btn.secondary {
+  background-color: #555;
+}
+
+.pub-btn:hover {
+  opacity: 0.85;
+}
+
+.pub-btn.secondary {
+  background-color: #555;
+  color: white;
+}
+
+.pub-btn.secondary:hover {
+  background-color: #333;
+}
+
+.pub-btn.tertiary {
+  background-color: #e67e22;
+}
+
+.pub-btn.tertiary:hover {
+  background-color: #cf6d16;
+}
+
