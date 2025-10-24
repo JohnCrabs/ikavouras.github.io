@@ -1,5 +1,5 @@
 // translations.js
-export const translations = {
+window.translations = {
   en: {
     profileHeader: "Ioannis Kavouras",
     profileText: "Ioannis Kavouras is a graduate of the School of Rural, Surveying and Geo-Informatics Engineering of National Technical University of Athens (NTUA). Currently, he is a PhD candidate at the Photogrammetry Lab of NTUA. His expertise includes the development of AI-driven algorithms and applications for managing and  solving several engineering problems. Most of his developed applications utilize computer vision algorithm in combination with machine learning techniques for health diagnosis, climate change and smart urban development aiming at increasing the health and well-being of citizens and predicting the trends of various diseases (infectious and non-infectious). He has also participated, worked and is actively involved to several Hellenic and European funded research projects. In addition, he works as a professor at Metropolitan College (Marousi Department), teaching courses in the same domains."
