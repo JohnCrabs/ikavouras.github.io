@@ -1,21 +1,28 @@
-// language-handler.js
-import { translations } from "./translations.js";
+// src/lang-handler.js
+import { translations } from './translations.js';
 
-function applyTranslations(lang) {
+export function applyTranslations(lang) {
+  const dict = translations[lang];
+  if (!dict) return;
+
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
-    if (translations[lang] && translations[lang][key]) {
-      el.textContent = translations[lang][key];
+    if (!key || !dict[key]) return;
+
+    if (el.hasAttribute("data-i18n-html")) {
+      el.innerHTML = dict[key];
+    } else {
+      el.textContent = dict[key];
     }
   });
 }
 
-// Listen for language switch
-window.addEventListener("languageChanged", (e) => {
+// Listen for languageChanged events
+window.addEventListener("languageChanged", e => {
   applyTranslations(e.detail.lang);
 });
 
-// On first load, also apply from saved language
+// Apply translations on page load
 document.addEventListener("DOMContentLoaded", () => {
   const lang = localStorage.getItem("lang") || "en";
   applyTranslations(lang);

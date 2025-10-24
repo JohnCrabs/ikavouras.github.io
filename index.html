@@ -16,7 +16,13 @@
         <script src="src/js/mainLoader.js"></script>
         <script src="src/js/publications.js"></script>
         <script src="src/js/lang-switcher.js" defer></script>
-        <script type="module" src="src/js/language-handler.js"></script>
+        <script type="module">
+          import './src/js/translations.js';
+          import './src/js/lang-handler.js';
+          import { initLangSwitcher } from './src/js/lang-switcher.js';
+
+          initLangSwitcher();
+        </script>
     </head>
 
     <!-- Body -->
