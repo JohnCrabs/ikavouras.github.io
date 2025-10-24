@@ -69,6 +69,11 @@ header, .header-main {
     text-decoration: underline;
 }
 
+.header-nav a:active {
+  color: #e63946; /* red */
+  font-weight: bold;
+}
+
 .lang-selector {
   position: absolute;
   left: 20px;
@@ -147,10 +152,10 @@ footer p {
     text-decoration: underline;
 }
 
-/* ************ */
-/* Home Section */
-/* ************ */
-.home {
+/* *************** */
+/* Profile Section */
+/* *************** */
+.profile {
     background-color: #f0f4f9;
     display: flex;
     align-items: center;
@@ -162,40 +167,40 @@ footer p {
     padding: 1rem;
 }
 
-.home-image img {
+.profile-image img {
     width: 300px;
     height: auto;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.home-text {
+.profile-text {
     font-size: 20px;
     max-width: 1000px;
     text-align: justify;
 }
 
-.home-text h2 {
+.profile-text h2 {
     font-size: 1.8rem;
     margin-bottom: 1rem;
 }
 
-.home-text p {
+.profile-text p {
     line-height: 1.6;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .home {
+    .profile {
         flex-direction: column;
         text-align: justify;
     }
 
-    .home-text {
+    .profile-text {
         text-align: justify;
     }
 
-    .home-image img {
+    .profile-image img {
         width: 200px;
     }
 }
@@ -203,7 +208,7 @@ footer p {
 /* *************** */
 /* Project Section */
 /* *************** */
-.project {
+.projects {
     background-color: #f0f4f9;
     display: column;
     align-items: center;
@@ -215,7 +220,7 @@ footer p {
     padding: 1rem;
 }
 
-.project-logos {
+.projects-logos {
     display: inline-flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -223,7 +228,7 @@ footer p {
     gap: 30px;
 }
 
-.project-logos img {
+.projects-logos img {
     width: auto;
     max-height: 128px;
     border-radius: 10px;
@@ -232,21 +237,21 @@ footer p {
     background-color: white;
 }
 
-.project-logos a {
+.projects-logos a {
     color: #000;
     display: inline-block;
     text-decoration: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.project-logos a:hover {
+.projects-logos a:hover {
     color: #f00;
     transform: scale(1.1);
     text-decoration: underline;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.project-btn {
+.projects-btn {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
@@ -262,12 +267,12 @@ footer p {
     padding: 10px;
 }
 
-.project-btn:hover {
+.projects-btn:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 14px rgba(0,0,0,0.2);
 }
 
-.project-btn img {
+.projects-btn img {
     display: block;
     max-width: 200;
     max-height: 128px;
@@ -277,11 +282,11 @@ footer p {
 
 /* Responsive: make cards narrower on small screens */
 @media (max-width: 520px) {
-  .project-btn {
+  .projects-btn {
     width: 90%;
   }
 
-  .project-meta {
+  .projects-meta {
     justify-content: center;
   }
 }

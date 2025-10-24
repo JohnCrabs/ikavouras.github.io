@@ -37,7 +37,6 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!attachListeners()) {
-      // Fallback if buttons not yet in DOM
       const observer = new MutationObserver(() => { if (attachListeners()) observer.disconnect(); });
       observer.observe(document.body, { childList: true, subtree: true });
     }
