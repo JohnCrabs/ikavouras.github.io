@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("./pages/main/home.html")
+    fetch("src/html/profile.html")
         .then(response => response.text())
         .then(data => {
             document.getElementById("main-content").innerHTML = data;

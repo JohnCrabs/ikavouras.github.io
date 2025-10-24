@@ -1,0 +1,20 @@
+<div class="header-container">
+    <div id=".header-main">
+        <div class="logo-container">
+            <img src="assets/index/logo.png" alt="Logo" class="logo-website">
+            <h1>Ioannis A Kavouras</h1>
+        </div>
+        <nav class="header-nav">
+            <a href="#" onclick="loadMainContent('src/html/profile.html')">Profile</a>
+            <a href="#" onclick="loadMainContent('src/html/projects.html')">Projects</a>
+            <a href="#" onclick="loadMainContent('src/html/skills.html')">Skills</a>
+            <a href="#" onclick="loadMainContent('src/html/publications.html'); setTimeout(()=> loadPublicationsFrom('src/json/publications.json'), 80);">Publications</a>
+            <a href="#" onclick="loadMainContent('src/html/contact.html')">Contact</a>
+        </nav>
+    </div>
+    <div class="lang-selector">
+      <button id="lang-en" class="lang-btn">EN</button>
+      <span class="lang-sep">|</span>
+      <button id="lang-gr" class="lang-btn">GR</button>
+    </div>
+</div>
