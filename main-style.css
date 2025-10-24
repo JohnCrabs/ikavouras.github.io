@@ -21,7 +21,7 @@ body {
 /* ************ */
 /* Header Style */
 /* ************ */
-header {
+header, .header-main {
     background-color: #111;
     color: #fff;
     padding: 0.8rem 2rem;
@@ -29,6 +29,13 @@ header {
     flex-direction: column;
     align-items: center;
     text-align: center;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
 }
 
 /* Logo Container */
@@ -60,6 +67,40 @@ header {
 
 .header-nav a:hover {
     text-decoration: underline;
+}
+
+.lang-selector {
+  position: absolute;
+  left: 20px;
+  top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.lang-btn.active {
+  color: red;
+  font-weight: bold;
+}
+
+.lang-sep { color: #555; margin: 0 6px; }
+
+.lang-btn:hover {
+  color: #005bb5;
+}
+
+.lang-sep {
+  color: #555;
+  font-weight: bold;
 }
 
 /* ************ */
