@@ -1,65 +1,70 @@
-// src/js/navigation.js
+(function () {
+  // --- Update active nav link based on URL hash ---
+  function updateActiveNav() {
+    const currentHash = (window.location.hash || "#home").substring(1); // default to home
+    document.querySelectorAll("nav a[href^='#']").forEach(link => {
+      const id = link.getAttribute("href").substring(1);
+      link.classList.toggle("active", id === currentHash);
+    });
+  }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const sections = document.querySelectorAll("section");
-  let currentSection = window.location.hash.substring(1) || "home";
-
-  /**
-   * Show a section and load its content
-   * @param {string} sectionId
-   */
+  // --- Load section content ---
   function showSection(sectionId) {
-    currentSection = sectionId;
+    if (!sectionId) sectionId = "home";
 
-    // Load dynamic content
     if (typeof loadMainContent === "function") {
       loadMainContent(sectionId);
     }
 
-    // Show/hide static sections if any
-    sections.forEach(sec => {
-      sec.style.display = sec.id === sectionId ? "block" : "none";
-    });
+    // Publications special case
+    if (sectionId === "publications" && typeof loadPublicationsFrom === "function") {
+      setTimeout(() => loadPublicationsFrom("src/json/publications.json"), 80);
+    }
 
     // Apply translations
     const lang = localStorage.getItem("lang") || "en";
     if (typeof applyTranslations === "function") {
-      applyTranslations(lang);
-    }
-  }
-
-  /**
-   * Update currentSection and URL hash without scrolling
-   */
-  function navigateTo(sectionId) {
-    if (sectionId === currentSection) {
-      // Already on this section; optionally reload content
-      if (typeof loadMainContent === "function") {
-        loadMainContent(sectionId);
-      }
-    } else {
-      showSection(sectionId);
+      setTimeout(() => applyTranslations(lang), 50);
     }
 
-    // Update hash without scrolling
-    history.replaceState(null, null, `#${sectionId}`);
+    // Update nav highlighting
+    updateActiveNav();
   }
 
-  // Initial load
-  showSection(currentSection);
+  // --- Initialize navigation ---
+  function initNavigation() {
+    const navLinks = document.querySelectorAll("nav a[href^='#']");
 
-  // Listen to hash changes (manual URL changes)
-  window.addEventListener("hashchange", () => {
-    const hash = window.location.hash.substring(1) || "home";
-    showSection(hash);
-  });
+    navLinks.forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        const sectionId = link.getAttribute("href").substring(1);
 
-  // Handle nav link clicks
-  document.querySelectorAll("nav a[href^='#']").forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      const sectionId = link.getAttribute("href").substring(1);
-      navigateTo(sectionId);
+        // Update URL without scrolling
+        const scrollY = window.scrollY;
+        history.pushState(null, "", `#${sectionId}`);
+        window.scrollTo(0, scrollY);
+
+        showSection(sectionId);
+      });
     });
-  });
-});
+
+    // Handle back/forward
+    window.addEventListener("popstate", () => {
+      const sectionId = (window.location.hash || "#home").substring(1);
+      showSection(sectionId);
+    });
+
+    // Handle hash changes (other scripts)
+    window.addEventListener("hashchange", () => {
+      const sectionId = (window.location.hash || "#home").substring(1);
+      showSection(sectionId);
+    });
+
+    // Initial page load
+    const initialSection = (window.location.hash || "#home").substring(1);
+    showSection(initialSection);
+  }
+
+  document.addEventListener("DOMContentLoaded", initNavigation);
+})();

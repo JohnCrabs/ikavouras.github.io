@@ -70,7 +70,7 @@ header, .header-main {
 }
 
 .header-nav a:active {
-  color: #e63946; /* red */
+  color: #e63946 !important; /* red */
   font-weight: bold;
 }
 
