@@ -1,70 +1,86 @@
+// src/js/navigation.js
+// Robust version: keeps nav highlighting persistent and synced with hash always.
+
 (function () {
-  // --- Update active nav link based on URL hash ---
-  function updateActiveNav() {
-    const currentHash = (window.location.hash || "#home").substring(1); // default to home
+  const PUBLICATIONS_ID = "publications";
+  const PUBLICATIONS_JSON = "src/json/publications.json";
+  const DEFAULT_SECTION = "profile";
+  let currentSection = null;
+
+  // Highlight the current nav link
+  function highlightNav(sectionId) {
     document.querySelectorAll("nav a[href^='#']").forEach(link => {
       const id = link.getAttribute("href").substring(1);
-      link.classList.toggle("active", id === currentHash);
+      if (id === sectionId) {
+        link.classList.add("active");
+      } else {
+        link.classList.remove("active");
+      }
     });
   }
 
-  // --- Load section content ---
+  // Show a section (calls your content functions)
   function showSection(sectionId) {
-    if (!sectionId) sectionId = "home";
+    if (!sectionId) sectionId = DEFAULT_SECTION;
+    if (sectionId === currentSection) return;
+    currentSection = sectionId;
 
+    // Load content
     if (typeof loadMainContent === "function") {
       loadMainContent(sectionId);
     }
 
     // Publications special case
-    if (sectionId === "publications" && typeof loadPublicationsFrom === "function") {
-      setTimeout(() => loadPublicationsFrom("src/json/publications.json"), 80);
+    if (sectionId === PUBLICATIONS_ID && typeof loadPublicationsFrom === "function") {
+      setTimeout(() => loadPublicationsFrom(PUBLICATIONS_JSON), 80);
     }
 
-    // Apply translations
-    const lang = localStorage.getItem("lang") || "en";
+    // Apply translations again
     if (typeof applyTranslations === "function") {
-      setTimeout(() => applyTranslations(lang), 50);
+      const lang = localStorage.getItem("lang") || "en";
+      setTimeout(() => applyTranslations(lang), 40);
     }
 
-    // Update nav highlighting
-    updateActiveNav();
+    highlightNav(sectionId);
   }
 
-  // --- Initialize navigation ---
+  // Handle hash-based navigation
+  function handleHashChange() {
+    const sectionId = (window.location.hash || `#${DEFAULT_SECTION}`).substring(1);
+    showSection(sectionId);
+  }
+
+  // Init navigation once DOM is ready and nav exists
   function initNavigation() {
     const navLinks = document.querySelectorAll("nav a[href^='#']");
+    if (!navLinks.length) {
+      // Try again shortly if nav hasn't been parsed yet
+      return setTimeout(initNavigation, 50);
+    }
 
+    // Attach click listeners
     navLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
         const sectionId = link.getAttribute("href").substring(1);
-
-        // Update URL without scrolling
-        const scrollY = window.scrollY;
+        if (sectionId === currentSection) return; // no retrigger
         history.pushState(null, "", `#${sectionId}`);
-        window.scrollTo(0, scrollY);
-
-        showSection(sectionId);
+        handleHashChange();
       });
     });
 
-    // Handle back/forward
-    window.addEventListener("popstate", () => {
-      const sectionId = (window.location.hash || "#home").substring(1);
-      showSection(sectionId);
-    });
+    // Handle browser navigation and hash changes
+    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", handleHashChange);
 
-    // Handle hash changes (other scripts)
-    window.addEventListener("hashchange", () => {
-      const sectionId = (window.location.hash || "#home").substring(1);
-      showSection(sectionId);
-    });
-
-    // Initial page load
-    const initialSection = (window.location.hash || "#home").substring(1);
-    showSection(initialSection);
+    // Load the section matching the current hash or default
+    handleHashChange();
   }
 
-  document.addEventListener("DOMContentLoaded", initNavigation);
+  // Start when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initNavigation);
+  } else {
+    initNavigation();
+  }
 })();
