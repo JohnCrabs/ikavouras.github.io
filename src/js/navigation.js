@@ -1,31 +1,25 @@
 // src/js/navigation.js
-// Robust version: keeps nav highlighting persistent and synced with hash always.
-
 (function () {
   const PUBLICATIONS_ID = "publications";
   const PUBLICATIONS_JSON = "src/json/publications.json";
   const DEFAULT_SECTION = "profile";
   let currentSection = null;
 
-  // Highlight the current nav link
+  // Highlight nav based on current hash
   function highlightNav(sectionId) {
     document.querySelectorAll("nav a[href^='#']").forEach(link => {
       const id = link.getAttribute("href").substring(1);
-      if (id === sectionId) {
-        link.classList.add("active");
-      } else {
-        link.classList.remove("active");
-      }
+      link.classList.toggle("active", id === sectionId);
     });
   }
 
-  // Show a section (calls your content functions)
+  // Load content for the section
   function showSection(sectionId) {
     if (!sectionId) sectionId = DEFAULT_SECTION;
     if (sectionId === currentSection) return;
     currentSection = sectionId;
 
-    // Load content
+    // Load main content only after hash is known
     if (typeof loadMainContent === "function") {
       loadMainContent(sectionId);
     }
@@ -35,7 +29,7 @@
       setTimeout(() => loadPublicationsFrom(PUBLICATIONS_JSON), 80);
     }
 
-    // Apply translations again
+    // Apply translations
     if (typeof applyTranslations === "function") {
       const lang = localStorage.getItem("lang") || "en";
       setTimeout(() => applyTranslations(lang), 40);
@@ -44,40 +38,38 @@
     highlightNav(sectionId);
   }
 
-  // Handle hash-based navigation
-  function handleHashChange() {
+  // Handle hash changes
+  function handleNavigation() {
     const sectionId = (window.location.hash || `#${DEFAULT_SECTION}`).substring(1);
+    highlightNav(sectionId);
     showSection(sectionId);
   }
 
-  // Init navigation once DOM is ready and nav exists
+  // Initialize navigation
   function initNavigation() {
     const navLinks = document.querySelectorAll("nav a[href^='#']");
-    if (!navLinks.length) {
-      // Try again shortly if nav hasn't been parsed yet
-      return setTimeout(initNavigation, 50);
-    }
+    if (!navLinks.length) return setTimeout(initNavigation, 50);
 
-    // Attach click listeners
     navLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
         const sectionId = link.getAttribute("href").substring(1);
-        if (sectionId === currentSection) return; // no retrigger
+        if (sectionId === currentSection) return;
         history.pushState(null, "", `#${sectionId}`);
-        handleHashChange();
+        handleNavigation();
       });
     });
 
-    // Handle browser navigation and hash changes
-    window.addEventListener("hashchange", handleHashChange);
-    window.addEventListener("popstate", handleHashChange);
+    // Listen for hash changes and back/forward
+    window.addEventListener("hashchange", handleNavigation);
+    window.addEventListener("popstate", handleNavigation);
 
-    // Load the section matching the current hash or default
-    handleHashChange();
+    // --- FLICKER-FREE INITIAL LOAD ---
+    // Read current hash, do NOT load profile by default
+    const initialSection = (window.location.hash || `#${DEFAULT_SECTION}`).substring(1);
+    showSection(initialSection);
   }
 
-  // Start when DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initNavigation);
   } else {
