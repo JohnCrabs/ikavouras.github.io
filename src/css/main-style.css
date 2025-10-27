@@ -116,6 +116,10 @@ header, .header-main {
 /* ************ */
 /* Main Style */
 /* ************ */
+#main-content {
+  visibility: hidden; /* hide until JS shows it */
+}
+
 /* Main content grows to fill available space */
 main {
     flex: 1;
