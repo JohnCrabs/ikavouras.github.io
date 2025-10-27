@@ -1,25 +1,25 @@
-// src/js/navigation.js
 (function () {
   const PUBLICATIONS_ID = "publications";
   const PUBLICATIONS_JSON = "src/json/publications.json";
   const DEFAULT_SECTION = "profile";
   let currentSection = null;
 
-  // Highlight nav based on current hash
+  // Highlight nav based on current section and set color
   function highlightNav(sectionId) {
     document.querySelectorAll("nav a[href^='#']").forEach(link => {
       const id = link.getAttribute("href").substring(1);
-      link.classList.toggle("active", id === sectionId);
+      const isActive = id === sectionId;
+      link.classList.toggle("active", isActive);
+      link.style.color = isActive ? "red" : ""; // red for active, default for others
     });
   }
 
-  // Load content for the section
+  // Show a section
   function showSection(sectionId) {
     if (!sectionId) sectionId = DEFAULT_SECTION;
-    if (sectionId === currentSection) return;
+    if (sectionId === currentSection) return; // prevent retrigger
     currentSection = sectionId;
 
-    // Load main content only after hash is known
     if (typeof loadMainContent === "function") {
       loadMainContent(sectionId);
     }
@@ -38,10 +38,9 @@
     highlightNav(sectionId);
   }
 
-  // Handle hash changes
+  // Handle navigation via clicks, hashchange, or popstate
   function handleNavigation() {
     const sectionId = (window.location.hash || `#${DEFAULT_SECTION}`).substring(1);
-    highlightNav(sectionId);
     showSection(sectionId);
   }
 
@@ -50,6 +49,7 @@
     const navLinks = document.querySelectorAll("nav a[href^='#']");
     if (!navLinks.length) return setTimeout(initNavigation, 50);
 
+    // Attach click listeners
     navLinks.forEach(link => {
       link.addEventListener("click", e => {
         e.preventDefault();
@@ -60,16 +60,18 @@
       });
     });
 
-    // Listen for hash changes and back/forward
+    // Listen for hash changes
     window.addEventListener("hashchange", handleNavigation);
     window.addEventListener("popstate", handleNavigation);
 
     // --- FLICKER-FREE INITIAL LOAD ---
-    // Read current hash, do NOT load profile by default
-    const initialSection = (window.location.hash || `#${DEFAULT_SECTION}`).substring(1);
+    // Only show DEFAULT_SECTION if no hash exists
+    const initialHash = window.location.hash;
+    const initialSection = initialHash ? initialHash.substring(1) : DEFAULT_SECTION;
     showSection(initialSection);
   }
 
+  // DOM ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initNavigation);
   } else {
