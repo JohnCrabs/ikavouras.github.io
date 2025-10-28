@@ -1,12 +1,52 @@
 // translations.js
 window.translations = {
   en: {
+    headerNavProfile: "Profile",
+    headerNavProjects: "Projects",
+    headerNavSkills: "Skills",
+    headerNavPublications: "Publications",
+    headerNavContact: "Contact",
     profileHeader: "Ioannis Kavouras",
-    profileText: "Ioannis Kavouras is a graduate of the School of Rural, Surveying and Geo-Informatics Engineering of National Technical University of Athens (NTUA). Currently, he is a PhD candidate at the Photogrammetry Lab of NTUA. His expertise includes the development of AI-driven algorithms and applications for managing and  solving several engineering problems. Most of his developed applications utilize computer vision algorithm in combination with machine learning techniques for health diagnosis, climate change and smart urban development aiming at increasing the health and well-being of citizens and predicting the trends of various diseases (infectious and non-infectious). He has also participated, worked and is actively involved to several Hellenic and European funded research projects. In addition, he works as a professor at Metropolitan College (Marousi Department), teaching courses in the same domains."
+    profileText: "Ioannis Kavouras is a graduate of the School of Rural, Surveying and Geo-Informatics Engineering of National Technical University of Athens (NTUA). Currently, he is a PhD candidate at the Photogrammetry Lab of NTUA. His expertise includes the development of AI-driven algorithms and applications for managing and  solving several engineering problems. Most of his developed applications utilize computer vision algorithm in combination with machine learning techniques for health diagnosis, climate change and smart urban development aiming at increasing the health and well-being of citizens and predicting the trends of various diseases (infectious and non-infectious). He has also participated, worked and is actively involved to several Hellenic and European funded research projects. In addition, he works as a professor at Metropolitan College (Marousi Department), teaching courses in the same domains.",
+    projectsHeader: "Collaboration in Projects",
+    publicationsHeader: "Scientific Publications",
+    publicationsList: "Loading publications...",
+    skillsHeader: "My Skills",
+    skillsSoftSkills: "Soft Skills",
+    skillsHardSkills: "Hard Skills",
+    skillsTechnicalTools: "Technical Tools",
+    skillsProgrammingLanguages: "Programming Languages",
+    skillsPythonLibraries: "Python Libraries",
+    skillsAdaptability: "Adaptability",
+    skillsEffComTeam: "Efficient Communication & Teamwork",
+    skillsThinking: "Creative & Critical Thinking",
+    skillsProblemSolving: "Problem Solving",
+    skillsTeamLeadership: "Team Leadership",
+    skillsTimeManagement: "Time Management"
   },
 
   gr: {
+    headerNavProfile: "Προφίλ",
+    headerNavProjects: "Προγράμματα",
+    headerNavSkills: "Δεξιότητες",
+    headerNavPublications: "Δημοσιεύσεις",
+    headerNavContact: "Επικοινωνία",
     profileHeader: "Ιωάννης Κάβουρας",
-    profileText: "Ο Ιωάννης Κάβουρας είναι απόφοιτος της Σχολής Αγρονόμων, Τοπογράφου και Γεωπληροφορικής Μηχανικών του Εθνικού Μετσόβιου Πολυτεχνείου (ΕΜΠ). Αυτή τη στιγμή, είναι υποψήφιος διδάκτορας στο Εργαστήριο Φωτογραμμετρίας του ΕΜΠ. Η εξειδίκευσή του περιλαμβάνει την ανάπτυξη αλγορίθμων και εφαρμογών που βασίζονται στην Τεχνητή Νοημοσύνη για τη διαχείριση και επίλυση διαφόρων μηχανικών προβλημάτων. Οι περισσότερες από τις εφαρμογές που έχει αναπτύξει χρησιμοποιούν αλγόριθμους υπολογιστικής όρασης σε συνδυασμό με τεχνικές μηχανικής μάθησης για τη διάγνωση της υγείας, την κλιματική αλλαγή και την έξυπνη αστική ανάπτυξη, με στόχο την αύξηση της υγείας και της ευημερίας των πολιτών και την πρόβλεψη των τάσεων διαφόρων ασθενειών (μολυσματικών και μη μολυσματικών). Έχει επίσης συμμετάσχει, εργαστεί και συμμετέχει ενεργά σε πολλά ελληνικά και ευρωπαϊκά χρηματοδοτούμενα ερευνητικά έργα. Επιπλέον, εργάζεται ως καθηγητής στο Μητροπολιτικό Κολλέγιο (Τμήμα Αμαρουσίου), διδάσκοντας μαθήματα στους ίδιους τομείς."
+    profileText: "Ο Ιωάννης Κάβουρας είναι απόφοιτος της Σχολής Αγρονόμων, Τοπογράφου και Γεωπληροφορικής Μηχανικών του Εθνικού Μετσόβιου Πολυτεχνείου (ΕΜΠ). Αυτή τη στιγμή, είναι υποψήφιος διδάκτορας στο Εργαστήριο Φωτογραμμετρίας του ΕΜΠ. Η εξειδίκευσή του περιλαμβάνει την ανάπτυξη αλγορίθμων και εφαρμογών που βασίζονται στην Τεχνητή Νοημοσύνη για τη διαχείριση και επίλυση διαφόρων μηχανικών προβλημάτων. Οι περισσότερες από τις εφαρμογές που έχει αναπτύξει χρησιμοποιούν αλγόριθμους υπολογιστικής όρασης σε συνδυασμό με τεχνικές μηχανικής μάθησης για τη διάγνωση της υγείας, την κλιματική αλλαγή και την έξυπνη αστική ανάπτυξη, με στόχο την αύξηση της υγείας και της ευημερίας των πολιτών και την πρόβλεψη των τάσεων διαφόρων ασθενειών (μολυσματικών και μη μολυσματικών). Έχει επίσης συμμετάσχει, εργαστεί και συμμετέχει ενεργά σε πολλά ελληνικά και ευρωπαϊκά χρηματοδοτούμενα ερευνητικά έργα. Επιπλέον, εργάζεται ως καθηγητής στο Μητροπολιτικό Κολλέγιο (Τμήμα Αμαρουσίου), διδάσκοντας μαθήματα στους ίδιους τομείς.",
+    projectsHeader: "Συμματοχή σε Προγράμματα",
+    publicationsHeader: "Επιστημονικές Δημοσιεύσεις",
+    publicationsList: "Φόρτωση δημοσιεύσεων...",
+    skillsHeader: "Οι Δεξιότητες μου",
+    skillsSoftSkills: "Ήπιες Δεξιότητες",
+    skillsHardSkills: "Σκληρές Δεξιότητες",
+    skillsTechnicalTools: "Τεχνικά Εργαλεία",
+    skillsProgrammingLanguages: "Γλώσσες Προγραμματισμού",
+    skillsPythonLibraries: "Βιβλιοθήκες Python",
+    skillsAdaptability: "Προσαρμοστικότητα",
+    skillsEffComTeam: "Αποτελεσματική Επικοινωνία & Ομαδικότητα",
+    skillsThinking: "Δημιουργική & Κριτική Σκέψη",
+    skillsProblemSolving: "Επίλυση Προβλημάτων",
+    skillsTeamLeadership: "Ηγετικότητα Ομάδας",
+    skillsTimeManagement: "Διαχείρηση του Χρόνου"
   }
 };
