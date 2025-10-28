@@ -116,8 +116,22 @@ header, .header-main {
 /* ************ */
 /* Main Style */
 /* ************ */
+/* Hide content while loading or translating */
 #main-content {
-  visibility: hidden; /* hide until JS shows it */
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out; /* fade-in only */
+}
+
+/* fade-in class */
+#main-content.visible {
+  opacity: 1;
+  transition: opacity 0.8s ease-in-out; /* fade-in transition */
+}
+
+/* instant fade-out: no transition */
+#main-content.hidden {
+  opacity: 0;
+  transition: none; /* disappear instantly */
 }
 
 /* Main content grows to fill available space */

@@ -1,6 +1,6 @@
 (function() {
-  const ACTIVE_COLOR = "#e63946"; // red
-  const INACTIVE_COLOR = "#0073e6"; // blue
+  const ACTIVE_COLOR = "#e63946";
+  const INACTIVE_COLOR = "#0073e6";
   const BTN_EN_ID = "lang-en";
   const BTN_GR_ID = "lang-gr";
 
@@ -37,8 +37,12 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!attachListeners()) {
-      const observer = new MutationObserver(() => { if (attachListeners()) observer.disconnect(); });
+      const observer = new MutationObserver(() => {
+        if (attachListeners()) observer.disconnect();
+      });
       observer.observe(document.body, { childList: true, subtree: true });
     }
+    // Dispatch initial event for lang-handler to act
+    window.dispatchEvent(new CustomEvent("languageChanged", { detail: { lang: getCurrentLang() } }));
   });
 })();
