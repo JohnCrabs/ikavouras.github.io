@@ -22,7 +22,24 @@ window.translations = {
     skillsThinking: "Creative & Critical Thinking",
     skillsProblemSolving: "Problem Solving",
     skillsTeamLeadership: "Team Leadership",
-    skillsTimeManagement: "Time Management"
+    skillsTimeManagement: "Time Management",
+    skillsAI: "Artificial Intelligence",
+    skillsARVRMxR: "Augmented, Virtual & Mixed Realities",
+    skillsBigData: "Big Data Analysis",
+    skillsCodeDev: "Code Development",
+    skillsCompSciSys: "Computer Science & Systems",
+    skillsCompVision: "Computer Vision",
+    skillsDC: "Datacubes",
+    skillsGameDev: "Game Development",
+    skillsML: "Machine Learning",
+    skillsNN: "Neural Networks",
+    skillsPhotogrammetry: "Photogrammetry",
+    skillsRemoteSensing: "Remote Sensing",
+    skillsRiskAnalysis: "Risk Analysis",
+    skillsRuralSurveying: "Rural Surveying",
+    contactsHeader: "Contact me by",
+    footerCopyright: "© 2025 Ioannis Kavouras. All rights reserved.",
+    footerFindMore: "Find more at:"
   },
 
   gr: {
@@ -47,6 +64,23 @@ window.translations = {
     skillsThinking: "Δημιουργική & Κριτική Σκέψη",
     skillsProblemSolving: "Επίλυση Προβλημάτων",
     skillsTeamLeadership: "Ηγετικότητα Ομάδας",
-    skillsTimeManagement: "Διαχείρηση του Χρόνου"
+    skillsTimeManagement: "Διαχείρηση του Χρόνου",
+    skillsAI: "Τεχνητή Νοημοσύνη",
+    skillsARVRMxR: "Επαυξημένη, Εικονική & Μεικτή Πραγματικότητες",
+    skillsBigData: "Διαχείρηση Μεγάλων Δεδομένων",
+    skillsCodeDev: "Ανάπτυξη Κώδικα",
+    skillsCompSciSys: "Επιστήμη και Συστήματα Υπολογιστών",
+    skillsCompVision: "Όραση Υπολογιστών",
+    skillsDC: "Κύβοι Δεδομένων",
+    skillsGameDev: "Ανάπτυξη Παιχνιδιών",
+    skillsML: "Μηχανική Μάθηση",
+    skillsNN: "Νευρωνικά Δίκτυα",
+    skillsPhotogrammetry: "Φωτογραμμετρία",
+    skillsRemoteSensing: "Τηλεπισκόπηση",
+    skillsRiskAnalysis: "Ανάλυση Ρίσκου",
+    skillsRuralSurveying: "Γεωδαισία/Τοπογραφία",
+    contactsHeader: "Επικοινίστε μαζί μου μέσω",
+    footerCopyright: "© 2025 Ioannis Kavouras. Με επιφύλαξη παντός δικαιώματος.",
+    footerFindMore: "Βρείτε περισσότερα στα:"
   }
 };
