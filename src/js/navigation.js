@@ -18,6 +18,7 @@
 
     if (typeof loadMainContent === "function") {
       loadMainContent(sectionId);
+      window.dispatchEvent(new Event("contentLoaded"));
     }
 
     if (sectionId === PUBLICATIONS_ID && typeof loadPublicationsFrom === "function") {

@@ -1,7 +1,9 @@
-(function() {
+// src/js/lang-handler.js
+(function () {
   function applyTranslations(lang) {
     const dict = window.translations && window.translations[lang];
     if (!dict) return;
+
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
       if (!key || !dict[key]) return;
@@ -10,14 +12,27 @@
     });
   }
 
+  function getCurrentLang() {
+    return localStorage.getItem("lang") || "en";
+  }
+
   function init() {
-    const lang = localStorage.getItem("lang") || "en";
+    const lang = getCurrentLang();
     applyTranslations(lang);
   }
 
-  // Apply translations on page load
+  // 🔹 Apply on page load
   document.addEventListener("DOMContentLoaded", init);
 
-  // Apply translations dynamically when languageChanged fires
-  window.addEventListener("languageChanged", e => applyTranslations(e.detail.lang));
+  // 🔹 Re-apply after dynamic content load (navigation changes)
+  window.addEventListener("contentLoaded", () => {
+    const lang = getCurrentLang();
+    setTimeout(() => applyTranslations(lang), 50);
+  });
+
+  // 🔹 React instantly when language is switched
+  window.addEventListener("languageChanged", e => {
+    const lang = e.detail.lang;
+    applyTranslations(lang);
+  });
 })();
