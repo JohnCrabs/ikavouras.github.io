@@ -17,15 +17,27 @@
     });
   }
 
+  // Helper: check container exists before calling loader
+  function checkContainerAndLoad(loaderFn, containerId, delay = 50, maxRetries = 10) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const container = document.getElementById(containerId);
+      if (container) {
+        loaderFn();
+        clearInterval(interval);
+      } else if (++attempts >= maxRetries) {
+        clearInterval(interval);
+      }
+    }, delay);
+  }
+
   function loadContent(sectionId, lang) {
     const main = document.getElementById(MAIN_CONTENT_ID);
     if (!main) return;
 
-    // Hide content instantly
     main.classList.add("hidden");
     main.classList.remove("visible");
 
-    // Load main content
     if (typeof loadMainContent === "function") {
       loadMainContent(sectionId);
     }
@@ -43,12 +55,11 @@
         loadCertificates();
       }
 
-      // Demonstrative material
+      // Demonstrative material (wait until container exists)
       if (sectionId === DEMO_MATERIAL_ID && typeof loadDemoMaterial === "function") {
-        loadDemoMaterial();
+        checkContainerAndLoad(loadDemoMaterial, "demo-material-list");
       }
 
-      // Show content
       main.classList.add("visible");
       main.classList.remove("hidden");
     }, 10);
@@ -58,20 +69,17 @@
     return localStorage.getItem("lang") || "en";
   }
 
-  // React to language changes
   window.addEventListener("languageChanged", e => {
     const lang = e.detail.lang;
     const sectionId = (window.location.hash || "#profile").substring(1);
     loadContent(sectionId, lang);
   });
 
-  // React to navigation requests
   window.addEventListener("loadSectionContent", e => {
     const sectionId = e.detail.sectionId;
     loadContent(sectionId, getCurrentLang());
   });
 
-  // Initial page load
   function init() {
     const sectionId = (window.location.hash || "#profile").substring(1);
     loadContent(sectionId, getCurrentLang());
