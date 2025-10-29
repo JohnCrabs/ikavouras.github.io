@@ -2,8 +2,9 @@
 (function() {
   const MAIN_CONTENT_ID = "main-content";
   const PUBLICATIONS_ID = "publications";
-  const PUBLICATIONS_JSON = "src/json/publications.json";
   const CERTIFICATES_ID = "certificates";
+  const DEMO_MATERIAL_ID = "demo_material";
+  const PUBLICATIONS_JSON = "src/json/publications.json";
 
   function applyTranslations(lang) {
     const dict = window.translations && window.translations[lang];
@@ -20,6 +21,7 @@
     const main = document.getElementById(MAIN_CONTENT_ID);
     if (!main) return;
 
+    // Hide content instantly
     main.classList.add("hidden");
     main.classList.remove("visible");
 
@@ -28,13 +30,12 @@
       loadMainContent(sectionId);
     }
 
-    // Apply translations after a short delay
     setTimeout(() => {
       applyTranslations(lang);
 
       // Publications
       if (sectionId === PUBLICATIONS_ID && typeof loadPublicationsFrom === "function") {
-        loadPublicationsFrom(PUBLICATIONS_JSON);
+        setTimeout(() => loadPublicationsFrom(PUBLICATIONS_JSON), 50);
       }
 
       // Certificates
@@ -42,27 +43,29 @@
         loadCertificates();
       }
 
-      // Reveal content
+      // Demonstrative material
+      if (sectionId === DEMO_MATERIAL_ID && typeof loadDemoMaterial === "function") {
+        loadDemoMaterial();
+      }
+
+      // Show content
       main.classList.add("visible");
       main.classList.remove("hidden");
-
-      // Dispatch event when section is ready
-      window.dispatchEvent(new CustomEvent("sectionReady", { detail: { sectionId } }));
-    }, 50);
+    }, 10);
   }
 
   function getCurrentLang() {
     return localStorage.getItem("lang") || "en";
   }
 
-  // Language change
+  // React to language changes
   window.addEventListener("languageChanged", e => {
     const lang = e.detail.lang;
     const sectionId = (window.location.hash || "#profile").substring(1);
     loadContent(sectionId, lang);
   });
 
-  // Navigation change
+  // React to navigation requests
   window.addEventListener("loadSectionContent", e => {
     const sectionId = e.detail.sectionId;
     loadContent(sectionId, getCurrentLang());
