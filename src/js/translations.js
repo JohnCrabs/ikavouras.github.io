@@ -5,6 +5,7 @@ window.translations = {
     headerNavProjects: "Projects",
     headerNavSkills: "Skills",
     headerNavPublications: "Publications",
+    headerNavCertificates: "Certificates",
     headerNavContact: "Contact",
     profileHeader: "Ioannis Kavouras",
     profileText: "Ioannis Kavouras is a graduate of the School of Rural, Surveying and Geo-Informatics Engineering of National Technical University of Athens (NTUA). Currently, he is a PhD candidate at the Photogrammetry Lab of NTUA. His expertise includes the development of AI-driven algorithms and applications for managing and  solving several engineering problems. Most of his developed applications utilize computer vision algorithm in combination with machine learning techniques for health diagnosis, climate change and smart urban development aiming at increasing the health and well-being of citizens and predicting the trends of various diseases (infectious and non-infectious). He has also participated, worked and is actively involved to several Hellenic and European funded research projects. In addition, he works as a professor at Metropolitan College (Marousi Department), teaching courses in the same domains.",
@@ -39,7 +40,8 @@ window.translations = {
     skillsRuralSurveying: "Rural Surveying",
     contactsHeader: "Contact me through",
     footerCopyright: "© 2025 Ioannis Kavouras. All rights reserved.",
-    footerFindMore: "Find more at:"
+    footerFindMore: "Find more at:",
+    certificatesHeader: "My Certificates"
   },
 
   gr: {
@@ -47,6 +49,7 @@ window.translations = {
     headerNavProjects: "Προγράμματα",
     headerNavSkills: "Δεξιότητες",
     headerNavPublications: "Δημοσιεύσεις",
+    headerNavCertificates: "Πιστοποιητικά",
     headerNavContact: "Επικοινωνία",
     profileHeader: "Ιωάννης Κάβουρας",
     profileText: "Ο Ιωάννης Κάβουρας είναι απόφοιτος της Σχολής Αγρονόμων, Τοπογράφου και Γεωπληροφορικής Μηχανικών του Εθνικού Μετσόβιου Πολυτεχνείου (ΕΜΠ). Αυτή τη στιγμή, είναι υποψήφιος διδάκτορας στο Εργαστήριο Φωτογραμμετρίας του ΕΜΠ. Η εξειδίκευσή του περιλαμβάνει την ανάπτυξη αλγορίθμων και εφαρμογών που βασίζονται στην Τεχνητή Νοημοσύνη για τη διαχείριση και επίλυση διαφόρων μηχανικών προβλημάτων. Οι περισσότερες από τις εφαρμογές που έχει αναπτύξει χρησιμοποιούν αλγόριθμους υπολογιστικής όρασης σε συνδυασμό με τεχνικές μηχανικής μάθησης για τη διάγνωση της υγείας, την κλιματική αλλαγή και την έξυπνη αστική ανάπτυξη, με στόχο την αύξηση της υγείας και της ευημερίας των πολιτών και την πρόβλεψη των τάσεων διαφόρων ασθενειών (μολυσματικών και μη μολυσματικών). Έχει επίσης συμμετάσχει, εργαστεί και συμμετέχει ενεργά σε πολλά ελληνικά και ευρωπαϊκά χρηματοδοτούμενα ερευνητικά έργα. Επιπλέον, εργάζεται ως καθηγητής στο Μητροπολιτικό Κολλέγιο (Τμήμα Αμαρουσίου), διδάσκοντας μαθήματα στους ίδιους τομείς.",
@@ -81,6 +84,7 @@ window.translations = {
     skillsRuralSurveying: "Γεωδαισία/Τοπογραφία",
     contactsHeader: "Επικοινωνήστε μαζί μου μέσω",
     footerCopyright: "© 2025 Ioannis Kavouras. Με επιφύλαξη παντός δικαιώματος.",
-    footerFindMore: "Βρείτε περισσότερα στα:"
+    footerFindMore: "Βρείτε περισσότερα στα:",
+    certificatesHeader: "Τα Πιστοποιητικά/Βεβαιώσεις μου"
   }
 };

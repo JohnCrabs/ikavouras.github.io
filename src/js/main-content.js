@@ -14,10 +14,11 @@ function loadMainContent(sectionId) {
   // Map section IDs to HTML files
   const paths = {
     profile: "src/html/profile.html",
-    publications: "src/html/publications.html",
-    contact: "src/html/contact.html",
     projects: "src/html/projects.html",
-    skills: "src/html/skills.html"
+    skills: "src/html/skills.html",
+    publications: "src/html/publications.html",
+    certificates: "src/html/certificates.html",
+    contact: "src/html/contact.html",
   };
 
   const path = paths[sectionId];
