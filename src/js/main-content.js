@@ -18,6 +18,7 @@ function loadMainContent(sectionId) {
     skills: "src/html/skills.html",
     publications: "src/html/publications.html",
     certificates: "src/html/certificates.html",
+    demo_material: "src/html/demo_material.html",
     contact: "src/html/contact.html",
   };
 

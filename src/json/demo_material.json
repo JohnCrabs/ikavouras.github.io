@@ -1,0 +1,24 @@
+[
+//  {
+//    "title": "3D Terrain Visualizer",
+//    "description": "Interactive viewer for terrain models derived from LiDAR and DEM data.",
+//    "links": [
+//      { "label": "Download", "url": "assets/demo_material/terrain_viewer.zip" },
+//      { "label": "GitHub", "url": "https://github.com/username/terrain-viewer" }
+//    ]
+//  },
+//  {
+//    "title": "Ocean Anomaly Detector",
+//    "description": "A simple demo showcasing an algorithm to detect temperature anomalies in satellite imagery.",
+//    "links": [
+//      { "label": "View Code", "url": "https://github.com/username/ocean-anomaly" }
+//    ]
+//  },
+//  {
+//    "title": "LST Model Example",
+//    "description": "An autoencoder-based example for generating Land Surface Temperature maps from Euro-CORDEX and DEM inputs.",
+//    "links": [
+//      { "label": "Colab Notebook", "url": "https://colab.research.google.com/..." }
+//    ]
+//  }
+]
