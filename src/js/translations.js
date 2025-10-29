@@ -41,7 +41,8 @@ window.translations = {
     contactsHeader: "Contact me through",
     footerCopyright: "© 2025 Ioannis Kavouras. All rights reserved.",
     footerFindMore: "Find more at:",
-    certificatesHeader: "My Certificates"
+    certificatesHeader: "My Certificates",
+    certificatesLoading: "Loading certificates..."
   },
 
   gr: {
@@ -85,6 +86,7 @@ window.translations = {
     contactsHeader: "Επικοινωνήστε μαζί μου μέσω",
     footerCopyright: "© 2025 Ioannis Kavouras. Με επιφύλαξη παντός δικαιώματος.",
     footerFindMore: "Βρείτε περισσότερα στα:",
-    certificatesHeader: "Τα Πιστοποιητικά/Βεβαιώσεις μου"
+    certificatesHeader: "Τα Πιστοποιητικά/Βεβαιώσεις μου",
+    certificatesLoading: "Φόρτωση Πιστοποιητικών/Βεβαιώσεων..."
   }
 };

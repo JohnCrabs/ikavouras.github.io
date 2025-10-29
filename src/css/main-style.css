@@ -436,7 +436,6 @@ footer p {
 /* ******************** */
 /* Publications Section */
 /* ******************** */
-/* Publications section */
 #publications {
   background-color: #f0f4f9;
   padding: 60px 20px;
@@ -512,4 +511,61 @@ footer p {
 
 .pub-btn.tertiary:hover {
   background-color: #cf6d16;
+}
+
+/* ********************** */
+/* Certifications Section */
+/* ********************** */
+#certificates {
+  background-color: #f0f4f9;
+  padding: 60px 20px;
+  text-align: justify;
+}
+
+#certificates h1 {
+  font-size: 2em;
+  margin-bottom: 40px;
+  color: #333;
+}
+
+.certificates {
+  background-color: #f7f9fc;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.certificates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.certificate-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  padding: 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.certificate-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.certificate-card img {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.certificate-card a {
+  color: inherit;
+  text-decoration: none;
 }
