@@ -5,5 +5,12 @@
     "links": [
       { "label": "Zenodo", "url": "https://zenodo.org/records/15874448" }
     ]
+  },
+  {
+    "title": "Test HTML",
+    "description": "Test HTML.",
+    "links": [
+      { "label": "HelloWorld", "url": "demo_mat/test/html/test.html" }
+    ]
   }
 ]
