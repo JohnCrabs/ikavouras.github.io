@@ -7,10 +7,10 @@
     ]
   },
   {
-    "title": "Test HTML",
-    "description": "Test HTML.",
+    "title": "Let's create a fun web page by interactive play",
+    "description": "This is a simple HTML, CSS and JS game, that slowly and steadily create a website. It's a material to help learners to think about web-development.",
     "links": [
-      { "label": "HelloWorld", "url": "demo_mat/test/html/test.html" }
+      { "label": "Start", "url": "demo_mat/gameBuildPage/start.html" }
     ]
   }
 ]
