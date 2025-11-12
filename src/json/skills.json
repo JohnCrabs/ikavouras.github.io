@@ -1,0 +1,69 @@
+{
+    "soft": {
+        "title": "Soft Skills",
+        "skills":[
+        "Adaptability", 
+        "Effective Communication & Teamwork",
+        "Creative & Critical Thinking",
+        "Problem Solving",
+        "Team Leadership",
+        "Time Management"
+        ]
+    },
+    "hard": {
+        "title": "Hard Skills",
+        "skills": [
+        "Artificial Intelligence",
+        "Augmented, Virtual & Mixed Realities",
+        "Big Data Analysis",
+        "Chartography & Mapping",
+        "Code Development",
+        "Computer Science & Systems",
+        "Computer Vision",
+        "Datacubes",
+        "Game Development",
+        "Machine Learning",
+        "Neural Networks",
+        "Photogrammetry",
+        "Remote Sensing",
+        "Risk Analysis",
+        "Rural Surveying / Topography / Geodecy"
+        ]
+    },
+    "technical": {
+        "title": "Technical Tools",
+        "skills": [
+            "AutoCAD",
+            "ArcGIS",
+            "Blender",
+            "Docker",
+            "FastAPI",
+            "Git (GitHub / GitLab)",
+            "Linux (Debian, Arch)",
+            "Meshroom",
+            "PyCharm",
+            "Unreal Engine 5",
+            "Visual Studio Code / Visual Studio"
+        ]
+    },
+    "programming": {
+        "title": "Programming Languages",
+        "skills": [
+            "C/C++",
+            "HTML / CSS / JavaScript",
+            "Python"
+        ]
+    },
+    "python": {
+        "title": "Python Libraries",
+        "skills": [
+            "OpenCV",
+            "PyGames",
+            "PyTorch",
+            "Tensorflow & Keras",
+            "TKinter / PyQt5 / PySide2",
+            "XArray & RioXArray"
+        ]
+    }
+
+}

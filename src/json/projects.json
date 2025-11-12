@@ -1,0 +1,50 @@
+{
+    "eupolis": {
+        "name": "Eupolis",
+        "link": "https://eupolis-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/869448",
+        "logo": "assets/projects/euPOLIS.png"
+    },
+    "harmonia": {
+        "name": "Harmonia",
+        "link": "https://harmonia-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/101003517",
+        "logo": "assets/projects/Harmonia.png"
+    },
+    "theia": {
+        "name": "Theia",
+        "link": "https://theia-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/101190051",
+        "logo": "assets/projects/Theia.png"
+    },
+    "vocorder": {
+        "name": "Vocorder",
+        "link": "https://www.vocorder-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/101115442",
+        "logo": "assets/projects/Vocorder.png"
+    },
+    "prevent": {
+        "name": "Prevent",
+        "link": "https://prevent-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/101104618",
+        "logo": "assets/projects/Prevent.png"
+    },
+    "panoptis": {
+        "name": "Panoptis",
+        "link": "https://https://panoptis.eu//",
+        "cordis": "https://cordis.europa.eu/project/id/769129",
+        "logo": "assets/projects/Panoptis.png"
+    },
+    "yades": {
+        "name": "Yades",
+        "link": "https://yades-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/872931",
+        "logo": "assets/projects/Yades.png"
+    },
+    "oceanids": {
+        "name": "Oceanids",
+        "link": "https://www.oceanids-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/726849",
+        "logo": "assets/projects/Oceanids.png"
+    }
+}

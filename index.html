@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-    <!-- Head -->
     <head>
-        <!-- Load Scripts -->
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- Change this to change the title -->
-        <title>Ioannis A Kavouras</title>
-        <link rel="shortcut icon" href="assets/index/logo_trans_32x32.png" type="image/png">
-        <!-- Load Styles -->
-        <link rel="stylesheet" href="src/css/main-style.css">
-        <!-- Load Scripts -->
-        <script src="src/js/header.js"></script>
-        <script src="src/js/footer.js"></script>
-        <script src="src/js/main-content.js"></script>
-        <script src="src/js/publications.js"></script>
-        <script src="src/js/loadCertificates.js"></script>
-        <script src="src/js/loadDemoMaterial.js"></script>
-        <script src="src/js/navigation.js" defer></script>
-        <script src="src/js/lang-switcher.js" defer></script>
-        <script src="src/js/translations.js" defer></script>
-        <script src="src/js/lang-handler.js" defer></script>
+        <title>Ioannis A. Kavouras</title>
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="assets/header/logo_trans_32x32.png" type="image/png">
+
+        <!-- Google Fonts Open Sans -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+
+        <!-- Stylesheet -->
+        <link rel="stylesheet" href="src/css/main.css">
+
+        <!-- Scripts -->
+
     </head>
+    
+    <body id="body" class="hidden">    
+        <header id="header"><!-- Dynamic load header content --></header>
 
-    <!-- Body -->
-    <body>
-        <!-- Header -->
-        <header id="header-placeholder"></header>
+        <main class="full-content">
+            <div id="main-content"><!-- Dynamic content will be loaded here --></div>
+        </main>
 
-        <!-- Main Content -->
-        <main id="main-content"></main>
-
-        <!-- Footer -->
-        <div id="footer-placeholder"></div>
+        <footer id="footer" class="full-width center"><!-- Dynamic load footer content --></footer>
+        
+        <script src="src/js/init.js"></script>
     </body>
 </html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Citations</title>
+
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="assets/header/logo_trans_32x32.png" type="image/png">
+
+        <!-- Google Fonts Open Sans -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+
+        <!-- Stylesheet -->
+        <link rel="stylesheet" href="../../css/main.css">
+
+        <!-- Scripts -->
+
+    </head>
+    
+    <body>
+        <div style="margin: auto;">
+            <div style="display: flex; align-items: center; flex-direction: column;">
+                <h2 style="text-align: center;">Text Citation</h2>
+                <button class="btn-style" onClick='copyToClipboard("textCitation")'>Copy to Clipboard</button>
+                <pre id="textCitation" class="citation-container"><pre>
+            </div>
+
+            <div style="display: flex; align-items: center; flex-direction: column;">
+                <h2 style="text-align: center;">Bibtex</h2>
+                <button class="btn-style" onClick='copyToClipboard("bibCitation")'>Copy to Clipboard</button>
+                <pre id="bibCitation" class="citation-container"><pre>
+            </div>
+        </div>
+
+         <script src="../../js/clipboard.js"></script>
+
+    </body>
+</html>
