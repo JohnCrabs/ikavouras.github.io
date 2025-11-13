@@ -1,77 +1,19 @@
 {
-    "en": {
-            "soft": {
-            "title": "Soft Skills",
-            "skills":[
-            "Adaptability", 
-            "Effective Communication & Teamwork",
-            "Creative & Critical Thinking",
-            "Problem Solving",
-            "Team Leadership",
-            "Time Management"
-            ]
+    "soft": {
+        "title": { 
+            "en": "Soft Skills",
+            "gr": "Ήπιες Δεξιότητες" 
         },
-        "hard": {
-            "title": "Hard Skills",
-            "skills": [
-            "Artificial Intelligence",
-            "Augmented, Virtual & Mixed Realities",
-            "Big Data Analysis",
-            "Chartography & Mapping",
-            "Code Development",
-            "Computer Science & Systems",
-            "Computer Vision",
-            "Datacubes",
-            "Game Development",
-            "Geoinformatics",
-            "Machine Learning",
-            "Neural Networks",
-            "Photogrammetry",
-            "Remote Sensing",
-            "Risk Analysis",
-            "Rural Surveying / Topography / Geodecy"
-            ]
-        },
-        "technical": {
-            "title": "Technical Tools",
-            "skills": [
-                "AutoCAD",
-                "ArcGIS",
-                "Blender",
-                "Docker",
-                "FastAPI",
-                "Git (GitHub / GitLab)",
-                "Linux (Debian, Arch)",
-                "Meshroom",
-                "PyCharm",
-                "Unreal Engine 5",
-                "Visual Studio Code / Visual Studio"
-            ]
-        },
-        "programming": {
-            "title": "Programming Languages",
-            "skills": [
-                "C/C++",
-                "HTML / CSS / JavaScript",
-                "Python"
-            ]
-        },
-        "python": {
-            "title": "Python Libraries",
-            "skills": [
-                "OpenCV",
-                "PyGames",
-                "PyTorch",
-                "Tensorflow & Keras",
-                "TKinter / PyQt5 / PySide2",
-                "XArray & RioXArray"
-            ]
-        }
-    },
-    "gr": {
-            "soft": {
-            "title": "Ήπιες Δεξιότητες",
-            "skills":[
+        "skills":{
+            "en": [
+                "Adaptability", 
+                "Effective Communication & Teamwork",
+                "Creative & Critical Thinking",
+                "Problem Solving",
+                "Team Leadership",
+                "Time Management"
+            ],
+            "gr": [
             "Ικανότητα Προσαρμογής", 
             "Αποτελεσματική Επικοινωνία & Ομαδική Εργασία",
             "Δημιουργική & Κριτική Σκέψη",
@@ -79,63 +21,95 @@
             "Ηγεσία Ομάδας",
             "Διαχείριση Χρόνου"
             ]
+        }
+    },
+    "hard": {
+        "title": {
+            "en": "Hard Skills",
+            "gr": "Σκληρές Δεξιότητες"
         },
-        "hard": {
-            "title": "Σκληρές Δεξιότητες",
-            "skills": [
-            "Τεχνητή νοημοσύνη",
-            "Επαυξημένες, Εικονικές & Μικτές Πραγματικότητες",
-            "Ανάλυση Μεγάλων Δεδομένων",
-            "Χαρτογραφία & Χαρτογράφηση",
-            "Ανάπτυξη Κώδιακα",
-            "Επιστήμη & Συστήματα Υπολιγιστών",
-            "Όραση Υπολογιστών",
-            "Κύβοι Δεδομένων",
-            "Ανάπτυξη Βιντεοπαιχνιδιών",
-            "Γεωπληροφορική",
-            "Μηχανική Μάθηση",
-            "Νευρωνικά Δίκτυα",
-            "Φωτογραμμετρία",
-            "Τηλεπισκόπηση",
-            "Ανάλυση Ρίσκου",
-            "Αγρονομία / Τοπογραφία / Γεωδαισία"
-            ]
-        },
-        "technical": {
-            "title": "Τεχνικά Εργαλεία",
-            "skills": [
-                "AutoCAD",
-                "ArcGIS",
-                "Blender",
-                "Docker",
-                "FastAPI",
-                "Git (GitHub / GitLab)",
-                "Linux (Debian, Arch)",
-                "Meshroom",
-                "PyCharm",
-                "Unreal Engine 5",
-                "Visual Studio Code / Visual Studio"
-            ]
-        },
-        "programming": {
-            "title": "Γλώσσες Προγραμματισμού",
-            "skills": [
-                "C/C++",
-                "HTML / CSS / JavaScript",
-                "Python"
-            ]
-        },
-        "python": {
-            "title": "Βιβλιοθήκες της Python",
-            "skills": [
-                "OpenCV",
-                "PyGames",
-                "PyTorch",
-                "Tensorflow & Keras",
-                "TKinter / PyQt5 / PySide2",
-                "XArray & RioXArray"
+        "skills": {
+            "en": [
+                "Artificial Intelligence",
+                "Augmented, Virtual & Mixed Realities",
+                "Big Data Analysis",
+                "Chartography & Mapping",
+                "Code Development",
+                "Computer Science & Systems",
+                "Computer Vision",
+                "Datacubes",
+                "Game Development",
+                "Geoinformatics",
+                "Machine Learning",
+                "Neural Networks",
+                "Photogrammetry",
+                "Remote Sensing",
+                "Risk Analysis",
+                "Rural Surveying / Topography / Geodecy"
+            ],
+            "gr": [
+                "Τεχνητή νοημοσύνη",
+                "Επαυξημένες, Εικονικές & Μικτές Πραγματικότητες",
+                "Ανάλυση Μεγάλων Δεδομένων",
+                "Χαρτογραφία & Χαρτογράφηση",
+                "Ανάπτυξη Κώδιακα",
+                "Επιστήμη & Συστήματα Υπολιγιστών",
+                "Όραση Υπολογιστών",
+                "Κύβοι Δεδομένων",
+                "Ανάπτυξη Βιντεοπαιχνιδιών",
+                "Γεωπληροφορική",
+                "Μηχανική Μάθηση",
+                "Νευρωνικά Δίκτυα",
+                "Φωτογραμμετρία",
+                "Τηλεπισκόπηση",
+                "Ανάλυση Ρίσκου",
+                "Αγρονομία / Τοπογραφία / Γεωδαισία"
             ]
         }
+    },
+    "technical": {
+        "title": {
+            "en": "Technical Tools",
+            "gr": "Τεχνικά Εργαλεία"
+        },
+        "skills": [
+            "AutoCAD",
+            "ArcGIS",
+            "Blender",
+            "Docker",
+            "FastAPI",
+            "Git (GitHub / GitLab)",
+            "Linux (Debian, Arch)",
+            "Meshroom",
+            "PyCharm",
+            "QGIS",
+            "Unreal Engine 5",
+            "Visual Studio Code / Visual Studio"
+        ]
+    },
+    "programming": {
+        "title": {
+            "en": "Programming Languages",
+            "gr": "Γλώσσες Προγραμματισμού"
+        },
+        "skills": [
+            "C/C++",
+            "HTML / CSS / JavaScript",
+            "Python"
+        ]
+    },
+    "python": {
+        "title": {
+            "en": "Python Libraries",
+            "gr": "Βιβλιοθήκες της Python"
+        },
+        "skills": [
+            "OpenCV",
+            "PyGames",
+            "PyTorch",
+            "Tensorflow & Keras",
+            "TKinter / PyQt5 / PySide2",
+            "XArray & RioXArray"
+        ]
     }
-        
 }

@@ -158,17 +158,18 @@ function loadSkills() {
             setSectionTitle("skills")
             const mainContainer = document.getElementById("skills-container");
             mainContainer.innerHTML = ""
-            data = data[LANG_PREF] || data["en"] || data;
             for (const key in data) {
              	const d_item = data[key];
                 const divBlock = document.createElement("div");
                 divBlock.classList.add("skills-item");
-
-                let newHTML = `<h2>${d_item["title"]}</h2>`
+                
+                const d_title = d_item["title"][LANG_PREF] || d_item["title"]["en"] || d_item["title"];
+                let newHTML = `<h2>${d_title}</h2>`
                 
                 newHTML = newHTML + `\n<ul>`
-                for (const sk in d_item["skills"]) {
-                    newHTML = newHTML + `\n<li>${d_item["skills"][sk]}</div>`
+                const d_skills = d_item["skills"][LANG_PREF] || d_item["skills"]["en"] || d_item["skills"];
+                for (const sk in d_skills) {
+                    newHTML = newHTML + `\n<li>${d_skills[sk]}</div>`
                 }
                 newHTML = newHTML + `\n</ul>`
 
