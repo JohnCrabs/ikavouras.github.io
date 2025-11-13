@@ -419,7 +419,7 @@ function refreshContent() {
     LANG_PREF = localStorage.getItem("lang");
     setTimeout(() => {
         setLanguage(LANG_PREF);
-    }, 100);
+    }, 1000);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
