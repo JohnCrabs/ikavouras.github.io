@@ -12,6 +12,7 @@ const BODY = document.getElementById("body");
 const NAV_PATHS = {
     "profile": "src/html/navs/profile.html",
     "projects": "src/html/navs/projects.html",
+    "collaborations": "src/html/navs/collaborations.html",
     "skills": "src/html/navs/skills.html",
     "publications": "src/html/navs/publications.html",
     "certificates": "src/html/navs/certificates.html",
@@ -23,6 +24,7 @@ const JSON_PATHS = {
     "header": "src/json/header.json",
     "profile": "src/json/profile.json",
     "projects": "src/json/projects.json",
+    "collaborations": "src/json/collaborations.json",
     "skills": "src/json/skills.json",
     "publications": "src/json/publications.json",
     "certificates": "src/json/certificates.json",
@@ -54,6 +56,7 @@ function loadHeader() {
             HEADER.innerHTML = html;
             setHeaderNav("profile");
             setHeaderNav("projects");
+            setHeaderNav("collaborations");
             setHeaderNav("skills");
             setHeaderNav("publications");
             setHeaderNav("certificates");
@@ -420,7 +423,7 @@ function refreshContent() {
     LANG_PREF = localStorage.getItem("lang");
     setTimeout(() => {
         setLanguage(LANG_PREF);
-    }, 1000);
+    }, 50);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -2,6 +2,7 @@
     "en": {
         "profile": "Profile",
         "projects": "Projects",
+        "collaborations": "Collaborations",
         "skills": "Skills",
         "publications": "Publications",
         "certificates": "Certificates",
@@ -11,6 +12,7 @@
     "gr": {
         "profile": "Προφίλ",
         "projects": "Προγράμματα",
+        "collaborations": "Συνεργασίες",
         "skills": "Δεξιότητες",
         "publications": "Δημοσιεύσεις",
         "certificates": "Πιστοποιήσεις",
