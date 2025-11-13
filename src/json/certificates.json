@@ -1,6 +1,9 @@
 {
   "ikavouras": {
-    "name": "Ioannis Kavouras",
+    "name": {
+      "en": "Ioannis Kavouras",
+      "gr": "Ιωάννης Κάβουρας"
+    },
     "certificates": [
         "ConferenceFestivalTNOC.pdf",
         "ConferenceITS2024.pdf",

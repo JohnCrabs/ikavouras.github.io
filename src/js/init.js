@@ -20,23 +20,45 @@ const NAV_PATHS = {
 };
 
 const JSON_PATHS = {
+    "header": "src/json/header.json",
     "profile": "src/json/profile.json",
     "projects": "src/json/projects.json",
     "skills": "src/json/skills.json",
     "publications": "src/json/publications.json",
     "certificates": "src/json/certificates.json",
     "demo": "src/json/demo.json",
-    "contact": "src/json/contact.json"
+    "contact": "src/json/contact.json",
+    "section_titles": "src/json/section_titles.json"
 }
 
 const CITATION_HTML = "src/html/common/citations.html"
 const CERTIFICATES_DIR = "assets/certificates/"
+let LANG_PREF = "en"
+
+
+function setHeaderNav(id){
+    const navItem = document.getElementById(`${id}-nav`);
+    if (navItem){
+        fetch(JSON_PATHS["header"])
+        .then(response => response.json())
+        .then(data => {
+            navItem.innerHTML = data[LANG_PREF][id] || data["en"][id] || navItem.innerHTML;
+        });
+    }
+}
 
 function loadHeader() {
     fetch("src/html/common/header.html")
         .then(response => response.text())
         .then(html => {
             HEADER.innerHTML = html;
+            setHeaderNav("profile");
+            setHeaderNav("projects");
+            setHeaderNav("skills");
+            setHeaderNav("publications");
+            setHeaderNav("certificates");
+            setHeaderNav("demo");
+            setHeaderNav("contact");
         })
         .catch(error => {
             console.error("Error loading header:", error);
@@ -56,13 +78,26 @@ function loadFooter() {
         });
 }
 
+function setSectionTitle(curr_section){
+    fetch(JSON_PATHS["section_titles"])
+        .then(response => response.json())
+        .then(data => {
+            const secTitle = document.getElementById("section-title");
+            if (secTitle) {
+                secTitle.innerHTML = data[curr_section][LANG_PREF] || data[curr_section]["en"] || secTitle.innerHTML;
+            }
+        });
+}
+
 function loadProfile() {
     fetch(JSON_PATHS["profile"])
         .then(response => response.json())
         .then(data => {
+            // setSectionTitle("profile")
             const mainContainer = document.getElementById("profile-container");
             mainContainer.innerHTML = ""
             let counter = 0;
+            data = data[LANG_PREF] || data["en"];
             for (const key in data) {
              	const d_item = data[key];
                 const divBlock = document.createElement("div");
@@ -98,6 +133,7 @@ function loadProjects() {
     fetch(JSON_PATHS["projects"])
         .then(response => response.json())
         .then(data => {
+            setSectionTitle("projects")
             const mainContainer = document.getElementById("projects-container");
             mainContainer.innerHTML = ""
             for (const key in data) {
@@ -119,8 +155,10 @@ function loadSkills() {
     fetch(JSON_PATHS["skills"])
         .then(response => response.json())
         .then(data => {
+            setSectionTitle("skills")
             const mainContainer = document.getElementById("skills-container");
             mainContainer.innerHTML = ""
+            data = data[LANG_PREF] || data["en"] || data;
             for (const key in data) {
              	const d_item = data[key];
                 const divBlock = document.createElement("div");
@@ -161,6 +199,7 @@ function loadPublications() {
     fetch(JSON_PATHS["publications"])
         .then(response => response.json())
         .then(data => {
+            setSectionTitle("publications")
             const mainContainer = document.getElementById("publications-container");
             mainContainer.innerHTML = ""
             for (const key in data) {
@@ -172,8 +211,8 @@ function loadPublications() {
                 
                 divBlock.innerHTML = `
                 <h2>${d_item["title"]}</h2>
-                <p><strong>Authors:</strong>${d_item["authors"]}</p>
-                <p><strong>Year:</strong>${d_item["year"]}</p>
+                <p><strong>Authors: </strong>${d_item["authors"]}</p>
+                <p><strong>Year:</strong> ${d_item["year"]}</p>
                 <div>
                     <a class="btn-style" href="${d_item["source"]}" target="_blank" rel="noopener noreferrer">View Source</a>
                     <a class="btn-style tertiary" href="${d_item["pdf"]}" target="_blank" rel="noopener noreferrer" onClick="">Open PDF</a>
@@ -189,6 +228,7 @@ function loadCertificates() {
     fetch(JSON_PATHS["certificates"])
         .then(response => response.json())
         .then(data => {
+            setSectionTitle("certificates")
             const mainContainer = document.getElementById("certificates-container");
             mainContainer.innerHTML = ""
             for (const key in data) {
@@ -198,11 +238,13 @@ function loadCertificates() {
                 const divBlock = document.createElement("div");
                 divBlock.classList.add("certificate-item");
                 
-                let newHTML = `<h2>${d_item["name"]}</h2>\n`;
+                const h2_name = d_item["name"][LANG_PREF] || d_item["name"]["en"] || d_item["name"];
+
+                let newHTML = `<h2>${h2_name}</h2>\n`;
                 let divEntry = `<div class="certificate-grid">`;
 
                 for (const f in d_item["certificates"]) {
-                    const f_name = d_item["certificates"][f]
+                    const f_name = d_item["certificates"][f];
                     const c_path = crt_path + d_item["certificates"][f];
                     divEntry = divEntry + `
                     <div class="certificate-card">
@@ -230,20 +272,22 @@ function loadDemo() {
     fetch(JSON_PATHS["demo"])
         .then(response => response.json())
         .then(data => {
+            setSectionTitle("demo")
             const mainContainer = document.getElementById("demo-container");
             mainContainer.innerHTML = ""
+            data = data[LANG_PREF] || data["en"] || data;
             for (const key in data) {
              	const d_item = data[key];
                 const divBlock = document.createElement("div");
                 divBlock.classList.add("demo-item");
                 let newHTML = `
-                    <h2>${d_item["title"]}</h2>\n
-                    <p>${d_item["description"]}</p>\n
+                    <h2>${d_item["title"][LANG_PREF] || d_item["title"]["en"] || d_item["title"]}</h2>\n
+                    <p>${d_item["description"][LANG_PREF] || d_item["description"]["en"] || d_item["description"]}</p>\n
                 `;
                 let divEntry = `<div>`;
                 for (const l in d_item["links"]) {
                     d_link = d_item["links"][l];
-                    divEntry = divEntry + `\n<a href="${d_link['url']}" class="btn-style" target="_blank" rel="noopener noreferrer">${d_link['label']}</a>`;
+                    divEntry = divEntry + `\n<a href="${d_link['url']}" class="btn-style" target="_blank" rel="noopener noreferrer">${d_link['label'][LANG_PREF] || d_link['label']["en"] || d_link['label']}</a>`;
                 }
                 divEntry = divEntry + `<div>`;
                 newHTML = newHTML + divEntry;
@@ -253,14 +297,17 @@ function loadDemo() {
         });
 }
 
-function genParsFromList(list, list_name) {
+function genParsFromList(obj) {
+    const category = obj["category"][LANG_PREF] || obj["category"]["en"] || obj["category"];
+    const value = obj["value"][LANG_PREF] || obj["value"]["en"] || obj["value"];
+    
     let o_text = "";
-    for (const l in list) {
-        if (list.length > 1) {
-            l_num = Number(l) + 1;
-            o_text = o_text + `\n<p><strong>${list_name} ${l_num}:</strong><br> ${list[l]}<p>`;
+    for (const it in value) {
+        if (value.length > 1) {
+            l_num = Number(it) + 1;
+            o_text = o_text + `\n<p><strong>${category} ${l_num}:</strong><br> ${value[it]}<p>`;
         } else {
-            o_text = o_text + `\n<p><strong>${list_name}:</strong><br> ${list[l]}<p>`;
+            o_text = o_text + `\n<p><strong>${category}:</strong><br> ${value[it]}<p>`;
         }
     }
     return o_text;
@@ -270,6 +317,7 @@ function loadContact() {
     fetch(JSON_PATHS["contact"])
         .then(response => response.json())
         .then(data => {
+            setSectionTitle("contact")
             const mainContainer = document.getElementById("contact-container");
             mainContainer.innerHTML = ""
             for (const key in data) {
@@ -277,11 +325,11 @@ function loadContact() {
                 const divBlock = document.createElement("div");
                 divBlock.classList.add("contact-item");
                 let newHTML = `
-                    <h2>${d_item["name"]}</h2>\n
+                    <h2>${d_item["name"][LANG_PREF] || d_item["name"]["en"] || d_item["name"]}</h2>\n
                 `;
-                const addressEntry = genParsFromList(d_item["addresses"], "Address");
-                const phoneEntry = genParsFromList(d_item["phones"], "Phone");
-                const mailEntry = genParsFromList(d_item["mails"], "Mail");
+                const addressEntry = genParsFromList(d_item["addresses"]);
+                const phoneEntry = genParsFromList(d_item["phones"]);
+                const mailEntry = genParsFromList(d_item["mails"]);
                 
                 newHTML = newHTML + addressEntry + phoneEntry + mailEntry
                 
@@ -293,7 +341,7 @@ function loadContact() {
 
 function loadContent(content) {
     const NAVS = document.getElementsByClassName("nav-link");
-    console.log("Loading content for:", content);
+    // console.log("Loading content for:", content);
     fetch(NAV_PATHS[content])
         .then(response => response.text())
         .then(html => {
@@ -305,12 +353,12 @@ function loadContent(content) {
 
             try {
                 const CURRENT_NAV = document.getElementById(content + "-nav");
-                console.log("Current Nav:", CURRENT_NAV);
+                // console.log("Current Nav:", CURRENT_NAV);
                 CURRENT_NAV.classList.add("highlight-current-nav");
             } catch (error) {
                 setTimeout(() => {
                     const CURRENT_NAV = document.getElementById(content + "-nav");
-                    console.log("Current Nav (delayed):", CURRENT_NAV);
+                    // console.log("Current Nav (delayed):", CURRENT_NAV);
                     CURRENT_NAV.classList.add("highlight-current-nav");
                 }, 1000);
             }
@@ -339,16 +387,39 @@ function loadContent(content) {
         });
 }
 
+function setLanguage(lang) {
+    const lang_btns = document.getElementsByClassName("lang-button");
+    for (const btn in lang_btns){
+        if (lang_btns[btn].classList){
+            lang_btns[btn].classList.remove("highlight-current-nav");
+        }
+    }
+    const sel_lang_btns = document.getElementById(`lang-${lang}`);
+    if (sel_lang_btns){
+        sel_lang_btns.classList.add("highlight-current-nav");
+        localStorage.setItem("lang", lang);
+        if (lang != LANG_PREF){
+            LANG_PREF = lang;
+            loadHeader();
+            loadFooter();
+            refreshContent();
+        }
+    }
+}
+
 function refreshContent() {
     let hash = window.location.hash.substring(1);
-            console.log("URL Hash:", hash);
-            if (hash && NAV_PATHS.hasOwnProperty(hash)) {
-                loadContent(hash);
-                return;
-            } else {
-                loadContent("profile");
-                window.location.hash = "#profile";
-            }
+    // console.log("URL Hash:", hash);
+    if (hash && NAV_PATHS.hasOwnProperty(hash)) {
+        loadContent(hash);
+    } else {
+        loadContent("profile");
+        window.location.hash = "#profile";
+    }
+    LANG_PREF = localStorage.getItem("lang");
+    setTimeout(() => {
+        setLanguage(LANG_PREF);
+    }, 100);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -361,3 +432,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load default content
     refreshContent();
 });
+
+window.onhashchange = function() {
+    refreshContent();
+}
+

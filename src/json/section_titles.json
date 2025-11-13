@@ -1,0 +1,30 @@
+{
+  "profile": {
+    "en": "Profile",
+    "gr": "Προφίλ"
+  },
+  "projects": {
+    "en": "Collaboration in Projects",
+    "gr": "Συμμετοχή σε Προγράμματα"
+  },
+  "skills": {
+    "en": "My Skills",
+    "gr": "Οι Δεξιότητές μου"
+  },
+  "publications": {
+    "en": "Scientific Publications",
+    "gr": "Επιστημονικές Δημοσιεύσεις"
+  },
+  "certificates": {
+    "en": "Certificates",
+    "gr": "Πιστοποιήσεις"
+  },
+  "demo": {
+    "en": "Demo Material",
+    "gr": "Υλικό Επίδειξης"
+  },
+  "contact": {
+    "en": "Contact",
+    "gr": "Επικοινωνία"
+  }
+}

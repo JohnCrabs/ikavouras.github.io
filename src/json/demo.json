@@ -1,7 +1,10 @@
 {
   "eupolisGame": {
         "title": "The euPOLIS Game",
-        "description": "An interactive game created for the euPOLIS project aiming to promote Nature Based Solutions and Co-Creation concepts to citizens.",
+        "description": {
+          "en": "An interactive game created for the euPOLIS project aiming to promote Nature Based Solutions and Co-Creation concepts to citizens.",
+          "gr": "Ένα διαδραστικό παιχνίδι που δημιουργήθηκε για το έργο euPOLIS με στόχο την προώθηση λύσεων βασισμένων στη φύση και εννοιών συνδημιουργίας στους πολίτες."
+        },
         "links": [
             { "label": "Zenodo", "url": "https://zenodo.org/records/15874448" }
         ]

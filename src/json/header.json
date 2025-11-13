@@ -1,0 +1,20 @@
+{
+    "en": {
+        "profile": "Profile",
+        "projects": "Projects",
+        "skills": "Skills",
+        "publications": "Publications",
+        "certificates": "Certificates",
+        "demo": "Demo-Material",
+        "contact": "Contact"
+    },
+    "gr": {
+        "profile": "Προφίλ",
+        "projects": "Προγράμματα",
+        "skills": "Δεξιότητες",
+        "publications": "Δημοσιεύσεις",
+        "certificates": "Πιστοποιήσεις",
+        "demo": "Υλικό-Επίδειξης",
+        "contact": "Επικοινωνία"
+    }
+}

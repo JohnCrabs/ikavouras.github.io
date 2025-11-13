@@ -1,8 +1,8 @@
 {
     "ikavouras": {
-        "name": "Ioannis Kavouras",
-        "addresses": [],
-        "phones": [],
-        "mails": ["kavouras.ioannis@gmail.com", "ikavouras@mail.ntua.gr", "ikavouras@mitropolitiko.edu.gr"]
+        "name": {"en": "Ioannis Kavouras", "gr": "Ιωάννης Κάβουρας"},
+        "addresses": {"category": {"en": "Address", "gr": "Διεύθυνση"}, "value":{"en":["Zografou Campus, 9 Iroon Polytechniou str, 15772, Zografou"], "gr": ["Πολυτεχνειούπολη Ζωγράφου, Ηρώων Πολυτεχνείου 9, 15772, Ζωγράφου"]}},
+        "phones": {"category": {"en": "Phone", "gr": "Τηλέφωνο"}, "value":[]},
+        "mails": {"category": "Mail", "value":["kavouras.ioannis@gmail.com", "ikavouras@mail.ntua.gr", "ikavouras@mitropolitiko.edu.gr"]}
     }
 }
