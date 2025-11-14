@@ -176,9 +176,9 @@ function loadCollaborations() {
                 const divBlock = document.createElement("div");
                 divBlock.classList.add("collaborations-item");
                 
-                const d_name = d_item["name"][LANG_PREF] || d_item["logo"]["en"] || d_item["name"];
+                const d_name = d_item["name"][LANG_PREF] || d_item["name"]["en"] || d_item["name"];
                 const d_logo = d_item["logo"][LANG_PREF] || d_item["logo"]["en"] || d_item["logo"];
-                const d_link = d_item["link"][LANG_PREF] || d_item["logo"]["en"] || d_item["link"];
+                const d_link = d_item["link"][LANG_PREF] || d_item["link"]["en"] || d_item["link"];
                 
                 divBlock.innerHTML = `
                     <img src="${d_logo}" alt="${key}-logo" class="collaborations-image"/>
