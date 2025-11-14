@@ -1,0 +1,52 @@
+{
+    "ntua": {
+        "name": {
+            "en": "National Technical University of Athens (NTUA)",
+            "gr": "Εθνικό Μετσόβιο Πολυτεχνείο (ΕΜΠ)"
+        },
+        "link": {
+            "en": "https://ntua.gr/en",
+            "gr": "https://ntua.gr/el"
+        },
+        "logo": "https://www.ece.ntua.gr/themes/ecetheme/assets/img/pyrforos.svg"
+    },
+    "iccs": {
+        "name": {
+            "en": "Institute of Communication & Computer Systems (ICCS)",
+            "gr": "Ερευνητικό Πανεπιστημιακό Ινστιτούτο Συστημάτων Επικοινωνίας & Υπολογιστών (ΕΠΙΣΕΥ)"
+        },
+        "link": {
+            "en": "https://www.iccs.gr/",
+            "gr": "https://www.iccs.gr/el"
+            },
+        "logo": "https://www.iccs.gr/wp-content/uploads/2025/06/EPISEY-logo-new-500.png"
+    },
+    "metropolitan-college": {
+        "name": {
+            "en": "Metropolitan College",
+            "gr": "Μητροπολιτικό Κολλέγιο"
+        },
+        "link": {
+            "en": "https://www.mitropolitiko.edu.gr/en",
+            "gr": "https://www.mitropolitiko.edu.gr/"
+        },
+        "logo": {
+            "en": "https://www.uel.ac.uk/sites/default/files/styles/image_1266x712/public/metropolitan-college-new-logo.png.webp?itok=XHxBENwd",
+            "gr": "https://www.mitropolitiko.edu.gr/wp-content/uploads/2021/09/MK_LOGO_SEO_1200x630.png"
+        }
+    },
+    "crethidev": {
+        "name": {
+            "en": "Creative Thinking Development (CRETHIDEV)",
+            "gr": "Δημιουργική Σκέψη Ανάπτυξης (ΔΗΣΚΕΑΝ)"
+        },
+        "link": {
+            "en": "https://www.crethidev.gr/",
+            "gr": "https://el.crethidev.gr/"
+        },
+        "logo": {
+            "en": "https://static.wixstatic.com/media/4295e3_133f1e7a79eb49ad9fe4047c67cb16c5~mv2.png/v1/fill/w_279,h_50,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/CRETHIDEV-TRANSPARENT.png",
+            "gr": "https://static.wixstatic.com/media/4295e3_6816984668234956b7978b5847ae30fc~mv2.png/v1/fill/w_279,h_50,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/%CE%94%CE%97%CE%A3%CE%9A%CE%95%CE%91%CE%9D-TRANSP.png"
+        }
+    }
+}

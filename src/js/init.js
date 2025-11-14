@@ -5,10 +5,18 @@ Initialize the page on load.
 
 "strict mode";
 
+/* MAIN COMPONENTS */
 const HEADER = document.getElementById("header");
 const FOOTER = document.getElementById("footer");
 const MAIN_CONTENT = document.getElementById("main-content");
 const BODY = document.getElementById("body");
+
+
+/* STYLE FLAGS */
+const STYLE_HIGHLIGHT = "highlight-selected";
+
+
+/* PATH INFO */
 const NAV_PATHS = {
     "profile": "src/html/navs/profile.html",
     "projects": "src/html/navs/projects.html",
@@ -31,11 +39,13 @@ const JSON_PATHS = {
     "demo": "src/json/demo.json",
     "contact": "src/json/contact.json",
     "section_titles": "src/json/section_titles.json"
-}
+};
 
-const CITATION_HTML = "src/html/common/citations.html"
-const CERTIFICATES_DIR = "assets/certificates/"
-let LANG_PREF = "en"
+const CITATION_HTML = "src/html/common/citations.html";
+const CERTIFICATES_DIR = "assets/certificates/";
+
+/* UTILITY VARIABLES */
+let LANG_PREF = "en";
 
 
 function setHeaderNav(id){
@@ -147,6 +157,32 @@ function loadProjects() {
                 <img src="${d_item["logo"]}" alt="${key}-logo" class="project-image"/>
                 <a href="${d_item["link"]}" target="_blank" class="project-title">${d_item["name"]}</a>
                 <a href="${d_item["cordis"]}" target="_blank" class="project-link">[eu-cordis]</a>
+                `;
+
+                mainContainer.appendChild(divBlock);
+            }
+        });
+}
+
+function loadCollaborations() {
+    fetch(JSON_PATHS["collaborations"])
+        .then(response => response.json())
+        .then(data => {
+            setSectionTitle("collaborations")
+            const mainContainer = document.getElementById("collaborations-container");
+            mainContainer.innerHTML = ""
+            for (const key in data) {
+             	const d_item = data[key];
+                const divBlock = document.createElement("div");
+                divBlock.classList.add("collaborations-item");
+                
+                const d_name = d_item["name"][LANG_PREF] || d_item["logo"]["en"] || d_item["name"];
+                const d_logo = d_item["logo"][LANG_PREF] || d_item["logo"]["en"] || d_item["logo"];
+                const d_link = d_item["link"][LANG_PREF] || d_item["logo"]["en"] || d_item["link"];
+                
+                divBlock.innerHTML = `
+                    <img src="${d_logo}" alt="${key}-logo" class="collaborations-image"/>
+                    <a href="${d_link}" target="_blank" class="collaborations-title">${d_name}</a>
                 `;
 
                 mainContainer.appendChild(divBlock);
@@ -352,18 +388,18 @@ function loadContent(content) {
             MAIN_CONTENT.innerHTML = html;
             // Update active class on navigation links
             Array.from(NAVS).forEach(nav => {
-                nav.classList.remove("highlight-current-nav");
+                nav.classList.remove(STYLE_HIGHLIGHT);
             });
 
             try {
                 const CURRENT_NAV = document.getElementById(content + "-nav");
                 // console.log("Current Nav:", CURRENT_NAV);
-                CURRENT_NAV.classList.add("highlight-current-nav");
+                CURRENT_NAV.classList.add(STYLE_HIGHLIGHT);
             } catch (error) {
                 setTimeout(() => {
                     const CURRENT_NAV = document.getElementById(content + "-nav");
                     // console.log("Current Nav (delayed):", CURRENT_NAV);
-                    CURRENT_NAV.classList.add("highlight-current-nav");
+                    CURRENT_NAV.classList.add(STYLE_HIGHLIGHT);
                 }, 1000);
             }
 
@@ -371,6 +407,8 @@ function loadContent(content) {
                 loadProfile();
             } else if (content === "projects") {
                 loadProjects();
+            } else if (content === "collaborations") {
+                loadCollaborations();
             } else if (content === "skills") {
                 loadSkills();
             } else if (content === "publications") {
@@ -382,8 +420,6 @@ function loadContent(content) {
             } else if (content === "contact") {
                 loadContact();
             }
-
-
         })
         .catch(error => {
             console.error("Error loading content:", error);
@@ -395,12 +431,12 @@ function setLanguage(lang) {
     const lang_btns = document.getElementsByClassName("lang-button");
     for (const btn in lang_btns){
         if (lang_btns[btn].classList){
-            lang_btns[btn].classList.remove("highlight-current-nav");
+            lang_btns[btn].classList.remove(STYLE_HIGHLIGHT);
         }
     }
     const sel_lang_btns = document.getElementById(`lang-${lang}`);
     if (sel_lang_btns){
-        sel_lang_btns.classList.add("highlight-current-nav");
+        sel_lang_btns.classList.add(STYLE_HIGHLIGHT);
         localStorage.setItem("lang", lang);
         if (lang != LANG_PREF){
             LANG_PREF = lang;
