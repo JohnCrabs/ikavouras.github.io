@@ -429,13 +429,14 @@ function loadContent(content) {
 
 function setLanguage(lang) {
     const lang_btns = document.getElementsByClassName("lang-button");
-    for (const btn in lang_btns){
-        if (lang_btns[btn].classList){
-            lang_btns[btn].classList.remove(STYLE_HIGHLIGHT);
-        }
-    }
     const sel_lang_btns = document.getElementById(`lang-${lang}`);
-    if (sel_lang_btns){
+        if (sel_lang_btns){
+        for (const btn in lang_btns){
+            if (lang_btns[btn].classList){
+                lang_btns[btn].classList.remove(STYLE_HIGHLIGHT);
+            }
+        }
+            
         sel_lang_btns.classList.add(STYLE_HIGHLIGHT);
         localStorage.setItem("lang", lang);
         if (lang != LANG_PREF){
