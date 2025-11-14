@@ -1,8 +1,8 @@
 {
     "ntua": {
         "name": {
-            "en": "National Technical University of Athens (NTUA)",
-            "gr": "Εθνικό Μετσόβιο Πολυτεχνείο (ΕΜΠ)"
+            "en": "NTUA",
+            "gr": "ΕΜΠ"
         },
         "link": {
             "en": "https://ntua.gr/en",
@@ -12,8 +12,8 @@
     },
     "iccs": {
         "name": {
-            "en": "Institute of Communication & Computer Systems (ICCS)",
-            "gr": "Ερευνητικό Πανεπιστημιακό Ινστιτούτο Συστημάτων Επικοινωνίας & Υπολογιστών (ΕΠΙΣΕΥ)"
+            "en": "ICCS",
+            "gr": "ΕΠΙΣΕΥ"
         },
         "link": {
             "en": "https://www.iccs.gr/",
@@ -30,15 +30,12 @@
             "en": "https://www.mitropolitiko.edu.gr/en",
             "gr": "https://www.mitropolitiko.edu.gr/"
         },
-        "logo": {
-            "en": "https://www.uel.ac.uk/sites/default/files/styles/image_1266x712/public/metropolitan-college-new-logo.png.webp?itok=XHxBENwd",
-            "gr": "https://www.mitropolitiko.edu.gr/wp-content/uploads/2021/09/MK_LOGO_SEO_1200x630.png"
-        }
+        "logo": "https://www.uel.ac.uk/sites/default/files/styles/image_1266x712/public/metropolitan-college-new-logo.png.webp?itok=XHxBENwd"
     },
     "crethidev": {
         "name": {
-            "en": "Creative Thinking Development (CRETHIDEV)",
-            "gr": "Δημιουργική Σκέψη Ανάπτυξης (ΔΗΣΚΕΑΝ)"
+            "en": "CRETHIDEV",
+            "gr": "ΔΗΣΚΕΑΝ"
         },
         "link": {
             "en": "https://www.crethidev.gr/",

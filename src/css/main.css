@@ -350,11 +350,17 @@ footer {
 }
 
 .collaborations-image {
-    display: block;
-    padding: 5px;
-    margin: 10px auto;
-    max-width: 156px;
-    max-height: auto;
+    width: 140px;
+    height: 140px;
+    object-fit: contain;               /* image stays inside the box */
+    display: flex;
+    margin: 0 auto;                    /* horizontal center */
+
+    /* Center vertically inside the item */
+    flex-grow: 1;
+    align-self: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .collaborations-title,
@@ -398,7 +404,6 @@ footer {
     margin: 0 auto;
 }
 
-.collaborations-item,
 .skills-item, 
 .contact-item {
     border-radius: 12px;
@@ -410,11 +415,29 @@ footer {
     height: 98%;
 }
 
+#collaborations-container {
+    align-items: stretch;
+}
+
+/* Collaboration Item — equal size + proper centering */
+.collaborations-title {
+    font-size: 20px;
+}
+
 .collaborations-item {
     display: flex;
     flex-direction: column;
-    vertical-align: bottom;
-    height: fit-content;
+    justify-content: flex-start;       /* Titles stay at top */
+    align-items: center;               /* Center items horizontally */
+
+    width: 200px;
+    min-height: 200px;                 /* <<< This forces equal height */
+    padding: 20px 30px;
+
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .collaborations-item:hover,
