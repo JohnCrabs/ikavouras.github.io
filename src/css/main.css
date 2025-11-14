@@ -174,7 +174,11 @@ body {
     padding: 0px 10px 0px 10px;
     width: 100%;
     height: auto;
-    max-height: 300px;
+    max-height: 210px;
+}
+
+#header {
+    min-height: 210px;
 }
 
 /* Footer Style */
@@ -196,13 +200,17 @@ footer {
     max-width: 80px;
     height: auto;
     border-radius: 0% 50% 100% 50%;
-    margin: 10px 0px 0px 0px;
+    margin: 10px 0px 0px 20px;
+}
+
+.navbar{
+    margin: 25px;
 }
 
 .navbar a {
     font-weight: bold;
     text-decoration: none;
-    padding: 15px 5px 15px 5px;
+    padding: 0px 2.5px 0px 2.5px;
 }
 
 .nav-link {
@@ -617,8 +625,8 @@ footer {
 
 /* Media */
 @media (max-width: 1024px) {
-    .profile-description{
-        max-width: 80%;
+    #header, #footer {
+        max-height: 300px;
     }
 }
 
@@ -633,10 +641,6 @@ footer {
 
     .header-title {
         font-size: 30px;
-    }
-
-    .nav-link {
-        font-size: 18px;
     }
 
     .lang-container{
