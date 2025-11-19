@@ -5,17 +5,41 @@
         "cordis": "https://cordis.europa.eu/project/id/869448",
         "logo": "assets/projects/euPOLIS.png"
     },
+    "yades": {
+        "name": "Yades",
+        "link": "https://yades-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/872931",
+        "logo": "assets/projects/Yades.png"
+    },
+    "panoptis": {
+        "name": "Panoptis",
+        "link": "https://https://panoptis.eu//",
+        "cordis": "https://cordis.europa.eu/project/id/769129",
+        "logo": "assets/projects/Panoptis.png"
+    },
     "harmonia": {
         "name": "Harmonia",
         "link": "https://harmonia-project.eu/",
         "cordis": "https://cordis.europa.eu/project/id/101003517",
         "logo": "assets/projects/Harmonia.png"
     },
+    "oceanids": {
+        "name": "Oceanids",
+        "link": "https://www.oceanids-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/726849",
+        "logo": "assets/projects/Oceanids.png"
+    },
     "theia": {
         "name": "Theia",
         "link": "https://theia-project.eu/",
         "cordis": "https://cordis.europa.eu/project/id/101190051",
         "logo": "assets/projects/Theia.png"
+    },
+    "stamina": {
+        "name": "Stamina",
+        "link": "https://www.stamina-project.eu/",
+        "cordis": "https://cordis.europa.eu/project/id/883441",
+        "logo": "assets/projects/Stamina.png"
     },
     "vocorder": {
         "name": "Vocorder",
@@ -28,23 +52,5 @@
         "link": "https://prevent-project.eu/",
         "cordis": "https://cordis.europa.eu/project/id/101104618",
         "logo": "assets/projects/Prevent.png"
-    },
-    "panoptis": {
-        "name": "Panoptis",
-        "link": "https://https://panoptis.eu//",
-        "cordis": "https://cordis.europa.eu/project/id/769129",
-        "logo": "assets/projects/Panoptis.png"
-    },
-    "yades": {
-        "name": "Yades",
-        "link": "https://yades-project.eu/",
-        "cordis": "https://cordis.europa.eu/project/id/872931",
-        "logo": "assets/projects/Yades.png"
-    },
-    "oceanids": {
-        "name": "Oceanids",
-        "link": "https://www.oceanids-project.eu/",
-        "cordis": "https://cordis.europa.eu/project/id/726849",
-        "logo": "assets/projects/Oceanids.png"
     }
 }
