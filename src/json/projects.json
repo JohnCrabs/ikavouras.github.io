@@ -52,5 +52,11 @@
         "link": "https://prevent-project.eu/",
         "cordis": "https://cordis.europa.eu/project/id/101104618",
         "logo": "assets/projects/Prevent.png"
+    },
+    "nuric": {
+        "name": "Nuric",
+        "link": "https://nuric-eu.com/",
+        "cordis": "https://www.erasmusplus.org.il/nuric",
+        "logo": "assets/projects/Nuric.png"
     }
 }
