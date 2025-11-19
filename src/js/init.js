@@ -155,8 +155,9 @@ function loadProjects() {
                 divBlock.classList.add("project-item");
                 divBlock.innerHTML = `
                 <img src="${d_item["logo"]}" alt="${key}-logo" class="project-image"/>
+                <p style="font-size: 12px;"><strong>Role:</strong> ${d_item["role"]}</p>
                 <a href="${d_item["link"]}" target="_blank" class="project-title">${d_item["name"]}</a>
-                <a href="${d_item["cordis"]}" target="_blank" class="project-link">[eu-cordis]</a>
+                <a href="${d_item["eu_source"]}" target="_blank" class="project-link">[${d_item["eu_source_name"]}]</a>
                 `;
 
                 mainContainer.appendChild(divBlock);
