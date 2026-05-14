@@ -514,6 +514,217 @@
       line-height: 1.4;
     }
 
+
+    .right-sidebar-toggle {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      z-index: 930;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.16);
+      font-size: 17px;
+    }
+
+    .right-sidebar-toggle:hover { background: #f1f5fa; }
+
+    .right-sidebar {
+      position: absolute;
+      right: 18px;
+      top: 70px;
+      bottom: 78px;
+      z-index: 925;
+      width: 360px;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 15px;
+      font-family: Arial, Helvetica, sans-serif;
+      display: none;
+      overflow-y: auto;
+    }
+
+    .right-sidebar.open { display: block; }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .sidebar-title {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: #f0f3f7;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .sidebar-section {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .sidebar-section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+
+    .sidebar-section-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .upload-button {
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      border: 1px solid var(--blue);
+      background: var(--blue);
+      color: #ffffff;
+      cursor: pointer;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .upload-button:hover { filter: brightness(0.95); }
+    .json-file-input { display: none; }
+
+    .sidebar-small-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .json-layer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .json-layer-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px;
+      background: #f8fafc;
+      font-size: 12px;
+    }
+
+    .json-layer-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .json-layer-name {
+      font-weight: 800;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .json-layer-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .json-layer-actions button,
+    .json-layer-controls button {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 5px 7px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .json-layer-actions button:hover,
+    .json-layer-controls button:hover { background: #eef2f6; }
+
+    .json-layer-meta {
+      color: var(--muted);
+      line-height: 1.35;
+      margin-top: 6px;
+    }
+
+    .json-layer-select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px;
+      font-size: 12px;
+      margin-top: 7px;
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    .json-layer-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 7px;
+    }
+
+    .sidebar-message {
+      display: none;
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 7px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      line-height: 1.35;
+    }
+
+    .sidebar-message.error {
+      display: block;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: #ffd0d0;
+    }
+
+    .sidebar-message.success {
+      display: block;
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #abefc6;
+    }
+
+    .sidebar-message.warning {
+      display: block;
+      background: var(--warning-bg);
+      color: var(--warning);
+      border-color: #fedf89;
+    }
+
     .leaflet-control-zoom {
       border: none !important;
       box-shadow: 0 3px 10px rgba(0,0,0,0.2) !important;
@@ -562,6 +773,54 @@
 
   <main class="map-container">
     <div id="map"></div>
+
+    <button id="rightSidebarToggleBtn" class="right-sidebar-toggle" type="button" title="Open data sidebar">
+      <i class="fa-solid fa-bars-staggered"></i>
+    </button>
+
+    <aside id="rightSidebar" class="right-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <i class="fa-solid fa-database"></i>
+          Data Manager
+        </div>
+        <button id="rightSidebarCloseBtn" class="sidebar-close" type="button">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <i class="fa-solid fa-file-import"></i>
+          Upload Data
+        </div>
+
+        <input id="jsonUploadInput" class="json-file-input" type="file" accept=".json,.geojson,.csv,.txt,.wkt,.wtk,.dxf,.dwg,application/json,application/geo+json,text/csv,text/plain" multiple />
+
+        <button id="uploadJsonBtn" class="upload-button" type="button">
+          <i class="fa-solid fa-upload"></i>
+          Upload Data File
+        </button>
+
+        <div class="sidebar-small-note">
+          Files are loaded only into the current map session; they are not uploaded to storage or a server. Supported: JSON, GeoJSON, CSV, TXT, WKT/WTK, and simple DXF point/circle entities. JSON may be flat, GeoJSON, or nested/grouped such as <b>week → vessel → lat/lon</b>. DWG is proprietary and should be converted to DXF first.
+        </div>
+
+        <div id="jsonUploadMessage" class="sidebar-message"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <i class="fa-solid fa-layer-group"></i>
+          Uploaded Layers
+        </div>
+
+        <div id="jsonLayerList" class="json-layer-list">
+          <div class="sidebar-small-note">No data layers uploaded yet.</div>
+        </div>
+      </div>
+    </aside>
+
 
     <div class="pin-note">
       Click on the map to add a pin. Click a pin to edit it, or drag it to move it.
@@ -1908,7 +2167,7 @@
     await exportPinsSelectedFormat();
   });
 
-  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu"].forEach(id => {
+  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu", "rightSidebar"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       L.DomEvent.disableClickPropagation(el);
@@ -1919,6 +2178,7 @@
   L.DomEvent.disableClickPropagation(document.getElementById("openExportMenuBtn"));
   L.DomEvent.disableClickPropagation(document.getElementById("openLayerMenuBtn"));
   L.DomEvent.disableClickPropagation(document.getElementById("openEpsgPanelBtn"));
+  L.DomEvent.disableClickPropagation(document.getElementById("rightSidebarToggleBtn"));
 
   map.on("click", function (event) {
     createPin(event.latlng.lat, event.latlng.lng);
@@ -1926,6 +2186,512 @@
 
   map.on("mousemove", function (event) {
     updateCoordinateBox(event.latlng);
+  });
+
+
+  /*
+    ----------------------------------------------------
+    RIGHT SIDEBAR + MULTI-FORMAT DATA IMPORT
+    ----------------------------------------------------
+  */
+  const uploadedDataLayers = new Map();
+  let uploadedDataLayerCounter = 1;
+
+  function toggleRightSidebar(forceState) {
+    const sidebar = document.getElementById("rightSidebar");
+    if (!sidebar) return;
+    const shouldOpen = typeof forceState === "boolean" ? forceState : !sidebar.classList.contains("open");
+    sidebar.classList.toggle("open", shouldOpen);
+  }
+
+  function showSidebarMessage(message, type = "") {
+    const box = document.getElementById("jsonUploadMessage");
+    if (!box) return;
+    if (!message) {
+      box.textContent = "";
+      box.className = "sidebar-message";
+      return;
+    }
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function firstDefined(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== "");
+  }
+
+  function isPlainObject(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function parseUploadNumber(value) {
+    if (value === undefined || value === null || value === "") return NaN;
+    const number = Number(String(value).trim().replace(",", "."));
+    return Number.isFinite(number) ? number : NaN;
+  }
+
+  function isMetadataKey(key) {
+    const clean = String(key || "").toLowerCase();
+    return clean.startsWith("_") || ["metadata", "meta", "fields", "schema", "properties", "info", "crs", "dataset", "description"].includes(clean);
+  }
+
+  function toMapLonLatFromXY(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    if (Math.abs(x) <= 180 && Math.abs(y) <= 90) {
+      return { lon: x, lat: y };
+    }
+
+    try {
+      const geographic = unprojectActiveCrsToLatLon(x, y);
+      if (Number.isFinite(geographic.lat) && Number.isFinite(geographic.lon)) return geographic;
+    } catch (error) {}
+
+    return { lon: x, lat: y };
+  }
+
+  function readUploadedCoordinates(record) {
+    if (!record || typeof record !== "object") return null;
+
+    if (record.geometry && record.geometry.type === "Point" && Array.isArray(record.geometry.coordinates)) {
+      const lon = parseUploadNumber(record.geometry.coordinates[0]);
+      const lat = parseUploadNumber(record.geometry.coordinates[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) return { lat, lon };
+    }
+
+    if (Array.isArray(record.coordinates) && record.coordinates.length >= 2) {
+      const lon = parseUploadNumber(record.coordinates[0]);
+      const lat = parseUploadNumber(record.coordinates[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) return { lat, lon };
+    }
+
+    const latWgs = parseUploadNumber(firstDefined(record.lat, record.latitude, record.latitude_wgs84, record.Latitude, record.LAT));
+    const lonWgs = parseUploadNumber(firstDefined(record.lon, record.lng, record.longitude, record.longitude_wgs84, record.Longitude, record.LON));
+    if (Number.isFinite(latWgs) && Number.isFinite(lonWgs)) return { lat: latWgs, lon: lonWgs };
+
+    const x = parseUploadNumber(firstDefined(record.x, record.X, record.easting, record.E, record.easting_lon));
+    const y = parseUploadNumber(firstDefined(record.y, record.Y, record.northing, record.N, record.northing_lat));
+    return toMapLonLatFromXY(x, y);
+  }
+
+  function looksLikeCoordinateRecord(record) {
+    return readUploadedCoordinates(record) !== null;
+  }
+
+  function inferGroupFromPath(path) {
+    if (!Array.isArray(path) || path.length < 2) return "Ungrouped";
+    return path[path.length - 2];
+  }
+
+  function inferItemFromPath(path, index) {
+    if (Array.isArray(path) && path.length > 0) return path[path.length - 1];
+    return "feature_" + (index + 1);
+  }
+
+  function normalizeJsonToUploadFeatures(rawData) {
+    const features = [];
+    collectUploadFeatures(rawData, features, []);
+    return features;
+  }
+
+  function collectUploadFeatures(value, features, path) {
+    if (!value) return;
+
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => collectUploadFeatures(item, features, [...path, String(index)]));
+      return;
+    }
+
+    if (!isPlainObject(value)) return;
+
+    if (value.type === "FeatureCollection" && Array.isArray(value.features)) {
+      value.features.forEach((feature, index) => collectUploadFeatures(feature, features, [...path, "features", String(index)]));
+      return;
+    }
+
+    if (value.type === "Feature" && value.geometry) {
+      const feature = normalizeGeoJsonUploadFeature(value, features.length, path);
+      if (feature) features.push(feature);
+      return;
+    }
+
+    if (looksLikeCoordinateRecord(value)) {
+      const feature = recordToUploadFeature(value, features.length, path);
+      if (feature) features.push(feature);
+      return;
+    }
+
+    Object.entries(value).forEach(([key, child]) => {
+      if (isMetadataKey(key)) return;
+      if (!child || typeof child !== "object") return;
+      collectUploadFeatures(child, features, [...path, key]);
+    });
+  }
+
+  function normalizeGeoJsonUploadFeature(feature, index, path) {
+    if (!feature || !feature.geometry) return null;
+    const props = { ...(feature.properties || {}) };
+
+    if (feature.geometry.type === "Point") {
+      const coords = readUploadedCoordinates(feature);
+      if (!coords) return null;
+      const itemKey = inferItemFromPath(path, index);
+      return {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [coords.lon, coords.lat] },
+        properties: {
+          ...props,
+          id: firstDefined(props.id, props.ID, itemKey),
+          label: firstDefined(props.label, props.name, props.title, itemKey),
+          category: firstDefined(props.category, props.type, "geojson"),
+          color: firstDefined(props.color, props.hex, "#7b3fc7"),
+          source_group: firstDefined(props.source_group, inferGroupFromPath(path)),
+          source_path: path.join(".")
+        }
+      };
+    }
+
+    return {
+      type: "Feature",
+      geometry: feature.geometry,
+      properties: {
+        ...props,
+        id: firstDefined(props.id, props.ID, inferItemFromPath(path, index)),
+        label: firstDefined(props.label, props.name, props.title, inferItemFromPath(path, index)),
+        category: firstDefined(props.category, props.type, "geojson"),
+        color: firstDefined(props.color, props.hex, "#7b3fc7"),
+        source_group: firstDefined(props.source_group, inferGroupFromPath(path)),
+        source_path: path.join(".")
+      }
+    };
+  }
+
+  function recordToUploadFeature(record, index, path) {
+    const coords = readUploadedCoordinates(record);
+    if (!coords) return null;
+    const itemKey = inferItemFromPath(path, index);
+    const groupKey = inferGroupFromPath(path);
+    const props = { ...record };
+    ["geometry", "coordinates", "lat", "lon", "lng", "latitude", "longitude", "latitude_wgs84", "longitude_wgs84", "Latitude", "Longitude", "LAT", "LON", "x", "y", "X", "Y"].forEach(key => delete props[key]);
+
+    return {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [coords.lon, coords.lat] },
+      properties: {
+        id: firstDefined(record.id, record.ID, record.identifier, itemKey, "feature_" + (index + 1)),
+        label: firstDefined(record.label, record.name, record.title, record.Label, record.Name, record.vessel_name, record.vessel_id, itemKey),
+        category: firstDefined(record.category, record.vessel_type, record.event_type, record.type, groupKey === "Ungrouped" ? "data" : groupKey),
+        color: firstDefined(record.color, record.hex, "#7b3fc7"),
+        source_group: groupKey,
+        source_path: path.join("."),
+        ...props
+      }
+    };
+  }
+
+  function splitDelimitedUploadLine(line, delimiter) {
+    const result = [];
+    let current = "";
+    let insideQuotes = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      if (char === '"') {
+        if (insideQuotes && line[i + 1] === '"') { current += '"'; i += 1; }
+        else insideQuotes = !insideQuotes;
+      } else if (char === delimiter && !insideQuotes) {
+        result.push(current.trim().replace(/^"|"$/g, ""));
+        current = "";
+      } else current += char;
+    }
+    result.push(current.trim().replace(/^"|"$/g, ""));
+    return result;
+  }
+
+  function parseDelimitedUploadToFeatures(text, fileName) {
+    const lines = text.replace(/\r/g, "").split("\n").map(line => line.trim()).filter(Boolean);
+    if (lines.length === 0) return [];
+
+    const delimiters = [",", ";", "\t", "|"];
+    let delimiter = ",";
+    let best = 0;
+    delimiters.forEach(candidate => {
+      const count = splitDelimitedUploadLine(lines[0], candidate).length;
+      if (count > best) { best = count; delimiter = candidate; }
+    });
+
+    const headers = splitDelimitedUploadLine(lines[0], delimiter).map(h => h.trim());
+    const features = [];
+    for (let i = 1; i < lines.length; i += 1) {
+      const values = splitDelimitedUploadLine(lines[i], delimiter);
+      const record = {};
+      headers.forEach((header, idx) => { record[header] = values[idx] ?? ""; });
+      const feature = recordToUploadFeature(record, features.length, [fileName, String(i)]);
+      if (feature) { feature.properties.source_group = fileName; features.push(feature); }
+    }
+    return features;
+  }
+
+  function parseWktUploadToFeatures(text, fileName) {
+    const features = [];
+    const regex = /POINT\s*(?:Z\s*)?\(\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s+([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)(?:\s+[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)?\s*\)/gi;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const x = parseUploadNumber(match[1]);
+      const y = parseUploadNumber(match[2]);
+      const coords = toMapLonLatFromXY(x, y);
+      if (!coords) continue;
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [coords.lon, coords.lat] },
+        properties: { id: "wkt_" + features.length, label: "WKT point " + (features.length + 1), category: "wkt", color: "#7b3fc7", source_group: fileName, source_x: x, source_y: y, source_crs: activeEpsg }
+      });
+    }
+    return features;
+  }
+
+  function parseDxfUploadToFeatures(text, fileName) {
+    const tokens = text.replace(/\r/g, "").split("\n").map(value => value.trim());
+    const points = [];
+    const circles = [];
+
+    for (let i = 0; i < tokens.length - 1; i += 2) {
+      const code = tokens[i];
+      const value = tokens[i + 1];
+      if (code !== "0" || !["POINT", "CIRCLE"].includes(value)) continue;
+      const entityType = value;
+      let x = NaN, y = NaN, label = entityType + " " + (points.length + circles.length + 1);
+      for (let j = i + 2; j < tokens.length - 1; j += 2) {
+        const groupCode = tokens[j];
+        const groupValue = tokens[j + 1];
+        if (groupCode === "0") break;
+        if (groupCode === "10") x = parseUploadNumber(groupValue);
+        if (groupCode === "20") y = parseUploadNumber(groupValue);
+        if (groupCode === "1") label = groupValue;
+      }
+      if (Number.isFinite(x) && Number.isFinite(y)) {
+        (entityType === "POINT" ? points : circles).push({ x, y, label, entityType });
+      }
+    }
+
+    const source = points.length > 0 ? points : circles;
+    const seen = new Set();
+    const features = [];
+    source.forEach((entity, index) => {
+      const key = entity.x.toFixed(6) + "," + entity.y.toFixed(6);
+      if (seen.has(key)) return;
+      seen.add(key);
+      const coords = toMapLonLatFromXY(entity.x, entity.y);
+      if (!coords) return;
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [coords.lon, coords.lat] },
+        properties: { id: "dxf_" + features.length, label: entity.label || "DXF point " + (index + 1), category: entity.entityType.toLowerCase(), color: "#7b3fc7", source_group: fileName, source_x: entity.x, source_y: entity.y, source_crs: activeEpsg }
+      });
+    });
+    return features;
+  }
+
+  async function parseUploadedDataFile(file) {
+    const extension = file.name.split(".").pop().toLowerCase();
+    const text = await file.text();
+
+    if (extension === "dwg") throw new Error("DWG is proprietary/binary. Convert it to DXF first.");
+    if (extension === "json" || extension === "geojson") return normalizeJsonToUploadFeatures(JSON.parse(text));
+    if (extension === "csv" || extension === "txt") return parseDelimitedUploadToFeatures(text, file.name);
+    if (extension === "wkt" || extension === "wtk") return parseWktUploadToFeatures(text, file.name);
+    if (extension === "dxf") return parseDxfUploadToFeatures(text, file.name);
+
+    try { return normalizeJsonToUploadFeatures(JSON.parse(text)); } catch (ignored) {}
+    const wkt = parseWktUploadToFeatures(text, file.name);
+    if (wkt.length > 0) return wkt;
+    return parseDelimitedUploadToFeatures(text, file.name);
+  }
+
+  function buildUploadFeatureCollection(features) {
+    return { type: "FeatureCollection", features };
+  }
+
+  function getUploadLayerGroups(features) {
+    const groups = new Map();
+    features.forEach(feature => {
+      const key = feature.properties?.source_group || "Ungrouped";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(feature);
+    });
+    return groups;
+  }
+
+  function uploadPointStyle(feature) {
+    const color = normalizeHexColor(feature.properties?.color || "#7b3fc7");
+    return { radius: 7, color: "#ffffff", weight: 2, fillColor: color, fillOpacity: 0.95 };
+  }
+
+  function buildUploadPopupHtml(properties) {
+    const rows = Object.entries(properties || {}).slice(0, 14).map(([key, value]) => `<tr><td><b>${escapeHtml(key)}</b></td><td>${escapeHtml(value)}</td></tr>`).join("");
+    return `<table>${rows}</table>`;
+  }
+
+  function createUploadLeafletLayer(featureCollection, layerName) {
+    return L.geoJSON(featureCollection, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, uploadPointStyle(feature)),
+      style: feature => ({ color: normalizeHexColor(feature.properties?.color || "#7b3fc7"), weight: 2, opacity: 0.9, fillOpacity: 0.25 }),
+      onEachFeature: (feature, leafletLayer) => {
+        const props = feature.properties || {};
+        const label = firstDefined(props.label, props.name, props.title, props.id, layerName);
+        leafletLayer.bindTooltip(escapeHtml(label), { direction: "top", className: "pin-tooltip", opacity: 1 });
+        leafletLayer.bindPopup(`<strong>${escapeHtml(label)}</strong>${buildUploadPopupHtml(props)}`);
+      }
+    });
+  }
+
+  function replaceDisplayedUploadLayer(item, selectedGroup) {
+    if (!item) return;
+    if (item.layer && map.hasLayer(item.layer)) map.removeLayer(item.layer);
+    const selectedFeatures = selectedGroup === "__ALL__" ? item.features : (item.groups.get(selectedGroup) || []);
+    item.selectedGroup = selectedGroup;
+    item.layer = createUploadLeafletLayer(buildUploadFeatureCollection(selectedFeatures), item.name);
+    if (item.visible) item.layer.addTo(map);
+    renderUploadedDataLayerList();
+  }
+
+  function addUploadedDataLayer(features, layerName) {
+    const layerId = "DATA-" + String(uploadedDataLayerCounter).padStart(3, "0");
+    uploadedDataLayerCounter += 1;
+    const groups = getUploadLayerGroups(features);
+    const selectedGroup = groups.size > 1 ? "__ALL__" : (groups.keys().next().value || "__ALL__");
+    const item = { id: layerId, name: layerName, features, groups, selectedGroup, layer: null, visible: true, featureCount: features.length };
+    uploadedDataLayers.set(layerId, item);
+    replaceDisplayedUploadLayer(item, selectedGroup);
+    zoomToUploadedLayer(item);
+    return { layerId, featureCount: features.length, groupCount: groups.size };
+  }
+
+  function renderUploadedDataLayerList() {
+    const list = document.getElementById("jsonLayerList");
+    if (!list) return;
+    if (uploadedDataLayers.size === 0) {
+      list.innerHTML = `<div class="sidebar-small-note">No data layers uploaded yet.</div>`;
+      return;
+    }
+    list.innerHTML = "";
+    uploadedDataLayers.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "json-layer-item";
+      const groupOptions = [`<option value="__ALL__"${item.selectedGroup === "__ALL__" ? " selected" : ""}>All groups (${item.featureCount})</option>`, ...[...item.groups.entries()].map(([groupKey, groupFeatures]) => `<option value="${escapeHtml(groupKey)}"${item.selectedGroup === groupKey ? " selected" : ""}>${escapeHtml(groupKey)} (${groupFeatures.length})</option>`)].join("");
+      div.innerHTML = `
+        <div class="json-layer-top">
+          <div class="json-layer-name">${escapeHtml(item.name)}</div>
+          <div class="json-layer-actions">
+            <button type="button" data-action="zoom" data-id="${item.id}" title="Zoom to layer"><i class="fa-solid fa-magnifying-glass-location"></i></button>
+            <button type="button" data-action="toggle" data-id="${item.id}" title="Show / hide layer"><i class="fa-solid ${item.visible ? "fa-eye" : "fa-eye-slash"}"></i></button>
+            <button type="button" data-action="remove" data-id="${item.id}" title="Remove layer"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+        <select class="json-layer-select" data-id="${item.id}" title="Select visualization group">${groupOptions}</select>
+        <div class="json-layer-controls">
+          <button type="button" data-action="prev-group" data-id="${item.id}"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+          <button type="button" data-action="next-group" data-id="${item.id}">Next <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="json-layer-meta">${item.id} · ${item.featureCount} feature(s) · ${item.groups.size} group(s) · ${item.visible ? "visible" : "hidden"}</div>`;
+      list.appendChild(div);
+    });
+  }
+
+  function zoomToUploadedLayer(item) {
+    if (item && item.layer && item.layer.getBounds && item.layer.getBounds().isValid()) {
+      map.fitBounds(item.layer.getBounds(), { padding: [40, 40], maxZoom: 14 });
+    }
+  }
+
+  function uploadedGroupKeys(item) {
+    return ["__ALL__", ...item.groups.keys()];
+  }
+
+  function shiftUploadedLayerGroup(item, step) {
+    const keys = uploadedGroupKeys(item);
+    const currentIndex = Math.max(0, keys.indexOf(item.selectedGroup));
+    const nextIndex = (currentIndex + step + keys.length) % keys.length;
+    replaceDisplayedUploadLayer(item, keys[nextIndex]);
+    zoomToUploadedLayer(item);
+  }
+
+  function handleUploadedLayerAction(action, layerId) {
+    const item = uploadedDataLayers.get(layerId);
+    if (!item) return;
+    if (action === "zoom") return zoomToUploadedLayer(item);
+    if (action === "toggle") {
+      if (item.visible) { if (item.layer) map.removeLayer(item.layer); item.visible = false; }
+      else { if (item.layer) item.layer.addTo(map); item.visible = true; }
+      renderUploadedDataLayerList();
+      return;
+    }
+    if (action === "remove") { if (item.layer) map.removeLayer(item.layer); uploadedDataLayers.delete(layerId); renderUploadedDataLayerList(); return; }
+    if (action === "prev-group") return shiftUploadedLayerGroup(item, -1);
+    if (action === "next-group") return shiftUploadedLayerGroup(item, 1);
+  }
+
+  async function processUploadedDataFiles(files) {
+    if (!files || files.length === 0) return;
+    let successCount = 0;
+    let totalFeatures = 0;
+    const failedFiles = [];
+    for (const file of files) {
+      try {
+        const features = await parseUploadedDataFile(file);
+        if (!features || features.length === 0) { failedFiles.push(file.name + " (no supported coordinates found)"); continue; }
+        const result = addUploadedDataLayer(features, file.name);
+        successCount += 1;
+        totalFeatures += result.featureCount;
+      } catch (error) {
+        console.error("Data import failed:", file.name, error);
+        failedFiles.push(file.name + " (" + error.message + ")");
+      }
+    }
+    if (successCount > 0 && failedFiles.length === 0) return showSidebarMessage(`Loaded ${successCount} layer(s) with ${totalFeatures} feature(s).`, "success");
+    if (successCount > 0 && failedFiles.length > 0) return showSidebarMessage(`Loaded ${successCount} layer(s), but some files failed: ${failedFiles.join("; ")}`, "warning");
+    showSidebarMessage(`Files could not be loaded: ${failedFiles.join("; ")}`, "error");
+  }
+
+  document.getElementById("rightSidebarToggleBtn").addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleRightSidebar();
+  });
+
+  document.getElementById("rightSidebarCloseBtn").addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleRightSidebar(false);
+  });
+
+  document.getElementById("uploadJsonBtn").addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    document.getElementById("jsonUploadInput").click();
+  });
+
+  document.getElementById("jsonUploadInput").addEventListener("change", async event => {
+    await processUploadedDataFiles(event.target.files);
+    event.target.value = "";
+  });
+
+  document.getElementById("jsonLayerList").addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    handleUploadedLayerAction(button.dataset.action, button.dataset.id);
+  });
+
+  document.getElementById("jsonLayerList").addEventListener("change", event => {
+    const select = event.target.closest(".json-layer-select");
+    if (!select) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const item = uploadedDataLayers.get(select.dataset.id);
+    if (!item) return;
+    replaceDisplayedUploadLayer(item, select.value);
+    zoomToUploadedLayer(item);
   });
 
   rebuildCrsMenu("EPSG:4326");
