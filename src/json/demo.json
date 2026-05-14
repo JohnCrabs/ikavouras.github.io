@@ -8,5 +8,15 @@
         "links": [
             { "label": "Zenodo", "url": "https://zenodo.org/records/15874448" }
         ]
+  },
+  "demoMapTool": {
+        "title": "Demo Map Tool",
+        "description": {
+          "en": "An interactive map tool for investigating scenarios.",
+          "gr": "Ένα διαδραστικό εργαλείο χαρτογραφίας για τη μελέτη σεναρίων."
+        },
+        "links": [
+            { "label": "Demo Map Tool", "url": "src/html/demo/webMapping/demo_map_tool.html" }
+        ]
   }
 }

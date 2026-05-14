@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Event Mapping Tool</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    :root {
+      --dark: #071424;
+      --dark-2: #0b2038;
+      --blue: #1f66d1;
+      --border: #d7dee8;
+      --text: #1d2b3a;
+      --muted: #667085;
+      --danger: #b42318;
+      --danger-bg: #fff1f1;
+      --success: #027a48;
+      --success-bg: #ecfdf3;
+      --warning: #b54708;
+      --warning-bg: #fffaeb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #eef2f6;
+      color: var(--text);
+    }
+
+    .app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 82px;
+      background: linear-gradient(90deg, var(--dark), var(--dark-2));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      z-index: 1000;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: white;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 23px;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-text p {
+      margin: 5px 0 0;
+      color: #d4deeb;
+      font-size: 14px;
+    }
+
+    .nav-item {
+      padding: 12px 18px;
+      border-radius: 8px;
+      background: #173e72;
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .map-container {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .pin-note {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      z-index: 850;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+      pointer-events: none;
+    }
+
+    .pin-export-button {
+      position: absolute;
+      left: 18px;
+      top: 62px;
+      z-index: 860;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.96);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .pin-export-button:hover { background: #f1f5fa; }
+
+    .panel-base {
+      position: absolute;
+      z-index: 920;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 15px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: #f0f3f7;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .panel-base label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .panel-base input,
+    .panel-base select,
+    .panel-base textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 9px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .panel-base textarea {
+      resize: vertical;
+      min-height: 58px;
+      line-height: 1.35;
+    }
+
+    .pin-editor {
+      left: 18px;
+      top: 104px;
+      width: 335px;
+      display: none;
+    }
+
+    .pin-editor.open { display: block; }
+
+    .export-panel {
+      left: 18px;
+      top: 104px;
+      width: 365px;
+      display: none;
+    }
+
+    .export-panel.open { display: block; }
+
+    .pin-editor-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .pin-editor-actions button,
+    .export-action,
+    .epsg-actions button {
+      padding: 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 700;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .primary,
+    .export-action,
+    .apply-btn {
+      background: var(--blue) !important;
+      color: #fff !important;
+      border-color: var(--blue) !important;
+    }
+
+    .danger {
+      background: #fff1f1 !important;
+      color: #b42318 !important;
+      border-color: #ffd0d0 !important;
+    }
+
+    .color-row {
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .color-row input[type="color"] {
+      width: 46px;
+      height: 38px;
+      padding: 2px;
+      cursor: pointer;
+      margin-bottom: 0;
+    }
+
+    .rgb-row, .coord-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .coord-grid { grid-template-columns: 1fr 1fr; }
+    .rgb-row input, .coord-grid input { margin-bottom: 0; }
+
+    .custom-pin {
+      width: 26px;
+      height: 26px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      background: var(--pin-color, #1f66d1);
+    }
+
+    .custom-pin::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      left: 6px;
+      top: 6px;
+    }
+
+    .pin-tooltip {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      font-weight: 700;
+      padding: 6px 8px;
+    }
+
+    .layer-control {
+      position: absolute;
+      left: 18px;
+      bottom: 22px;
+      z-index: 900;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .layer-button {
+      width: 86px;
+      height: 86px;
+      border-radius: 14px;
+      border: 3px solid #ffffff;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.35);
+      cursor: pointer;
+      background: #ffffff;
+      position: relative;
+    }
+
+    .layer-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .layer-button-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 7px 4px;
+      background: rgba(0,0,0,0.65);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .layer-menu {
+      position: absolute;
+      left: 0;
+      bottom: 98px;
+      width: 390px;
+      background: rgba(255,255,255,0.97);
+      border-radius: 15px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 14px;
+      display: none;
+    }
+
+    .layer-menu.open { display: block; }
+
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .layer-option {
+      border: 2px solid transparent;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #f7f9fc;
+      transition: 0.15s ease;
+    }
+
+    .layer-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .layer-option.active { border-color: var(--blue); }
+
+    .layer-thumb {
+      height: 64px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .layer-name {
+      padding: 8px 6px;
+      font-size: 12px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .coordinate-wrapper {
+      position: absolute;
+      right: 18px;
+      bottom: 22px;
+      z-index: 850;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .epsg-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+      font-size: 17px;
+    }
+
+    .epsg-button:hover { background: #f1f5fa; }
+
+    .map-info {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+      min-width: 330px;
+      text-align: right;
+    }
+
+    .epsg-panel {
+      right: 18px;
+      bottom: 72px;
+      width: 430px;
+      display: none;
+    }
+
+    .epsg-panel.open { display: block; }
+
+    .mode-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .mode-btn {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px;
+      background: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .mode-btn.active {
+      background: #eaf2ff;
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .epsg-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .message {
+      display: none;
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 7px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      line-height: 1.35;
+    }
+
+    .message.error {
+      display: block;
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-color: #ffd0d0;
+    }
+
+    .message.success {
+      display: block;
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #abefc6;
+    }
+
+    .message.warning {
+      display: block;
+      background: var(--warning-bg);
+      color: var(--warning);
+      border-color: #fedf89;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2) !important;
+    }
+
+    .leaflet-control-zoom a {
+      width: 34px !important;
+      height: 34px !important;
+      line-height: 34px !important;
+    }
+
+    @media (max-width: 700px) {
+      .brand-text h1 { font-size: 18px; }
+      .brand-text p { font-size: 12px; }
+      .topbar { padding: 0 14px; }
+      .layer-menu { width: 300px; }
+      .layer-grid { grid-template-columns: repeat(2, 1fr); }
+      .epsg-panel, .pin-editor, .export-panel {
+        width: calc(100vw - 36px);
+        right: 18px;
+        left: 18px;
+      }
+      .map-info {
+        min-width: 230px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><i class="fa-solid fa-location-crosshairs"></i></div>
+      <div class="brand-text">
+        <h1>Interactive Event Mapping Tool</h1>
+        <p>Spatial event and background-layer explorer</p>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-item"><i class="fa-regular fa-map"></i> Map</div>
+    </nav>
+  </header>
+
+  <main class="map-container">
+    <div id="map"></div>
+
+    <div class="pin-note">
+      Click on the map to add a pin. Click a pin to edit it, or drag it to move it.
+    </div>
+
+    <button id="openExportMenuBtn" class="pin-export-button" type="button">
+      <i class="fa-solid fa-download"></i> Export Pins
+    </button>
+
+    <div class="export-panel panel-base" id="exportPanel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fa-solid fa-file-export"></i> Export Pins</div>
+        <button id="closeExportMenuBtn" class="panel-close" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <label for="exportFormat">Output format</label>
+      <select id="exportFormat">
+        <option value="csv">CSV — QGIS delimited text</option>
+        <option value="geojson">GeoJSON — standard GIS web format</option>
+        <option value="json">JSON — active CRS coordinates</option>
+        <option value="wkt">WKT CSV — POINT(X Y) geometry</option>
+        <option value="dxf">DXF — CAD point entities</option>
+      </select>
+
+      <label for="exportFilename">Output file name</label>
+      <input id="exportFilename" type="text" value="map_pins" />
+
+      <button id="saveExportFileBtn" class="export-action" type="button">
+        <i class="fa-solid fa-floppy-disk"></i> Save / Download File
+      </button>
+
+      <a id="manualDownloadLink" class="export-action" href="#" download="map_pins.geojson" style="display:none; text-align:center; text-decoration:none; margin-top:8px;">
+        <i class="fa-solid fa-download"></i> Click here if download does not start
+      </a>
+
+      <textarea id="exportPreviewText" style="display:none; margin-top:8px; height:90px;" readonly></textarea>
+
+      <div class="note">
+        CSV, JSON, WKT CSV, and DXF export coordinates in the active CRS.
+        GeoJSON exports geometries in WGS84 longitude/latitude, with active CRS coordinates kept as attributes.
+      </div>
+
+      <div class="message" id="exportMessage"></div>
+    </div>
+
+    <div class="pin-editor panel-base" id="pinEditor">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fa-solid fa-location-dot"></i> Edit Pin</div>
+        <button class="panel-close" type="button" id="closePinEditorBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <label for="pinLabel">Label</label>
+      <input id="pinLabel" type="text" placeholder="Example: Port of Chios" />
+
+      <label for="pinCategory">Category</label>
+      <select id="pinCategory">
+        <option value="point">Point</option>
+        <option value="vessel">Vessel Detection</option>
+        <option value="fire">Wildfire</option>
+        <option value="flood">Flood</option>
+        <option value="weather">Weather Alert</option>
+        <option value="infrastructure">Infrastructure Incident</option>
+      </select>
+
+      <label for="pinColorPicker">Color</label>
+      <div class="color-row">
+        <input id="pinColorPicker" type="color" value="#1f66d1" />
+        <input id="pinColorHex" type="text" placeholder="#1f66d1" value="#1f66d1" />
+      </div>
+
+      <label>RGB</label>
+      <div class="rgb-row">
+        <input id="pinColorR" type="number" min="0" max="255" value="31" />
+        <input id="pinColorG" type="number" min="0" max="255" value="102" />
+        <input id="pinColorB" type="number" min="0" max="255" value="209" />
+      </div>
+
+      <label for="pinNotes">Notes</label>
+      <textarea id="pinNotes" placeholder="Optional notes..."></textarea>
+
+      <div class="coord-grid">
+        <div>
+          <label id="pinCoordYLabel" for="pinLat">Latitude</label>
+          <input id="pinLat" type="number" step="0.000001" />
+        </div>
+        <div>
+          <label id="pinCoordXLabel" for="pinLon">Longitude</label>
+          <input id="pinLon" type="number" step="0.000001" />
+        </div>
+      </div>
+
+      <div class="pin-editor-actions">
+        <button class="primary" type="button" id="savePinBtn">Save</button>
+        <button class="danger" type="button" id="deletePinBtn">Delete</button>
+      </div>
+    </div>
+
+    <div class="layer-control">
+      <div class="layer-menu" id="layerMenu">
+        <div class="panel-header">
+          <div class="panel-title">Map Backgrounds</div>
+          <button class="panel-close" type="button" id="closeLayerMenuBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="layer-grid">
+          <div class="layer-option active" data-layer="osm">
+            <div class="layer-thumb" style="background-image:url('https://a.tile.openstreetmap.org/10/585/395.png');"></div>
+            <div class="layer-name">OpenStreetMap</div>
+          </div>
+
+          <div class="layer-option" data-layer="esriSatellite">
+            <div class="layer-thumb" style="background-image:url('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/10/395/585');"></div>
+            <div class="layer-name">Satellite</div>
+          </div>
+
+          <div class="layer-option" data-layer="esriTopo">
+            <div class="layer-thumb" style="background-image:url('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/10/395/585');"></div>
+            <div class="layer-name">Topography</div>
+          </div>
+
+          <div class="layer-option" data-layer="cartoLight">
+            <div class="layer-thumb" style="background-image:url('https://a.basemaps.cartocdn.com/light_all/10/585/395.png');"></div>
+            <div class="layer-name">Carto Light</div>
+          </div>
+
+          <div class="layer-option" data-layer="cartoDark">
+            <div class="layer-thumb" style="background-image:url('https://a.basemaps.cartocdn.com/dark_all/10/585/395.png');"></div>
+            <div class="layer-name">Carto Dark</div>
+          </div>
+
+          <div class="layer-option" data-layer="openTopo">
+            <div class="layer-thumb" style="background-image:url('https://a.tile.opentopomap.org/10/585/395.png');"></div>
+            <div class="layer-name">OpenTopoMap</div>
+          </div>
+
+          <div class="layer-option" data-layer="googleRoad">
+            <div class="layer-thumb" style="background-image:url('https://mt1.google.com/vt/lyrs=m&x=585&y=395&z=10');"></div>
+            <div class="layer-name">Google Maps</div>
+          </div>
+
+          <div class="layer-option" data-layer="googleSatellite">
+            <div class="layer-thumb" style="background-image:url('https://mt1.google.com/vt/lyrs=s&x=585&y=395&z=10');"></div>
+            <div class="layer-name">Google Satellite</div>
+          </div>
+
+          <div class="layer-option" data-layer="googleTerrain">
+            <div class="layer-thumb" style="background-image:url('https://mt1.google.com/vt/lyrs=p&x=585&y=395&z=10');"></div>
+            <div class="layer-name">Google Terrain</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-button" id="openLayerMenuBtn">
+        <img id="activeLayerImage" src="https://a.tile.openstreetmap.org/10/585/395.png" alt="Map layer" />
+        <div class="layer-button-label">Layers</div>
+      </div>
+    </div>
+
+    <div class="epsg-panel panel-base" id="epsgPanel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fa-solid fa-earth-europe"></i> Coordinate Reference System</div>
+        <button class="panel-close" id="closeEpsgPanelBtn" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <label>Input mode</label>
+      <div class="mode-row">
+        <button id="modeEpsgBtn" class="mode-btn active" type="button">EPSG code</button>
+        <button id="modeProj4Btn" class="mode-btn" type="button">Paste Proj4</button>
+      </div>
+
+      <label for="epsgPreset">CRS menu</label>
+      <select id="epsgPreset"></select>
+
+      <div id="epsgInputBlock">
+        <label for="epsgCode">EPSG code</label>
+        <input id="epsgCode" type="text" inputmode="numeric" placeholder="Type any EPSG code, e.g. 2100, 32634, 3035" value="4326" />
+      </div>
+
+      <div id="proj4InputBlock" style="display:none;">
+        <label for="customCode">Custom CRS label</label>
+        <input id="customCode" type="text" placeholder="Example: CUSTOM:LOCAL_GRID or EPSG:2100" value="CUSTOM:USER_CRS" />
+
+        <label for="customProj4">Proj4 definition</label>
+        <textarea id="customProj4" placeholder="+proj=tmerc +lat_0=0 +lon_0=24 +k=0.9996 +x_0=500000 +y_0=0 +datum=WGS84 +units=m +no_defs"></textarea>
+      </div>
+
+      <div class="epsg-actions">
+        <button class="reset-btn" type="button" id="resetEpsgBtn">Reset</button>
+        <button class="apply-btn" type="button" id="applyCrsBtn">Apply CRS</button>
+      </div>
+
+      <div class="message" id="epsgMessage"></div>
+
+      <div class="note">
+        EPSG mode accepts only an EPSG number and loads the definition automatically.
+        Proj4 mode lets you paste your own projection definition.
+        The basemap remains Web Mercator; only the coordinate readout and pin-editor coordinates are transformed.
+      </div>
+    </div>
+
+    <div class="coordinate-wrapper">
+      <button class="epsg-button" id="openEpsgPanelBtn" type="button" title="Change EPSG">
+        <i class="fa-solid fa-earth-europe"></i>
+      </button>
+
+      <div class="map-info" id="mapInfo">EPSG:4326 | Lat: 38.000000, Lon: 23.000000</div>
+    </div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+
+<script>
+  "use strict";
+
+  const map = L.map("map", { zoomControl: true }).setView([38.0, 23.0], 9);
+
+  const layers = {
+    osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }),
+
+    esriSatellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 19,
+      attribution: "Tiles &copy; Esri"
+    }),
+
+    esriTopo: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 19,
+      attribution: "Tiles &copy; Esri"
+    }),
+
+    cartoLight: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 20,
+      attribution: "&copy; OpenStreetMap &copy; CARTO"
+    }),
+
+    cartoDark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 20,
+      attribution: "&copy; OpenStreetMap &copy; CARTO"
+    }),
+
+    openTopo: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+      maxZoom: 17,
+      attribution: "Map data &copy; OpenStreetMap, SRTM | OpenTopoMap"
+    }),
+
+    googleRoad: L.tileLayer("https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+      maxZoom: 20,
+      attribution: "Google Maps"
+    }),
+
+    googleSatellite: L.tileLayer("https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+      maxZoom: 20,
+      attribution: "Google Satellite"
+    }),
+
+    googleTerrain: L.tileLayer("https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}", {
+      maxZoom: 20,
+      attribution: "Google Terrain"
+    })
+  };
+
+  let activeLayer = layers.osm;
+  activeLayer.addTo(map);
+
+  const activeLayerPreviewImages = {
+    osm: "https://a.tile.openstreetmap.org/10/585/395.png",
+    esriSatellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/10/395/585",
+    esriTopo: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/10/395/585",
+    cartoLight: "https://a.basemaps.cartocdn.com/light_all/10/585/395.png",
+    cartoDark: "https://a.basemaps.cartocdn.com/dark_all/10/585/395.png",
+    openTopo: "https://a.tile.opentopomap.org/10/585/395.png",
+    googleRoad: "https://mt1.google.com/vt/lyrs=m&x=585&y=395&z=10",
+    googleSatellite: "https://mt1.google.com/vt/lyrs=s&x=585&y=395&z=10",
+    googleTerrain: "https://mt1.google.com/vt/lyrs=p&x=585&y=395&z=10"
+  };
+
+  function togglePanel(panelId, forceState) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    const shouldOpen = typeof forceState === "boolean" ? forceState : !panel.classList.contains("open");
+    panel.classList.toggle("open", shouldOpen);
+  }
+
+  function showBoxMessage(id, message, type) {
+    const box = document.getElementById(id);
+    if (!box) return;
+
+    if (!message) {
+      box.textContent = "";
+      box.className = "message";
+      return;
+    }
+
+    box.textContent = message;
+    box.className = "message " + type;
+  }
+
+  function toggleLayerMenu(forceState) {
+    togglePanel("layerMenu", forceState);
+  }
+
+  document.getElementById("openLayerMenuBtn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleLayerMenu();
+  });
+
+  document.getElementById("closeLayerMenuBtn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleLayerMenu(false);
+  });
+
+  document.querySelectorAll(".layer-option").forEach(option => {
+    option.addEventListener("click", () => {
+      const layerKey = option.dataset.layer;
+      if (!layers[layerKey]) return;
+
+      map.removeLayer(activeLayer);
+      activeLayer = layers[layerKey];
+      activeLayer.addTo(map);
+
+      document.querySelectorAll(".layer-option").forEach(item => item.classList.remove("active"));
+      option.classList.add("active");
+
+      document.getElementById("activeLayerImage").src = activeLayerPreviewImages[layerKey];
+      toggleLayerMenu(false);
+    });
+  });
+
+  const LOCAL_CRS_DEFINITIONS = {
+    "EPSG:4326": {
+      name: "WGS84 Geographic",
+      proj4: "+proj=longlat +datum=WGS84 +no_defs +type=crs"
+    },
+    "EPSG:3857": {
+      name: "Web Mercator",
+      proj4: "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +type=crs"
+    },
+    "EPSG:2100": {
+      name: "Greek Grid / GGRS87",
+      proj4: "+proj=tmerc +lat_0=0 +lon_0=24 +k=0.9996 +x_0=500000 +y_0=0 +ellps=GRS80 +towgs84=-199.87,74.79,246.62,0,0,0,0 +units=m +no_defs +type=crs"
+    },
+    "EPSG:3035": {
+      name: "ETRS89-extended / LAEA Europe",
+      proj4: "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs +type=crs"
+    },
+    "EPSG:32634": {
+      name: "WGS84 / UTM Zone 34N",
+      proj4: "+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +type=crs"
+    },
+    "EPSG:32635": {
+      name: "WGS84 / UTM Zone 35N",
+      proj4: "+proj=utm +zone=35 +datum=WGS84 +units=m +no_defs +type=crs"
+    }
+  };
+
+  const knownCrsMenu = new Map();
+
+  Object.entries(LOCAL_CRS_DEFINITIONS).forEach(([code, item]) => {
+    proj4.defs(code, item.proj4);
+    knownCrsMenu.set(code, { code, name: item.name, type: "epsg" });
+  });
+
+  let crsMode = "epsg";
+  let activeEpsg = "EPSG:4326";
+  let lastLatLng = L.latLng(38.0, 23.0);
+
+  function rebuildCrsMenu(selectedCode = activeEpsg) {
+    const select = document.getElementById("epsgPreset");
+    select.innerHTML = "";
+
+    [...knownCrsMenu.values()].forEach(item => {
+      const option = document.createElement("option");
+      option.value = item.code;
+      option.textContent = item.type === "custom"
+        ? item.code + " — Custom user CRS"
+        : item.code + " — " + item.name;
+      select.appendChild(option);
+    });
+
+    if (knownCrsMenu.has(selectedCode)) {
+      select.value = selectedCode;
+    }
+  }
+
+  function setCrsMode(mode) {
+    crsMode = mode;
+
+    document.getElementById("modeEpsgBtn").classList.toggle("active", mode === "epsg");
+    document.getElementById("modeProj4Btn").classList.toggle("active", mode === "proj4");
+    document.getElementById("epsgInputBlock").style.display = mode === "epsg" ? "block" : "none";
+    document.getElementById("proj4InputBlock").style.display = mode === "proj4" ? "block" : "none";
+    showBoxMessage("epsgMessage", "", "");
+  }
+
+  function normalizeEpsgCode(rawCode) {
+    const cleaned = String(rawCode || "").trim().toUpperCase().replace("EPSG:", "");
+    return /^\d+$/.test(cleaned) ? "EPSG:" + cleaned : null;
+  }
+
+  function normalizeProj4(value) {
+    return String(value || "")
+      .replace(/\r?\n|\r/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  async function loadProj4Definition(epsgCode) {
+    if (proj4.defs(epsgCode)) {
+      return { source: "already registered", name: knownCrsMenu.get(epsgCode)?.name || "Loaded CRS" };
+    }
+
+    if (LOCAL_CRS_DEFINITIONS[epsgCode]) {
+      proj4.defs(epsgCode, LOCAL_CRS_DEFINITIONS[epsgCode].proj4);
+      return { source: "local fallback", name: LOCAL_CRS_DEFINITIONS[epsgCode].name };
+    }
+
+    const numericCode = epsgCode.replace("EPSG:", "");
+    const proj4Response = await fetch("https://epsg.io/" + numericCode + ".proj4", {
+      method: "GET",
+      mode: "cors"
+    });
+
+    if (!proj4Response.ok) throw new Error("EPSG definition was not found online.");
+
+    const proj4Text = (await proj4Response.text()).trim();
+    if (!proj4Text || !proj4Text.startsWith("+proj")) throw new Error("Invalid Proj4 definition from epsg.io.");
+
+    let crsName = "Loaded from epsg.io";
+
+    try {
+      const metaResponse = await fetch("https://epsg.io/" + numericCode + ".json", {
+        method: "GET",
+        mode: "cors"
+      });
+
+      if (metaResponse.ok) {
+        const meta = await metaResponse.json();
+        if (meta && meta.name) crsName = meta.name;
+      }
+    } catch (ignored) {}
+
+    proj4.defs(epsgCode, proj4Text);
+    return { source: "epsg.io", name: crsName };
+  }
+
+  function testCrsTransform(code) {
+    const testPoint = proj4("EPSG:4326", code, [lastLatLng.lng, lastLatLng.lat]);
+    if (!Array.isArray(testPoint) || testPoint.length < 2 || !isFinite(testPoint[0]) || !isFinite(testPoint[1])) {
+      throw new Error("Transformation returned invalid coordinates.");
+    }
+    return testPoint;
+  }
+
+  async function applyEpsgCode() {
+    const epsgCode = normalizeEpsgCode(document.getElementById("epsgCode").value);
+
+    if (!epsgCode) {
+      showBoxMessage("epsgMessage", "Please provide a valid EPSG number, for example 2100 or 32634.", "error");
+      return;
+    }
+
+    showBoxMessage("epsgMessage", "Loading " + epsgCode + "...", "success");
+
+    const result = await loadProj4Definition(epsgCode);
+    testCrsTransform(epsgCode);
+
+    activeEpsg = epsgCode;
+    document.getElementById("epsgCode").value = epsgCode.replace("EPSG:", "");
+
+    if (!knownCrsMenu.has(epsgCode)) {
+      knownCrsMenu.set(epsgCode, { code: epsgCode, name: result.name, type: "epsg" });
+    }
+
+    rebuildCrsMenu(epsgCode);
+    updateCoordinateBox(lastLatLng);
+    refreshSelectedPinEditorCoordinates();
+
+    showBoxMessage("epsgMessage", "CRS applied: " + epsgCode + " (" + result.source + ").", "success");
+  }
+
+  async function applyCustomProj4() {
+    const rawCode = document.getElementById("customCode").value.trim();
+    const definition = normalizeProj4(document.getElementById("customProj4").value);
+
+    if (!rawCode || !definition) {
+      showBoxMessage("epsgMessage", "Please provide both a custom CRS label and a Proj4 definition.", "error");
+      return;
+    }
+
+    let customCode = rawCode.toUpperCase();
+    if (!customCode.includes(":")) customCode = "CUSTOM:" + customCode;
+
+    proj4.defs(customCode, definition);
+    testCrsTransform(customCode);
+
+    activeEpsg = customCode;
+    knownCrsMenu.set(customCode, { code: customCode, name: "User projection", type: "custom" });
+
+    rebuildCrsMenu(customCode);
+    updateCoordinateBox(lastLatLng);
+    refreshSelectedPinEditorCoordinates();
+
+    showBoxMessage("epsgMessage", "Custom projection applied: " + customCode + ".", "success");
+  }
+
+  async function applyCurrentCrs() {
+    showBoxMessage("epsgMessage", "", "");
+
+    try {
+      if (crsMode === "epsg") {
+        await applyEpsgCode();
+      } else {
+        await applyCustomProj4();
+      }
+    } catch (error) {
+      console.error(error);
+      showBoxMessage(
+        "epsgMessage",
+        "Could not apply the CRS. Check the EPSG code or the Proj4 definition.",
+        "error"
+      );
+    }
+  }
+
+  function resetEpsg() {
+    activeEpsg = "EPSG:4326";
+    document.getElementById("epsgCode").value = "4326";
+    document.getElementById("customCode").value = "CUSTOM:USER_CRS";
+    document.getElementById("customProj4").value = "";
+    setCrsMode("epsg");
+    rebuildCrsMenu("EPSG:4326");
+    updateCoordinateBox(lastLatLng);
+    refreshSelectedPinEditorCoordinates();
+    showBoxMessage("epsgMessage", "CRS reset to EPSG:4326.", "success");
+  }
+
+  function updateCoordinateBox(latlng) {
+    lastLatLng = latlng;
+    const lon = latlng.lng;
+    const lat = latlng.lat;
+
+    try {
+      if (activeEpsg === "EPSG:4326") {
+        document.getElementById("mapInfo").textContent =
+          `${activeEpsg} | Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+        return;
+      }
+
+      const projected = proj4("EPSG:4326", activeEpsg, [lon, lat]);
+      document.getElementById("mapInfo").textContent =
+        `${activeEpsg} | X: ${projected[0].toFixed(3)}, Y: ${projected[1].toFixed(3)}`;
+    } catch (error) {
+      document.getElementById("mapInfo").textContent = `${activeEpsg} | Transformation error`;
+    }
+  }
+
+  document.getElementById("openEpsgPanelBtn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    togglePanel("epsgPanel");
+  });
+
+  document.getElementById("closeEpsgPanelBtn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    togglePanel("epsgPanel", false);
+  });
+
+  document.getElementById("modeEpsgBtn").addEventListener("click", () => setCrsMode("epsg"));
+  document.getElementById("modeProj4Btn").addEventListener("click", () => setCrsMode("proj4"));
+  document.getElementById("applyCrsBtn").addEventListener("click", applyCurrentCrs);
+  document.getElementById("resetEpsgBtn").addEventListener("click", resetEpsg);
+
+  document.getElementById("epsgPreset").addEventListener("change", function () {
+    const selected = this.value;
+
+    if (!knownCrsMenu.has(selected)) return;
+
+    activeEpsg = selected;
+
+    if (selected.startsWith("EPSG:")) {
+      document.getElementById("epsgCode").value = selected.replace("EPSG:", "");
+      setCrsMode("epsg");
+    } else {
+      document.getElementById("customCode").value = selected;
+      setCrsMode("proj4");
+    }
+
+    updateCoordinateBox(lastLatLng);
+    refreshSelectedPinEditorCoordinates();
+    showBoxMessage("epsgMessage", "", "");
+  });
+
+  document.getElementById("epsgCode").addEventListener("keydown", function (event) {
+    if (event.key === "Enter") applyCurrentCrs();
+  });
+
+  document.getElementById("customProj4").addEventListener("keydown", function (event) {
+    if (event.ctrlKey && event.key === "Enter") applyCurrentCrs();
+  });
+
+  const pinLayers = new Map();
+  const pinData = new Map();
+  let selectedPinId = null;
+  let pinCounter = 1;
+
+  const categoryDefaults = {
+    point: { label: "Point", color: "#1f66d1" },
+    vessel: { label: "Vessel Detection", color: "#1f66d1" },
+    fire: { label: "Wildfire", color: "#e63946" },
+    flood: { label: "Flood", color: "#2e9d62" },
+    weather: { label: "Weather Alert", color: "#f28c28" },
+    infrastructure: { label: "Infrastructure Incident", color: "#7b3fc7" }
+  };
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function normalizeHexColor(value, fallback = "#1f66d1") {
+    const text = String(value || "").trim();
+
+    if (/^#[0-9a-fA-F]{6}$/.test(text)) return text.toLowerCase();
+    if (/^[0-9a-fA-F]{6}$/.test(text)) return "#" + text.toLowerCase();
+
+    return fallback;
+  }
+
+  function hexToRgb(hex) {
+    const normalized = normalizeHexColor(hex);
+    return {
+      r: parseInt(normalized.slice(1, 3), 16),
+      g: parseInt(normalized.slice(3, 5), 16),
+      b: parseInt(normalized.slice(5, 7), 16)
+    };
+  }
+
+  function rgbToHex(r, g, b) {
+    const clamp = value => Math.max(0, Math.min(255, Number(value) || 0));
+    return "#" + [clamp(r), clamp(g), clamp(b)]
+      .map(value => value.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  function setColorInputs(hex) {
+    const normalized = normalizeHexColor(hex);
+    const rgb = hexToRgb(normalized);
+
+    document.getElementById("pinColorPicker").value = normalized;
+    document.getElementById("pinColorHex").value = normalized;
+    document.getElementById("pinColorR").value = rgb.r;
+    document.getElementById("pinColorG").value = rgb.g;
+    document.getElementById("pinColorB").value = rgb.b;
+  }
+
+  function syncColorFromPicker() {
+    setColorInputs(document.getElementById("pinColorPicker").value);
+  }
+
+  function syncColorFromHex() {
+    const value = document.getElementById("pinColorHex").value;
+    if (/^#?[0-9a-fA-F]{6}$/.test(value.trim())) setColorInputs(value);
+  }
+
+  function syncColorFromRgb() {
+    setColorInputs(rgbToHex(
+      document.getElementById("pinColorR").value,
+      document.getElementById("pinColorG").value,
+      document.getElementById("pinColorB").value
+    ));
+  }
+
+  function getEditorColor() {
+    return normalizeHexColor(document.getElementById("pinColorHex").value);
+  }
+
+  document.getElementById("pinColorPicker").addEventListener("input", syncColorFromPicker);
+  document.getElementById("pinColorHex").addEventListener("input", syncColorFromHex);
+  document.getElementById("pinColorR").addEventListener("input", syncColorFromRgb);
+  document.getElementById("pinColorG").addEventListener("input", syncColorFromRgb);
+  document.getElementById("pinColorB").addEventListener("input", syncColorFromRgb);
+
+  function createPinIcon(color) {
+    const safeColor = normalizeHexColor(color);
+
+    return L.divIcon({
+      className: "",
+      html: `<div class="custom-pin" style="--pin-color:${safeColor};"></div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 26],
+      popupAnchor: [0, -26],
+      tooltipAnchor: [14, -20]
+    });
+  }
+
+  function buildTooltipText(record) {
+    if (!record) return "Pin";
+
+    return `
+      <div>
+        ${escapeHtml(record.label)}<br>
+        <span style="font-weight:400;">Click to edit · Drag to move</span>
+      </div>
+    `;
+  }
+
+  function createPin(lat, lon, options = {}) {
+    const id = "PIN-" + String(pinCounter).padStart(4, "0");
+    pinCounter += 1;
+
+    const category = options.category || "point";
+    const defaults = categoryDefaults[category] || categoryDefaults.point;
+
+    const record = {
+      id,
+      label: options.label || defaults.label + " " + id.replace("PIN-", ""),
+      category,
+      color: options.color || defaults.color,
+      notes: options.notes || "",
+      lat,
+      lon
+    };
+
+    const marker = L.marker([lat, lon], {
+      icon: createPinIcon(record.color),
+      draggable: true
+    }).addTo(map);
+
+    marker.bindTooltip(buildTooltipText(record), {
+      direction: "top",
+      className: "pin-tooltip",
+      opacity: 1
+    });
+
+    marker.on("click", function (event) {
+      if (event && event.originalEvent) {
+        L.DomEvent.stopPropagation(event.originalEvent);
+      }
+      openPinEditor(id);
+    });
+
+    marker.on("drag", function (event) {
+      const pos = event.target.getLatLng();
+      const data = pinData.get(id);
+
+      if (data) {
+        data.lat = pos.lat;
+        data.lon = pos.lng;
+        marker.setTooltipContent(buildTooltipText(data));
+      }
+
+      if (selectedPinId === id) updateEditorCoordinates(pos.lat, pos.lng);
+    });
+
+    marker.on("dragend", function (event) {
+      const pos = event.target.getLatLng();
+      const data = pinData.get(id);
+
+      if (data) {
+        data.lat = pos.lat;
+        data.lon = pos.lng;
+        marker.setTooltipContent(buildTooltipText(data));
+      }
+
+      if (selectedPinId === id) updateEditorCoordinates(pos.lat, pos.lng);
+    });
+
+    pinLayers.set(id, marker);
+    pinData.set(id, record);
+
+    openPinEditor(id);
+    return marker;
+  }
+
+  function openPinEditor(id) {
+    const data = pinData.get(id);
+    if (!data) return;
+
+    selectedPinId = id;
+
+    document.getElementById("pinLabel").value = data.label;
+    document.getElementById("pinCategory").value = data.category;
+    setColorInputs(data.color);
+    document.getElementById("pinNotes").value = data.notes;
+    updateEditorCoordinates(data.lat, data.lon);
+
+    togglePanel("exportPanel", false);
+    togglePanel("pinEditor", true);
+  }
+
+  function closePinEditor() {
+    selectedPinId = null;
+    togglePanel("pinEditor", false);
+  }
+
+  function projectLatLonToActiveCrs(lat, lon) {
+    if (activeEpsg === "EPSG:4326") return { x: lon, y: lat };
+
+    const projected = proj4("EPSG:4326", activeEpsg, [lon, lat]);
+    return { x: projected[0], y: projected[1] };
+  }
+
+  function unprojectActiveCrsToLatLon(x, y) {
+    if (activeEpsg === "EPSG:4326") return { lat: y, lon: x };
+
+    const lonLat = proj4(activeEpsg, "EPSG:4326", [x, y]);
+    return { lon: lonLat[0], lat: lonLat[1] };
+  }
+
+  function updateEditorCoordinateLabels() {
+    if (activeEpsg === "EPSG:4326") {
+      document.getElementById("pinCoordYLabel").textContent = "Latitude";
+      document.getElementById("pinCoordXLabel").textContent = "Longitude";
+    } else {
+      document.getElementById("pinCoordYLabel").textContent = "Y (" + activeEpsg + ")";
+      document.getElementById("pinCoordXLabel").textContent = "X (" + activeEpsg + ")";
+    }
+  }
+
+  function updateEditorCoordinates(lat, lon) {
+    updateEditorCoordinateLabels();
+
+    const projected = projectLatLonToActiveCrs(lat, lon);
+
+    if (activeEpsg === "EPSG:4326") {
+      document.getElementById("pinLat").value = Number(projected.y).toFixed(6);
+      document.getElementById("pinLon").value = Number(projected.x).toFixed(6);
+    } else {
+      document.getElementById("pinLat").value = Number(projected.y).toFixed(3);
+      document.getElementById("pinLon").value = Number(projected.x).toFixed(3);
+    }
+  }
+
+  function refreshSelectedPinEditorCoordinates() {
+    updateEditorCoordinateLabels();
+
+    if (!selectedPinId) return;
+
+    const data = pinData.get(selectedPinId);
+    if (data) updateEditorCoordinates(data.lat, data.lon);
+  }
+
+  function saveSelectedPin() {
+    if (!selectedPinId) return;
+
+    const data = pinData.get(selectedPinId);
+    const marker = pinLayers.get(selectedPinId);
+    if (!data || !marker) return;
+
+    const yValue = parseFloat(document.getElementById("pinLat").value);
+    const xValue = parseFloat(document.getElementById("pinLon").value);
+
+    if (!Number.isFinite(yValue) || !Number.isFinite(xValue)) {
+      showBoxMessage("epsgMessage", "Please provide valid coordinate values.", "error");
+      return;
+    }
+
+    let lat;
+    let lon;
+
+    try {
+      const geographic = unprojectActiveCrsToLatLon(xValue, yValue);
+      lat = geographic.lat;
+      lon = geographic.lon;
+    } catch (error) {
+      showBoxMessage("epsgMessage", "Could not transform the edited coordinates back to WGS84.", "error");
+      return;
+    }
+
+    data.label = document.getElementById("pinLabel").value.trim() || data.id;
+    data.category = document.getElementById("pinCategory").value;
+    data.color = getEditorColor();
+    data.notes = document.getElementById("pinNotes").value.trim();
+    data.lat = lat;
+    data.lon = lon;
+
+    marker.setLatLng([lat, lon]);
+    marker.setIcon(createPinIcon(data.color));
+    marker.setTooltipContent(buildTooltipText(data));
+
+    showBoxMessage("epsgMessage", "Pin updated successfully.", "success");
+  }
+
+  function deleteSelectedPin() {
+    if (!selectedPinId) return;
+
+    const marker = pinLayers.get(selectedPinId);
+    if (marker) map.removeLayer(marker);
+
+    pinLayers.delete(selectedPinId);
+    pinData.delete(selectedPinId);
+
+    closePinEditor();
+    showBoxMessage("epsgMessage", "Pin deleted.", "success");
+  }
+
+  document.getElementById("closePinEditorBtn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    closePinEditor();
+  });
+
+  document.getElementById("savePinBtn").addEventListener("click", saveSelectedPin);
+  document.getElementById("deletePinBtn").addEventListener("click", deleteSelectedPin);
+
+  document.getElementById("pinCategory").addEventListener("change", function () {
+    const defaults = categoryDefaults[this.value] || categoryDefaults.point;
+    setColorInputs(defaults.color);
+
+    if (!document.getElementById("pinLabel").value.trim() || document.getElementById("pinLabel").value.startsWith("Point ")) {
+      document.getElementById("pinLabel").value = defaults.label;
+    }
+  });
+
+  function toggleExportMenu(forceState) {
+    togglePanel("pinEditor", false);
+    togglePanel("exportPanel", forceState);
+    showBoxMessage("exportMessage", "", "");
+
+    const manualLink = document.getElementById("manualDownloadLink");
+    const previewText = document.getElementById("exportPreviewText");
+    if (manualLink) manualLink.style.display = "none";
+    if (previewText) previewText.style.display = "none";
+
+    if (document.getElementById("exportPanel").classList.contains("open")) {
+      setTimeout(() => document.getElementById("exportFilename").focus(), 50);
+    }
+  }
+
+  function getPinsForExport() {
+    return Array.from(pinData.values()).map(item => {
+      const projected = projectLatLonToActiveCrs(item.lat, item.lon);
+
+      return {
+        id: item.id,
+        label: item.label,
+        category: item.category,
+        color: item.color,
+        notes: item.notes,
+        lat: item.lat,
+        lon: item.lon,
+        x: projected.x,
+        y: projected.y,
+        crs: activeEpsg
+      };
+    });
+  }
+
+  function getSafeBaseFilename() {
+    const raw = document.getElementById("exportFilename").value.trim() || "map_pins";
+    return raw.replace(/[^\w\-]+/g, "_");
+  }
+
+  let currentExportObjectUrl = null;
+
+  function getFileExtension(filename) {
+    const index = filename.lastIndexOf(".");
+    return index >= 0 ? filename.slice(index) : ".txt";
+  }
+
+  function buildDataUri(content, mimeType) {
+    return "data:" + (mimeType || "text/plain;charset=utf-8") + "," + encodeURIComponent(content);
+  }
+
+  async function downloadTextFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType || "text/plain;charset=utf-8" });
+
+    if (currentExportObjectUrl) {
+      URL.revokeObjectURL(currentExportObjectUrl);
+      currentExportObjectUrl = null;
+    }
+
+    currentExportObjectUrl = URL.createObjectURL(blob);
+
+    const manualLink = document.getElementById("manualDownloadLink");
+    const previewText = document.getElementById("exportPreviewText");
+
+    if (manualLink) {
+      manualLink.href = currentExportObjectUrl;
+      manualLink.download = filename;
+      manualLink.style.display = "block";
+      manualLink.textContent = "Manual download link: " + filename;
+    }
+
+    if (previewText) {
+      previewText.value = content;
+      previewText.style.display = "block";
+    }
+
+    /*
+      Best case: Chrome/Edge/Chromium browsers may support a real Save As picker.
+      This requires HTTPS or localhost. If unavailable or cancelled, the code falls back.
+    */
+    if (window.isSecureContext && "showSaveFilePicker" in window) {
+      try {
+        const extension = getFileExtension(filename);
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [
+            {
+              description: "GIS export file",
+              accept: {
+                [mimeType || "text/plain"]: [extension]
+              }
+            }
+          ]
+        });
+
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return "saved-with-picker";
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          return "cancelled";
+        }
+        console.warn("Save picker failed; falling back to download link.", error);
+      }
+    }
+
+    /*
+      Primary fallback: Blob URL + synthetic anchor click.
+      This is the standard client-side download method.
+    */
+    const link = document.createElement("a");
+    link.href = currentExportObjectUrl;
+    link.download = filename;
+    link.style.display = "none";
+    link.rel = "noopener";
+
+    document.body.appendChild(link);
+
+    try {
+      link.click();
+      document.body.removeChild(link);
+      return "download-triggered";
+    } catch (error) {
+      document.body.removeChild(link);
+      console.warn("Blob download click failed; trying data URI fallback.", error);
+    }
+
+    /*
+      Last automatic fallback: data URI.
+      This works well for small CSV/JSON/GeoJSON/WKT/DXF text exports.
+    */
+    const dataLink = document.createElement("a");
+    dataLink.href = buildDataUri(content, mimeType);
+    dataLink.download = filename;
+    dataLink.style.display = "none";
+    dataLink.rel = "noopener";
+
+    document.body.appendChild(dataLink);
+
+    try {
+      dataLink.click();
+      document.body.removeChild(dataLink);
+      return "data-uri-triggered";
+    } catch (error) {
+      document.body.removeChild(dataLink);
+      console.error("All automatic download methods failed.", error);
+      return "manual-link-only";
+    }
+  }
+
+  function csvEscape(value) {
+    const text = String(value ?? "");
+    if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+      return '"' + text.replaceAll('"', '""') + '"';
+    }
+    return text;
+  }
+
+  function buildCsv(points) {
+    const header = [
+      "id",
+      "label",
+      "category",
+      "color",
+      "notes",
+      "crs",
+      "x",
+      "y",
+      "longitude_wgs84",
+      "latitude_wgs84"
+    ];
+
+    const rows = points.map(item => [
+      item.id,
+      item.label,
+      item.category,
+      item.color,
+      item.notes,
+      item.crs,
+      item.x,
+      item.y,
+      item.lon,
+      item.lat
+    ].map(csvEscape).join(","));
+
+    return [header.join(","), ...rows].join("\n");
+  }
+
+  function buildJson(points) {
+    return JSON.stringify({
+      type: "PinExport",
+      crs: activeEpsg,
+      exported_at: new Date().toISOString(),
+      features: points.map(item => ({
+        id: item.id,
+        label: item.label,
+        category: item.category,
+        color: item.color,
+        notes: item.notes,
+        crs: item.crs,
+        x: item.x,
+        y: item.y,
+        longitude_wgs84: item.lon,
+        latitude_wgs84: item.lat
+      }))
+    }, null, 2);
+  }
+
+  function buildGeoJson(points) {
+    return JSON.stringify({
+      type: "FeatureCollection",
+      name: "map_pins",
+      features: points.map(item => ({
+        type: "Feature",
+        properties: {
+          id: item.id,
+          label: item.label,
+          category: item.category,
+          color: item.color,
+          notes: item.notes,
+          active_crs: item.crs,
+          x_active_crs: item.x,
+          y_active_crs: item.y
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [item.lon, item.lat]
+        }
+      }))
+    }, null, 2);
+  }
+
+  function buildWktCsv(points) {
+    const header = ["id", "label", "category", "color", "notes", "crs", "wkt"];
+
+    const rows = points.map(item => [
+      item.id,
+      item.label,
+      item.category,
+      item.color,
+      item.notes,
+      item.crs,
+      `POINT(${item.x} ${item.y})`
+    ].map(csvEscape).join(","));
+
+    return [header.join(","), ...rows].join("\n");
+  }
+
+  function buildDxf(points) {
+    const safeText = value => String(value ?? "").replace(/[^\x20-\x7E]/g, "");
+
+    let dxf = "";
+    dxf += "0\nSECTION\n2\nHEADER\n";
+    dxf += "9\n$INSUNITS\n70\n0\n";
+    dxf += "0\nENDSEC\n";
+    dxf += "0\nSECTION\n2\nTABLES\n";
+    dxf += "0\nTABLE\n2\nLAYER\n70\n1\n";
+    dxf += "0\nLAYER\n2\nPINS\n70\n0\n62\n7\n6\nCONTINUOUS\n";
+    dxf += "0\nENDTAB\n0\nENDSEC\n";
+    dxf += "0\nSECTION\n2\nENTITIES\n";
+
+    points.forEach(item => {
+      dxf += "0\nPOINT\n8\nPINS\n";
+      dxf += "10\n" + item.x + "\n20\n" + item.y + "\n30\n0\n";
+      dxf += "0\nTEXT\n8\nPINS\n";
+      dxf += "10\n" + item.x + "\n20\n" + item.y + "\n30\n0\n";
+      dxf += "40\n50\n1\n" + safeText(item.label) + "\n";
+    });
+
+    dxf += "0\nENDSEC\n0\nEOF\n";
+    return dxf;
+  }
+
+  async function exportPinsSelectedFormat() {
+    const points = getPinsForExport();
+
+    if (points.length === 0) {
+      showBoxMessage("exportMessage", "There are no pins to export. Click on the map to add at least one pin first.", "warning");
+      return;
+    }
+
+    const format = document.getElementById("exportFormat").value;
+    const baseName = getSafeBaseFilename();
+
+    let filename;
+    let content;
+    let mimeType;
+
+    if (format === "csv") {
+      filename = baseName + ".csv";
+      content = buildCsv(points);
+      mimeType = "text/csv;charset=utf-8";
+    } else if (format === "json") {
+      filename = baseName + ".json";
+      content = buildJson(points);
+      mimeType = "application/json;charset=utf-8";
+    } else if (format === "geojson") {
+      filename = baseName + ".geojson";
+      content = buildGeoJson(points);
+      mimeType = "application/geo+json;charset=utf-8";
+    } else if (format === "wkt") {
+      filename = baseName + "_wkt.csv";
+      content = buildWktCsv(points);
+      mimeType = "text/csv;charset=utf-8";
+    } else if (format === "dxf") {
+      filename = baseName + ".dxf";
+      content = buildDxf(points);
+      mimeType = "application/dxf;charset=utf-8";
+    } else {
+      showBoxMessage("exportMessage", "Unsupported export format.", "error");
+      return;
+    }
+
+    try {
+      const result = await downloadTextFile(filename, content, mimeType);
+
+      if (result === "cancelled") {
+        showBoxMessage("exportMessage", "Save cancelled. The manual download link and copy/paste text remain available below.", "warning");
+      } else if (result === "manual-link-only") {
+        showBoxMessage("exportMessage", "Automatic download was blocked. Use the manual download link or copy/paste text below.", "warning");
+      } else {
+        showBoxMessage("exportMessage", "Export file generated. If your browser did not download it automatically, use the visible download link below.", "success");
+      }
+    } catch (error) {
+      console.error(error);
+
+      showBoxMessage("exportMessage", "The file could not be generated. Check the browser console for details.", "error");
+    }
+  }
+
+  document.getElementById("openExportMenuBtn").addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleExportMenu();
+  });
+
+  document.getElementById("closeExportMenuBtn").addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleExportMenu(false);
+  });
+
+  document.getElementById("saveExportFileBtn").addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    await exportPinsSelectedFormat();
+  });
+
+  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      L.DomEvent.disableClickPropagation(el);
+      L.DomEvent.disableScrollPropagation(el);
+    }
+  });
+
+  L.DomEvent.disableClickPropagation(document.getElementById("openExportMenuBtn"));
+  L.DomEvent.disableClickPropagation(document.getElementById("openLayerMenuBtn"));
+  L.DomEvent.disableClickPropagation(document.getElementById("openEpsgPanelBtn"));
+
+  map.on("click", function (event) {
+    createPin(event.latlng.lat, event.latlng.lng);
+  });
+
+  map.on("mousemove", function (event) {
+    updateCoordinateBox(event.latlng);
+  });
+
+  rebuildCrsMenu("EPSG:4326");
+  updateCoordinateBox(lastLatLng);
+  updateEditorCoordinateLabels();
+</script>
+</body>
+</html>
