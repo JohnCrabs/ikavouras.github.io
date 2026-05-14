@@ -600,7 +600,7 @@
       <textarea id="exportPreviewText" style="display:none; margin-top:8px; height:90px;" readonly></textarea>
 
       <div class="note">
-        CSV, JSON, WKT CSV, and DXF export coordinates in the active CRS.
+        CSV, JSON, WKT CSV, and DXF export coordinates in the active CRS. DXF pins are exported as visible circle/cross CAD markers plus labels.
         GeoJSON exports geometries in WGS84 longitude/latitude, with active CRS coordinates kept as attributes.
       </div>
 
@@ -1732,27 +1732,104 @@
   }
 
   function buildDxf(points) {
-    const safeText = value => String(value ?? "").replace(/[^\x20-\x7E]/g, "");
+    /*
+      AutoCAD often does not visibly display POINT entities unless PDMODE/PDSIZE
+      are configured. For compatibility, this DXF exports every pin as:
+      - a small circle
+      - a cross marker made of two LINE entities
+      - a TEXT label
+
+      This is much closer to what QGIS/CAD users expect when opening the DXF.
+      Coordinates are exported in the currently selected CRS.
+    */
+    const safeText = value => String(value ?? "")
+      .replace(/[^\x20-\x7E]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const xs = points.map(item => Number(item.x)).filter(Number.isFinite);
+    const ys = points.map(item => Number(item.y)).filter(Number.isFinite);
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    const extent = Math.max(maxX - minX, maxY - minY);
+    const markerSize = extent > 0 ? extent * 0.01 : (activeEpsg === "EPSG:4326" ? 0.01 : 100);
+    const radius = markerSize * 0.35;
+    const textHeight = markerSize * 0.45;
+    const textOffset = markerSize * 0.75;
 
     let dxf = "";
+
+    // R12 ASCII DXF
     dxf += "0\nSECTION\n2\nHEADER\n";
+    dxf += "9\n$ACADVER\n1\nAC1009\n";
     dxf += "9\n$INSUNITS\n70\n0\n";
+    dxf += "9\n$PDMODE\n70\n35\n";
+    dxf += "9\n$PDSIZE\n40\n" + markerSize + "\n";
     dxf += "0\nENDSEC\n";
+
     dxf += "0\nSECTION\n2\nTABLES\n";
-    dxf += "0\nTABLE\n2\nLAYER\n70\n1\n";
-    dxf += "0\nLAYER\n2\nPINS\n70\n0\n62\n7\n6\nCONTINUOUS\n";
-    dxf += "0\nENDTAB\n0\nENDSEC\n";
+
+    dxf += "0\nTABLE\n2\nLTYPE\n70\n1\n";
+    dxf += "0\nLTYPE\n2\nCONTINUOUS\n70\n0\n3\nSolid line\n72\n65\n73\n0\n40\n0.0\n";
+    dxf += "0\nENDTAB\n";
+
+    dxf += "0\nTABLE\n2\nLAYER\n70\n3\n";
+    dxf += "0\nLAYER\n2\nPINS\n70\n0\n62\n1\n6\nCONTINUOUS\n";
+    dxf += "0\nLAYER\n2\nPIN_LABELS\n70\n0\n62\n7\n6\nCONTINUOUS\n";
+    dxf += "0\nLAYER\n2\nPIN_POINTS\n70\n0\n62\n5\n6\nCONTINUOUS\n";
+    dxf += "0\nENDTAB\n";
+
+    dxf += "0\nTABLE\n2\nSTYLE\n70\n1\n";
+    dxf += "0\nSTYLE\n2\nSTANDARD\n70\n0\n40\n0.0\n41\n1.0\n50\n0.0\n71\n0\n42\n2.5\n3\ntxt\n4\n\n";
+    dxf += "0\nENDTAB\n";
+
+    dxf += "0\nENDSEC\n";
+
     dxf += "0\nSECTION\n2\nENTITIES\n";
 
     points.forEach(item => {
-      dxf += "0\nPOINT\n8\nPINS\n";
-      dxf += "10\n" + item.x + "\n20\n" + item.y + "\n30\n0\n";
-      dxf += "0\nTEXT\n8\nPINS\n";
-      dxf += "10\n" + item.x + "\n20\n" + item.y + "\n30\n0\n";
-      dxf += "40\n50\n1\n" + safeText(item.label) + "\n";
+      const x = Number(item.x);
+      const y = Number(item.y);
+
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+      const label = safeText(item.label || item.id);
+
+      // AutoCAD POINT entity retained for GIS/CAD semantics.
+      dxf += "0\nPOINT\n8\nPIN_POINTS\n";
+      dxf += "10\n" + x + "\n20\n" + y + "\n30\n0.0\n";
+
+      // Visible circle marker.
+      dxf += "0\nCIRCLE\n8\nPINS\n";
+      dxf += "10\n" + x + "\n20\n" + y + "\n30\n0.0\n";
+      dxf += "40\n" + radius + "\n";
+
+      // Visible cross marker: horizontal line.
+      dxf += "0\nLINE\n8\nPINS\n";
+      dxf += "10\n" + (x - markerSize) + "\n20\n" + y + "\n30\n0.0\n";
+      dxf += "11\n" + (x + markerSize) + "\n21\n" + y + "\n31\n0.0\n";
+
+      // Visible cross marker: vertical line.
+      dxf += "0\nLINE\n8\nPINS\n";
+      dxf += "10\n" + x + "\n20\n" + (y - markerSize) + "\n30\n0.0\n";
+      dxf += "11\n" + x + "\n21\n" + (y + markerSize) + "\n31\n0.0\n";
+
+      // Label.
+      dxf += "0\nTEXT\n8\nPIN_LABELS\n";
+      dxf += "10\n" + (x + textOffset) + "\n20\n" + (y + textOffset) + "\n30\n0.0\n";
+      dxf += "40\n" + textHeight + "\n";
+      dxf += "1\n" + label + "\n";
+      dxf += "50\n0.0\n";
+      dxf += "7\nSTANDARD\n";
     });
 
-    dxf += "0\nENDSEC\n0\nEOF\n";
+    dxf += "0\nENDSEC\n";
+    dxf += "0\nEOF\n";
+
     return dxf;
   }
 
