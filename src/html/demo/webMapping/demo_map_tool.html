@@ -797,13 +797,30 @@
 
         <input id="jsonUploadInput" class="json-file-input" type="file" accept=".json,.geojson,.csv,.txt,.wkt,.wtk,.dxf,.dwg,application/json,application/geo+json,text/csv,text/plain" multiple />
 
+        <label for="importCrsMode" style="margin-top:10px; display:block; font-size:12px; color:var(--muted); font-weight:700;">
+          Input file CRS for projected files
+        </label>
+
+        <select id="importCrsMode" class="json-layer-select" style="margin-top:0; margin-bottom:8px;">
+          <option value="AUTO">Auto-detect CRS for projected files</option>
+          <option value="EPSG:4326">EPSG:4326 — WGS84 lon/lat</option>
+          <option value="ACTIVE">Use current selected CRS</option>
+          <option value="EPSG:3857">EPSG:3857 — Web Mercator</option>
+          <option value="EPSG:2100">EPSG:2100 — Greek Grid / GGRS87</option>
+          <option value="EPSG:32634">EPSG:32634 — WGS84 / UTM Zone 34N</option>
+          <option value="EPSG:32635">EPSG:32635 — WGS84 / UTM Zone 35N</option>
+          <option value="CUSTOM">Custom EPSG code</option>
+        </select>
+
+        <input id="importCustomEpsg" type="text" placeholder="Example: 2100 or EPSG:2100" style="display:none; margin-bottom:10px;" />
+
         <button id="uploadJsonBtn" class="upload-button" type="button">
           <i class="fa-solid fa-upload"></i>
           Upload Data File
         </button>
 
         <div class="sidebar-small-note">
-          Files are loaded only into the current map session; they are not uploaded to storage or a server. Supported: JSON, GeoJSON, CSV, TXT, WKT/WTK, and simple DXF point/circle entities. JSON may be flat, GeoJSON, or nested/grouped such as <b>week → vessel → lat/lon</b>. DWG is proprietary and should be converted to DXF first.
+          Files are loaded only into the current map session; they are not uploaded to storage or a server. Supported: JSON, GeoJSON, CSV, TXT, WKT/WTK, and simple DXF point/circle entities. JSON may be flat, GeoJSON, or nested/grouped such as <b>week → vessel → lat/lon</b>. For DXF/WKT/CSV files with projected X/Y coordinates, use Auto-detect or select the correct input CRS before uploading. DWG is proprietary and should be converted to DXF first.
         </div>
 
         <div id="jsonUploadMessage" class="sidebar-message"></div>
@@ -859,7 +876,7 @@
       <textarea id="exportPreviewText" style="display:none; margin-top:8px; height:90px;" readonly></textarea>
 
       <div class="note">
-        CSV, JSON, WKT CSV, and DXF export coordinates in the active CRS. DXF pins are exported as visible circle/cross CAD markers plus labels.
+        CSV, JSON, WKT CSV, and DXF export manual and uploaded point coordinates in the current mapping CRS. DXF pins are exported as visible circle/cross CAD markers plus labels.
         GeoJSON exports geometries in WGS84 longitude/latitude, with active CRS coordinates kept as attributes.
       </div>
 
@@ -1302,6 +1319,7 @@
     rebuildCrsMenu(epsgCode);
     updateCoordinateBox(lastLatLng);
     refreshSelectedPinEditorCoordinates();
+    refreshUploadedFeatureProjectionAttributes();
 
     showBoxMessage("epsgMessage", "CRS applied: " + epsgCode + " (" + result.source + ").", "success");
   }
@@ -1327,6 +1345,7 @@
     rebuildCrsMenu(customCode);
     updateCoordinateBox(lastLatLng);
     refreshSelectedPinEditorCoordinates();
+    refreshUploadedFeatureProjectionAttributes();
 
     showBoxMessage("epsgMessage", "Custom projection applied: " + customCode + ".", "success");
   }
@@ -1359,6 +1378,7 @@
     rebuildCrsMenu("EPSG:4326");
     updateCoordinateBox(lastLatLng);
     refreshSelectedPinEditorCoordinates();
+    refreshUploadedFeatureProjectionAttributes();
     showBoxMessage("epsgMessage", "CRS reset to EPSG:4326.", "success");
   }
 
@@ -1414,6 +1434,7 @@
 
     updateCoordinateBox(lastLatLng);
     refreshSelectedPinEditorCoordinates();
+    refreshUploadedFeatureProjectionAttributes();
     showBoxMessage("epsgMessage", "", "");
   });
 
@@ -1757,8 +1778,50 @@
     }
   }
 
+  function getUploadedPointsForExport() {
+    const uploaded = [];
+
+    if (typeof uploadedDataLayers === "undefined") {
+      return uploaded;
+    }
+
+    uploadedDataLayers.forEach(layerItem => {
+      layerItem.features.forEach((feature, index) => {
+        if (!feature || !feature.geometry || feature.geometry.type !== "Point") return;
+
+        const lon = Number(feature.geometry.coordinates[0]);
+        const lat = Number(feature.geometry.coordinates[1]);
+
+        if (!Number.isFinite(lon) || !Number.isFinite(lat)) return;
+
+        const projected = projectLatLonToActiveCrs(lat, lon);
+        const props = feature.properties || {};
+
+        uploaded.push({
+          id: props.id || `${layerItem.id}_${index + 1}`,
+          label: props.label || props.name || props.title || `${layerItem.name} ${index + 1}`,
+          category: props.category || "uploaded",
+          color: props.color || "#7b3fc7",
+          notes: props.notes || "",
+          lat: roundCoordinate(lat),
+          lon: roundCoordinate(lon),
+          x: roundCoordinate(projected.x),
+          y: roundCoordinate(projected.y),
+          crs: activeEpsg,
+          source_type: "uploaded",
+          source_layer: layerItem.name,
+          source_x: roundCoordinate(props.source_x ?? props.input_x ?? lon),
+          source_y: roundCoordinate(props.source_y ?? props.input_y ?? lat),
+          source_crs: props.source_crs || props.input_crs || "EPSG:4326"
+        });
+      });
+    });
+
+    return uploaded;
+  }
+
   function getPinsForExport() {
-    return Array.from(pinData.values()).map(item => {
+    const manualPins = Array.from(pinData.values()).map(item => {
       const projected = projectLatLonToActiveCrs(item.lat, item.lon);
 
       return {
@@ -1767,13 +1830,23 @@
         category: item.category,
         color: item.color,
         notes: item.notes,
-        lat: item.lat,
-        lon: item.lon,
-        x: projected.x,
-        y: projected.y,
-        crs: activeEpsg
+        lat: roundCoordinate(item.lat),
+        lon: roundCoordinate(item.lon),
+        x: roundCoordinate(projected.x),
+        y: roundCoordinate(projected.y),
+        crs: activeEpsg,
+        source_type: "manual",
+        source_layer: "manual_pins",
+        source_x: roundCoordinate(item.lon),
+        source_y: roundCoordinate(item.lat),
+        source_crs: "EPSG:4326"
       };
     });
+
+    return [
+      ...manualPins,
+      ...getUploadedPointsForExport()
+    ];
   }
 
   function getSafeBaseFilename() {
@@ -1907,11 +1980,14 @@
       "category",
       "color",
       "notes",
-      "crs",
+      "source_type",
+      "source_layer",
+      "source_crs",
+      "source_x",
+      "source_y",
+      "mapping_crs",
       "x",
-      "y",
-      "longitude_wgs84",
-      "latitude_wgs84"
+      "y"
     ];
 
     const rows = points.map(item => [
@@ -1920,11 +1996,14 @@
       item.category,
       item.color,
       item.notes,
+      item.source_type,
+      item.source_layer,
+      item.source_crs,
+      item.source_x,
+      item.source_y,
       item.crs,
       item.x,
-      item.y,
-      item.lon,
-      item.lat
+      item.y
     ].map(csvEscape).join(","));
 
     return [header.join(","), ...rows].join("\n");
@@ -1941,11 +2020,14 @@
         category: item.category,
         color: item.color,
         notes: item.notes,
-        crs: item.crs,
+        source_type: item.source_type,
+        source_layer: item.source_layer,
+        source_crs: item.source_crs,
+        source_x: item.source_x,
+        source_y: item.source_y,
+        mapping_crs: item.crs,
         x: item.x,
-        y: item.y,
-        longitude_wgs84: item.lon,
-        latitude_wgs84: item.lat
+        y: item.y
       }))
     }, null, 2);
   }
@@ -1962,9 +2044,14 @@
           category: item.category,
           color: item.color,
           notes: item.notes,
-          active_crs: item.crs,
-          x_active_crs: item.x,
-          y_active_crs: item.y
+          source_type: item.source_type,
+          source_layer: item.source_layer,
+          source_crs: item.source_crs,
+          source_x: item.source_x,
+          source_y: item.source_y,
+          mapping_crs: item.crs,
+          x_mapping_crs: item.x,
+          y_mapping_crs: item.y
         },
         geometry: {
           type: "Point",
@@ -1975,7 +2062,7 @@
   }
 
   function buildWktCsv(points) {
-    const header = ["id", "label", "category", "color", "notes", "crs", "wkt"];
+    const header = ["id", "label", "category", "color", "notes", "source_type", "source_layer", "source_crs", "source_x", "source_y", "mapping_crs", "wkt"];
 
     const rows = points.map(item => [
       item.id,
@@ -1983,6 +2070,11 @@
       item.category,
       item.color,
       item.notes,
+      item.source_type,
+      item.source_layer,
+      item.source_crs,
+      item.source_x,
+      item.source_y,
       item.crs,
       `POINT(${item.x} ${item.y})`
     ].map(csvEscape).join(","));
@@ -2431,25 +2523,311 @@
     return features;
   }
 
-  function parseWktUploadToFeatures(text, fileName) {
+  function getSelectedImportCrs() {
+    const mode = document.getElementById("importCrsMode")?.value || "AUTO";
+
+    if (mode === "AUTO") {
+      return "AUTO";
+    }
+
+    if (mode === "ACTIVE") {
+      return activeEpsg;
+    }
+
+    if (mode === "CUSTOM") {
+      const raw = document.getElementById("importCustomEpsg")?.value || "";
+      const normalized = normalizeEpsgCode(raw);
+
+      if (!normalized) {
+        throw new Error("Please provide a valid custom input EPSG code.");
+      }
+
+      return normalized;
+    }
+
+    return mode;
+  }
+
+  async function ensureUploadInputCrsLoaded(inputCrs) {
+    if (inputCrs === "AUTO") return;
+    if (proj4.defs(inputCrs)) return;
+
+    if (LOCAL_CRS_DEFINITIONS[inputCrs]) {
+      proj4.defs(inputCrs, LOCAL_CRS_DEFINITIONS[inputCrs].proj4);
+      return;
+    }
+
+    if (inputCrs.startsWith("EPSG:")) {
+      await loadProj4Definition(inputCrs);
+      return;
+    }
+
+    throw new Error("Input CRS is not available: " + inputCrs);
+  }
+
+  function isLonLatLike(x, y) {
+    return Number.isFinite(x) &&
+      Number.isFinite(y) &&
+      x >= -180 &&
+      x <= 180 &&
+      y >= -90 &&
+      y <= 90;
+  }
+
+  function scoreDetectedCoordinate(lon, lat, sourceCrs) {
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return -Infinity;
+    if (lon < -180 || lon > 180 || lat < -90 || lat > 90) return -Infinity;
+
+    let score = 1;
+
+    /*
+      Prefer Greece-region solutions because the demo material and common datasets
+      in this tool are currently Greece-focused. This prevents ambiguous projected
+      CRS choices such as UTM zone 34/35 from winning over EPSG:2100 for Greek Grid.
+    */
+    if (lon >= 18 && lon <= 30 && lat >= 34 && lat <= 42) score += 100;
+
+    if (sourceCrs === "EPSG:2100") score += 20;
+    if (sourceCrs === "EPSG:32634") score += 10;
+    if (sourceCrs === "EPSG:32635") score += 8;
+    if (sourceCrs === "EPSG:3857") score += 2;
+
+    return score;
+  }
+
+  function detectInputCrsForCoordinate(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    if (isLonLatLike(x, y)) {
+      return {
+        inputCrs: "EPSG:4326",
+        lon: x,
+        lat: y
+      };
+    }
+
+    const candidates = [
+      "EPSG:2100",
+      "EPSG:32634",
+      "EPSG:32635",
+      "EPSG:3857"
+    ];
+
+    let best = null;
+
+    candidates.forEach(candidate => {
+      try {
+        if (!proj4.defs(candidate) && LOCAL_CRS_DEFINITIONS[candidate]) {
+          proj4.defs(candidate, LOCAL_CRS_DEFINITIONS[candidate].proj4);
+        }
+
+        if (!proj4.defs(candidate)) return;
+
+        const lonLat = proj4(candidate, "EPSG:4326", [x, y]);
+        const lon = lonLat[0];
+        const lat = lonLat[1];
+        const score = scoreDetectedCoordinate(lon, lat, candidate);
+
+        if (!best || score > best.score) {
+          best = {
+            inputCrs: candidate,
+            lon,
+            lat,
+            score
+          };
+        }
+      } catch (error) {
+        console.warn("Auto CRS candidate failed:", candidate, error);
+      }
+    });
+
+    return best && best.score > -Infinity ? best : null;
+  }
+
+  function uploadXyToLonLat(x, y, inputCrs) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    if (inputCrs === "AUTO") {
+      const detected = detectInputCrsForCoordinate(x, y);
+      if (!detected) return null;
+
+      return {
+        lon: detected.lon,
+        lat: detected.lat,
+        detectedCrs: detected.inputCrs
+      };
+    }
+
+    if (inputCrs === "EPSG:4326") {
+      if (isLonLatLike(x, y)) {
+        return { lon: x, lat: y, detectedCrs: "EPSG:4326" };
+      }
+
+      /*
+        If the user leaves EPSG:4326 selected but the coordinates are clearly
+        projected, recover by auto-detecting instead of failing silently.
+      */
+      const detected = detectInputCrsForCoordinate(x, y);
+      if (detected) {
+        return {
+          lon: detected.lon,
+          lat: detected.lat,
+          detectedCrs: detected.inputCrs
+        };
+      }
+
+      return null;
+    }
+
+    try {
+      const lonLat = proj4(inputCrs, "EPSG:4326", [x, y]);
+      const lon = lonLat[0];
+      const lat = lonLat[1];
+
+      if (Number.isFinite(lon) && Number.isFinite(lat) && lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
+        return { lon, lat, detectedCrs: inputCrs };
+      }
+    } catch (error) {
+      console.error("Input CRS transform failed:", error);
+    }
+
+    return null;
+  }
+  function currentProjectionFromLonLat(lon, lat) {
+    if (activeEpsg === "EPSG:4326") {
+      return {
+        x: lon,
+        y: lat,
+        crs: activeEpsg
+      };
+    }
+
+    const projected = proj4("EPSG:4326", activeEpsg, [lon, lat]);
+
+    return {
+      x: projected[0],
+      y: projected[1],
+      crs: activeEpsg
+    };
+  }
+
+  function roundCoordinate(value, digits = 5) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return value;
+    return Number(number.toFixed(digits));
+  }
+
+  function formatCoordinate(value, digits = 5) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return value ?? "";
+    return number.toFixed(digits);
+  }
+
+  function enrichUploadFeatureWithCoordinateAttributes(feature) {
+    if (!feature || !feature.geometry || feature.geometry.type !== "Point") {
+      return feature;
+    }
+
+    const lon = Number(feature.geometry.coordinates[0]);
+    const lat = Number(feature.geometry.coordinates[1]);
+
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+      return feature;
+    }
+
+    const current = currentProjectionFromLonLat(lon, lat);
+    const props = feature.properties || {};
+
+    /*
+      Keep only two coordinate groups in the visible attributes:
+      1. Source file coordinates
+      2. Current mapping CRS coordinates
+
+      WGS84 is still used internally by Leaflet geometry, but it is not duplicated
+      as visible attributes unless it is the actual source or mapping CRS.
+    */
+    const sourceCrs = props.source_crs ?? props.input_crs ?? "EPSG:4326";
+    const sourceX = props.source_x ?? props.input_x ?? lon;
+    const sourceY = props.source_y ?? props.input_y ?? lat;
+
+    const cleanedProps = { ...props };
+    delete cleanedProps.longitude_wgs84;
+    delete cleanedProps.latitude_wgs84;
+    delete cleanedProps.input_x;
+    delete cleanedProps.input_y;
+    delete cleanedProps.input_crs;
+
+    feature.properties = {
+      ...cleanedProps,
+      source_crs: sourceCrs,
+      source_x: roundCoordinate(sourceX),
+      source_y: roundCoordinate(sourceY),
+      mapping_crs: current.crs,
+      mapping_x: roundCoordinate(current.x),
+      mapping_y: roundCoordinate(current.y)
+    };
+
+    return feature;
+  }
+
+  function refreshUploadedFeatureProjectionAttributes() {
+    if (typeof uploadedDataLayers === "undefined") return;
+
+    uploadedDataLayers.forEach(item => {
+      /*
+        Uploaded features should behave like pins:
+        when the active CRS changes, their displayed mapping coordinates
+        and popup attributes must be recalculated immediately.
+      */
+      item.features = item.features.map(feature => enrichUploadFeatureWithCoordinateAttributes(feature));
+      item.groups = getUploadLayerGroups(item.features);
+
+      const selectedGroupStillExists = item.selectedGroup === "__ALL__" || item.groups.has(item.selectedGroup);
+      const groupToDisplay = selectedGroupStillExists
+        ? item.selectedGroup
+        : (item.groups.keys().next().value || "__ALL__");
+
+      replaceDisplayedUploadLayer(item, groupToDisplay);
+    });
+  }
+
+
+  async function parseWktUploadToFeatures(text, fileName, inputCrs = "EPSG:4326") {
+    await ensureUploadInputCrsLoaded(inputCrs);
+
     const features = [];
     const regex = /POINT\s*(?:Z\s*)?\(\s*([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s+([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)(?:\s+[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)?\s*\)/gi;
     let match;
+
     while ((match = regex.exec(text)) !== null) {
       const x = parseUploadNumber(match[1]);
       const y = parseUploadNumber(match[2]);
-      const coords = toMapLonLatFromXY(x, y);
+      const coords = uploadXyToLonLat(x, y, inputCrs);
+
       if (!coords) continue;
+
       features.push({
         type: "Feature",
         geometry: { type: "Point", coordinates: [coords.lon, coords.lat] },
-        properties: { id: "wkt_" + features.length, label: "WKT point " + (features.length + 1), category: "wkt", color: "#7b3fc7", source_group: fileName, source_x: x, source_y: y, source_crs: activeEpsg }
+        properties: {
+          id: "wkt_" + features.length,
+          label: "WKT point " + (features.length + 1),
+          category: "wkt",
+          color: "#7b3fc7",
+          source_group: fileName,
+          source_x: x,
+          source_y: y,
+          source_crs: coords.detectedCrs || inputCrs
+        }
       });
     }
+
     return features;
   }
 
-  function parseDxfUploadToFeatures(text, fileName) {
+  async function parseDxfUploadToFeatures(text, fileName, inputCrs = "EPSG:4326") {
+    await ensureUploadInputCrsLoaded(inputCrs);
+
     const tokens = text.replace(/\r/g, "").split("\n").map(value => value.trim());
     const points = [];
     const circles = [];
@@ -2457,17 +2835,24 @@
     for (let i = 0; i < tokens.length - 1; i += 2) {
       const code = tokens[i];
       const value = tokens[i + 1];
+
       if (code !== "0" || !["POINT", "CIRCLE"].includes(value)) continue;
+
       const entityType = value;
-      let x = NaN, y = NaN, label = entityType + " " + (points.length + circles.length + 1);
+      let x = NaN;
+      let y = NaN;
+      let label = entityType + " " + (points.length + circles.length + 1);
+
       for (let j = i + 2; j < tokens.length - 1; j += 2) {
         const groupCode = tokens[j];
         const groupValue = tokens[j + 1];
+
         if (groupCode === "0") break;
         if (groupCode === "10") x = parseUploadNumber(groupValue);
         if (groupCode === "20") y = parseUploadNumber(groupValue);
         if (groupCode === "1") label = groupValue;
       }
+
       if (Number.isFinite(x) && Number.isFinite(y)) {
         (entityType === "POINT" ? points : circles).push({ x, y, label, entityType });
       }
@@ -2476,18 +2861,31 @@
     const source = points.length > 0 ? points : circles;
     const seen = new Set();
     const features = [];
+
     source.forEach((entity, index) => {
       const key = entity.x.toFixed(6) + "," + entity.y.toFixed(6);
       if (seen.has(key)) return;
       seen.add(key);
-      const coords = toMapLonLatFromXY(entity.x, entity.y);
+
+      const coords = uploadXyToLonLat(entity.x, entity.y, inputCrs);
       if (!coords) return;
+
       features.push({
         type: "Feature",
         geometry: { type: "Point", coordinates: [coords.lon, coords.lat] },
-        properties: { id: "dxf_" + features.length, label: entity.label || "DXF point " + (index + 1), category: entity.entityType.toLowerCase(), color: "#7b3fc7", source_group: fileName, source_x: entity.x, source_y: entity.y, source_crs: activeEpsg }
+        properties: {
+          id: "dxf_" + features.length,
+          label: entity.label || "DXF point " + (index + 1),
+          category: entity.entityType.toLowerCase(),
+          color: "#7b3fc7",
+          source_group: fileName,
+          source_x: entity.x,
+          source_y: entity.y,
+          source_crs: coords.detectedCrs || inputCrs
+        }
       });
     });
+
     return features;
   }
 
@@ -2495,15 +2893,28 @@
     const extension = file.name.split(".").pop().toLowerCase();
     const text = await file.text();
 
+    /*
+      IMPORTANT:
+      JSON and GeoJSON are parsed exactly as before. This preserves support for
+      nested weekly vessel JSON structures such as week → vessel → lat/lon.
+      The input CRS selector is only used for coordinate-file formats that
+      commonly store projected X/Y: DXF, WKT/WTK, and CSV/TXT when no lat/lon
+      fields are available.
+    */
     if (extension === "dwg") throw new Error("DWG is proprietary/binary. Convert it to DXF first.");
     if (extension === "json" || extension === "geojson") return normalizeJsonToUploadFeatures(JSON.parse(text));
+
+    const inputCrs = getSelectedImportCrs();
+
     if (extension === "csv" || extension === "txt") return parseDelimitedUploadToFeatures(text, file.name);
-    if (extension === "wkt" || extension === "wtk") return parseWktUploadToFeatures(text, file.name);
-    if (extension === "dxf") return parseDxfUploadToFeatures(text, file.name);
+    if (extension === "wkt" || extension === "wtk") return await parseWktUploadToFeatures(text, file.name, inputCrs);
+    if (extension === "dxf") return await parseDxfUploadToFeatures(text, file.name, inputCrs);
 
     try { return normalizeJsonToUploadFeatures(JSON.parse(text)); } catch (ignored) {}
-    const wkt = parseWktUploadToFeatures(text, file.name);
+
+    const wkt = await parseWktUploadToFeatures(text, file.name, inputCrs);
     if (wkt.length > 0) return wkt;
+
     return parseDelimitedUploadToFeatures(text, file.name);
   }
 
@@ -2527,7 +2938,52 @@
   }
 
   function buildUploadPopupHtml(properties) {
-    const rows = Object.entries(properties || {}).slice(0, 14).map(([key, value]) => `<tr><td><b>${escapeHtml(key)}</b></td><td>${escapeHtml(value)}</td></tr>`).join("");
+    const props = properties || {};
+
+    const coordinateRows = [];
+
+    if (props.source_x !== undefined && props.source_y !== undefined) {
+      coordinateRows.push(
+        ["source_crs", props.source_crs || "EPSG:4326"],
+        ["source_x", formatCoordinate(props.source_x)],
+        ["source_y", formatCoordinate(props.source_y)]
+      );
+    }
+
+    if (props.mapping_x !== undefined && props.mapping_y !== undefined) {
+      coordinateRows.push(
+        ["mapping_crs", props.mapping_crs || activeEpsg],
+        ["mapping_x", formatCoordinate(props.mapping_x)],
+        ["mapping_y", formatCoordinate(props.mapping_y)]
+      );
+    }
+
+    const hiddenCoordinateKeys = new Set([
+      "source_x",
+      "source_y",
+      "source_crs",
+      "mapping_x",
+      "mapping_y",
+      "mapping_crs",
+      "longitude_wgs84",
+      "latitude_wgs84",
+      "input_x",
+      "input_y",
+      "input_crs"
+    ]);
+
+    const attributeRows = Object.entries(props)
+      .filter(([key]) => !hiddenCoordinateKeys.has(key))
+      .slice(0, 14);
+
+    const rows = [
+      ...coordinateRows,
+      ...attributeRows
+    ].map(([key, value]) => {
+      const shownValue = typeof value === "number" ? formatCoordinate(value) : value;
+      return `<tr><td><b>${escapeHtml(key)}</b></td><td>${escapeHtml(shownValue)}</td></tr>`;
+    }).join("");
+
     return `<table>${rows}</table>`;
   }
 
@@ -2555,6 +3011,7 @@
   }
 
   function addUploadedDataLayer(features, layerName) {
+    features = features.map(feature => enrichUploadFeatureWithCoordinateAttributes(feature));
     const layerId = "DATA-" + String(uploadedDataLayerCounter).padStart(3, "0");
     uploadedDataLayerCounter += 1;
     const groups = getUploadLayerGroups(features);
