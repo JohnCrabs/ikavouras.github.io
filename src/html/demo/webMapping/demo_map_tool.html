@@ -318,7 +318,7 @@
       right: 390px;
       top: 86px;
       width: 340px;
-      z-index: 1210;
+      z-index: 5000;
       background: rgba(255,255,255,0.98);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -819,6 +819,170 @@
       color: var(--text);
     }
 
+
+    .raster-legend {
+      height: 11px;
+      border-radius: 99px;
+      margin-top: 7px;
+      border: 1px solid var(--border);
+      background: linear-gradient(90deg, #313695, #74add1, #ffffbf, #f46d43, #a50026);
+    }
+
+    .raster-slider-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 44px;
+      gap: 7px;
+      align-items: center;
+      margin-top: 7px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .raster-slider-row input[type="range"] {
+      width: 100%;
+    }
+
+    .raster-layer-item select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px;
+      font-size: 12px;
+      margin-top: 6px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .raster-mini-button {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 7px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 7px;
+    }
+
+    .raster-mini-button:hover {
+      background: #eef2f6;
+    }
+
+    .raster-settings-panel {
+      position: fixed;
+      right: 24px;
+      top: 92px;
+      width: 360px;
+      max-height: calc(100vh - 130px);
+      overflow-y: auto;
+      z-index: 5000;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 15px;
+      display: none;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .raster-settings-panel.open {
+      display: block !important;
+    }
+
+    .raster-settings-panel label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 9px;
+      margin-bottom: 5px;
+    }
+
+    .raster-settings-panel input,
+    .raster-settings-panel select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+
+    .raster-settings-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .raster-settings-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .raster-check-row {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      margin-top: 9px !important;
+      color: var(--text) !important;
+      font-weight: 700 !important;
+    }
+
+    .raster-check-row input {
+      width: auto;
+      margin: 0;
+    }
+
+
+    .raster-custom-colors {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 7px;
+    }
+
+    .raster-custom-color-row {
+      display: grid;
+      grid-template-columns: 44px 1fr 34px;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .raster-custom-color-row input[type="color"] {
+      width: 44px;
+      height: 34px;
+      padding: 2px;
+    }
+
+    .raster-custom-color-row input[type="text"] {
+      font-family: monospace;
+    }
+
+    .raster-icon-button {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 7px;
+      cursor: pointer;
+      height: 34px;
+      color: var(--text);
+    }
+
+    .raster-icon-button:hover {
+      background: #eef2f6;
+    }
+
+
+    .raster-preview-ramp {
+      height: 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      margin-top: 8px;
+      background: linear-gradient(90deg, #313695, #74add1, #ffffbf, #f46d43, #a50026);
+    }
+
     .json-layer-controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1077,7 +1241,7 @@
           Upload Data
         </div>
 
-        <input id="jsonUploadInput" class="json-file-input" type="file" accept=".json,.geojson,.csv,.txt,.wkt,.wtk,.dxf,.dwg,.zip,.shp,.shx,.dbf,.prj,.cpg,application/json,application/geo+json,text/csv,text/plain,application/zip" multiple />
+        <input id="jsonUploadInput" class="json-file-input" type="file" accept=".json,.geojson,.csv,.txt,.wkt,.wtk,.dxf,.dwg,.zip,.shp,.shx,.dbf,.prj,.cpg,.tif,.tiff,.geotiff,.nc,.nc4,.cdf,application/json,application/geo+json,text/csv,text/plain,application/zip" multiple />
 
         <label for="importCrsMode" style="margin-top:10px; display:block; font-size:12px; color:var(--muted); font-weight:700;">
           Input file CRS for projected files
@@ -1109,7 +1273,7 @@
         </button>
 
         <div class="sidebar-small-note">
-          Files are loaded only into the current map session; they are not uploaded to storage or a server. For loose shapefiles, select .shp, .shx and .dbf together, or use Upload Folder. Optional files: .prj and .cpg. Supported: JSON, GeoJSON, CSV, TXT, WKT/WTK, zipped ESRI Shapefile, loose ESRI Shapefile sidecar groups (.shp + .shx + .dbf + optional .prj/.cpg) selected together or through Upload Folder, and simple DXF point/circle entities. JSON may be flat, GeoJSON, or nested/grouped such as <b>week → vessel → lat/lon</b>. For DXF/WKT/CSV files with projected X/Y coordinates, use Auto-detect or select the correct input CRS before uploading. DWG is proprietary and should be converted to DXF first.
+          Files are loaded only into the current map session; they are not uploaded to storage or a server. For loose shapefiles, select .shp, .shx and .dbf together, or use Upload Folder. Optional files: .prj and .cpg. Supported: JSON, GeoJSON, CSV, TXT, WKT/WTK, zipped ESRI Shapefile, loose ESRI Shapefile sidecar groups (.shp + .shx + .dbf + optional .prj/.cpg) selected together or through Upload Folder, simple DXF point/circle entities, GeoTIFF/TIFF raster files, and CF-like NetCDF datacubes. JSON may be flat, GeoJSON, or nested/grouped such as <b>week → vessel → lat/lon</b>. For DXF/WKT/CSV files with projected X/Y coordinates, use Auto-detect or select the correct input CRS before uploading. DWG is proprietary and should be converted to DXF first.
         </div>
 
         <div id="jsonUploadMessage" class="sidebar-message"></div>
@@ -1123,6 +1287,21 @@
 
         <div id="jsonLayerList" class="json-layer-list">
           <div class="sidebar-small-note">No data layers uploaded yet.</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <i class="fa-solid fa-image"></i>
+          Raster Layers
+        </div>
+
+        <div id="rasterLayerList" class="json-layer-list">
+          <div class="sidebar-small-note">No raster layers uploaded yet.</div>
+        </div>
+
+        <div class="sidebar-small-note">
+          GeoTIFF/TIFF files are rendered as georeferenced raster overlays. NetCDF files are inspected for 2D/3D/4D raster-like variables and exposed as selectable 2D slices. NetCDF parsing loads a browser parser from a CDN when a NetCDF file is selected.
         </div>
       </div>
 
@@ -1486,6 +1665,134 @@
       <div id="layerSymbologyMessage" class="sidebar-message"></div>
     </div>
 
+    <div id="rasterSettingsPanel" class="raster-settings-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-sliders"></i>
+          Raster Settings
+        </div>
+        <button id="closeRasterSettingsPanelBtn" class="panel-close" type="button">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-small-note" id="rasterSettingsLayerName" style="margin-bottom:10px;">
+        Select a raster layer.
+      </div>
+
+      <label for="rasterPaletteSelect">Color palette</label>
+      <select id="rasterPaletteSelect">
+        <option value="viridis">Viridis</option>
+        <option value="turbo">Turbo</option>
+        <option value="spectral">Spectral</option>
+        <option value="grayscale">Grayscale</option>
+        <option value="red">Red scale</option>
+        <option value="green">Green scale</option>
+        <option value="blue">Blue scale</option>
+        <option value="custom">Custom 3-color</option>
+      </select>
+
+      <div id="rasterPalettePreview" class="raster-preview-ramp"></div>
+
+      <label class="raster-check-row">
+        <input id="rasterInvertPalette" type="checkbox" />
+        Invert palette
+      </label>
+
+      <label for="rasterSettingsOpacity">Layer opacity</label>
+      <div class="raster-slider-row" style="grid-template-columns: 1fr 52px;">
+        <input id="rasterSettingsOpacity" type="range" min="0" max="1" step="0.05" value="1" />
+        <span id="rasterSettingsOpacityLabel">100%</span>
+      </div>
+
+      <label for="rasterStretchMode">Stretch method</label>
+      <select id="rasterStretchMode">
+        <option value="manual">Manual min / max</option>
+        <option value="actual">Actual min / max</option>
+        <option value="cumulative">Cumulative count cut</option>
+        <option value="stddev">Mean ± standard deviation</option>
+      </select>
+
+      <label for="rasterContrastMode">Contrast enhancement</label>
+      <select id="rasterContrastMode">
+        <option value="stretch_clip">Stretch and clip to min / max</option>
+        <option value="stretch">Stretch to min / max</option>
+        <option value="clip">Clip to min / max only</option>
+        <option value="none">No enhancement</option>
+      </select>
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="rasterStretchMin">Display min</label>
+          <input id="rasterStretchMin" type="number" step="any" />
+        </div>
+        <div>
+          <label for="rasterStretchMax">Display max</label>
+          <input id="rasterStretchMax" type="number" step="any" />
+        </div>
+      </div>
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="rasterCumulativeLow">Cumulative low %</label>
+          <input id="rasterCumulativeLow" type="number" step="0.1" value="2" />
+        </div>
+        <div>
+          <label for="rasterCumulativeHigh">Cumulative high %</label>
+          <input id="rasterCumulativeHigh" type="number" step="0.1" value="98" />
+        </div>
+      </div>
+
+      <label for="rasterStdDevFactor">Standard deviation factor</label>
+      <input id="rasterStdDevFactor" type="number" step="0.1" value="2" />
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="rasterThresholdMin">Threshold min</label>
+          <input id="rasterThresholdMin" type="number" step="any" placeholder="optional" />
+        </div>
+        <div>
+          <label for="rasterThresholdMax">Threshold max</label>
+          <input id="rasterThresholdMax" type="number" step="any" placeholder="optional" />
+        </div>
+      </div>
+
+      <label class="raster-check-row">
+        <input id="rasterThresholdTransparent" type="checkbox" checked />
+        Make values outside threshold transparent
+      </label>
+
+      <label class="raster-check-row">
+        <input id="rasterClampValues" type="checkbox" checked />
+        Clamp values to display min/max
+      </label>
+
+      <label style="margin-top:12px;">Custom palette colors</label>
+      <div id="rasterCustomColors" class="raster-custom-colors"></div>
+      <button id="rasterAddCustomColorBtn" class="symbology-button" type="button" style="width:100%; margin-top:8px;">
+        <i class="fa-solid fa-plus"></i> Add color stop
+      </button>
+
+      <div class="symbology-button-row" style="margin-top:10px;">
+        <button id="rasterApplySettingsBtn" class="symbology-button primary" type="button">
+          <i class="fa-solid fa-check"></i> Apply
+        </button>
+        <button id="rasterAutoStretchBtn" class="symbology-button" type="button">
+          Auto stretch
+        </button>
+      </div>
+
+      <button id="rasterResetSettingsBtn" class="symbology-button" type="button" style="width:100%; margin-top:8px;">
+        Reset raster style
+      </button>
+
+      <div class="sidebar-small-note">
+        Thresholding is visual only. The source raster values are not modified.
+      </div>
+
+      <div id="rasterSettingsMessage" class="sidebar-message"></div>
+    </div>
+
     <div class="coordinate-wrapper">
       <button class="epsg-button" id="openEpsgPanelBtn" type="button" title="Change EPSG">
         <i class="fa-solid fa-earth-europe"></i>
@@ -1501,6 +1808,8 @@
 <script src="https://unpkg.com/shpjs@latest/dist/shp.min.js"></script>
 <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://unpkg.com/shp-write@latest/shpwrite.js"></script>
+<script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
+<script src="https://unpkg.com/georaster-layer-for-leaflet@3.10.0/dist/georaster-layer-for-leaflet.min.js"></script>
 
 <script>
   "use strict";
@@ -2925,7 +3234,7 @@
     await exportPinsSelectedFormat();
   });
 
-  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu", "legendPanel", "layerSymbologyPanel", "rightSidebar"].forEach(id => {
+  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu", "legendPanel", "layerSymbologyPanel", "rasterSettingsPanel", "rightSidebar"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       L.DomEvent.disableClickPropagation(el);
@@ -3885,6 +4194,1258 @@
   }
 
 
+
+  const rasterLayers = new Map();
+  let rasterLayerCounter = 1;
+
+  function isRasterFileExtension(extension) {
+    return ["tif", "tiff", "geotiff", "nc", "nc4", "cdf"].includes(String(extension || "").toLowerCase());
+  }
+
+  let activeRasterSettingsLayerId = null;
+
+  const RASTER_PALETTES = {
+    viridis: ["#440154", "#31688e", "#35b779", "#fde725"],
+    turbo: ["#30123b", "#4662d7", "#37a936", "#faba39", "#7a0403"],
+    spectral: ["#313695", "#74add1", "#ffffbf", "#f46d43", "#a50026"],
+    grayscale: ["#000000", "#ffffff"],
+    red: ["#000000", "#ff0000"],
+    green: ["#000000", "#00aa33"],
+    blue: ["#000000", "#0066ff"]
+  };
+
+  function hexToRgb(hex) {
+    const clean = String(hex || "#000000").replace("#", "");
+    const value = clean.length === 3 ? clean.split("").map(char => char + char).join("") : clean.padEnd(6, "0").slice(0, 6);
+    return [parseInt(value.slice(0, 2), 16), parseInt(value.slice(2, 4), 16), parseInt(value.slice(4, 6), 16)];
+  }
+
+  function interpolateRgb(a, b, t) {
+    return [
+      Math.round(a[0] + (b[0] - a[0]) * t),
+      Math.round(a[1] + (b[1] - a[1]) * t),
+      Math.round(a[2] + (b[2] - a[2]) * t)
+    ];
+  }
+
+  function getRasterPaletteStops(style) {
+    if (!style) return RASTER_PALETTES.spectral;
+
+    if (style.palette === "custom") {
+      const colors = (style.customColors || [])
+        .map(color => String(color || "").trim())
+        .filter(color => /^#[0-9a-fA-F]{6}$/.test(color));
+
+      return colors.length >= 2 ? colors : ["#313695", "#ffffbf", "#a50026"];
+    }
+
+    return RASTER_PALETTES[style?.palette || "spectral"] || RASTER_PALETTES.spectral;
+  }
+
+  function getRasterLegendStyle(style = {}) {
+    let stops = getRasterPaletteStops(style || defaultRasterStyle()).slice();
+    if (style && style.invert) stops = stops.reverse();
+    return `background: linear-gradient(90deg, ${stops.join(", ")});`;
+  }
+
+  function rasterColorFromStyle(value, min, max, style = {}) {
+    if (!Number.isFinite(value)) return [0, 0, 0, 0];
+
+    if (Number.isFinite(style.thresholdMin) && value < style.thresholdMin) {
+      return style.transparentOutside !== false ? [0, 0, 0, 0] : [180, 180, 180, 120];
+    }
+
+    if (Number.isFinite(style.thresholdMax) && value > style.thresholdMax) {
+      return style.transparentOutside !== false ? [0, 0, 0, 0] : [180, 180, 180, 120];
+    }
+
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) {
+      return [49, 54, 149, 255];
+    }
+
+    let t = (value - min) / (max - min);
+    const contrastMode = style.contrastMode || "stretch_clip";
+
+    if (contrastMode === "clip") {
+      t = value < min ? 0 : (value > max ? 1 : 0.5);
+    } else if (contrastMode === "none") {
+      t = Math.max(0, Math.min(1, value));
+    } else {
+      // QGIS-like stretch / stretch and clip display behaviour
+      t = Math.max(0, Math.min(1, t));
+    }
+
+    if (style.clamp !== false) {
+      t = Math.max(0, Math.min(1, t));
+    }
+
+    if (style.invert) {
+      t = 1 - t;
+    }
+
+    const stops = getRasterPaletteStops(style).map(hexToRgb);
+    const scaled = Math.max(0, Math.min(1, t)) * (stops.length - 1);
+    const index = Math.min(stops.length - 2, Math.floor(scaled));
+    const f = scaled - index;
+    const rgb = interpolateRgb(stops[index], stops[index + 1], f);
+
+    return [rgb[0], rgb[1], rgb[2], Number.isFinite(style.alpha) ? style.alpha : 255];
+  }
+
+  function defaultRasterStyle(range = {}) {
+    return {
+      palette: "spectral",
+      invert: false,
+      displayMin: range.min,
+      displayMax: range.max,
+      stretchMode: "manual",
+      contrastMode: "stretch_clip",
+      cumulativeLow: 2,
+      cumulativeHigh: 98,
+      stdDevFactor: 2,
+      thresholdMin: null,
+      thresholdMax: null,
+      transparentOutside: true,
+      clamp: true,
+      customColors: ["#313695", "#ffffbf", "#a50026"],
+      alpha: 255
+    };
+  }
+
+
+  function rasterColorRamp(value, min, max) {
+    if (!Number.isFinite(value)) return [0, 0, 0, 0];
+
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) {
+      return [49, 54, 149, 190];
+    }
+
+    const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
+    const stops = [
+      [49, 54, 149],
+      [116, 173, 209],
+      [255, 255, 191],
+      [244, 109, 67],
+      [165, 0, 38]
+    ];
+
+    const scaled = t * (stops.length - 1);
+    const index = Math.min(stops.length - 2, Math.floor(scaled));
+    const f = scaled - index;
+
+    return [
+      Math.round(stops[index][0] + f * (stops[index + 1][0] - stops[index][0])),
+      Math.round(stops[index][1] + f * (stops[index + 1][1] - stops[index][1])),
+      Math.round(stops[index][2] + f * (stops[index + 1][2] - stops[index][2])),
+      195
+    ];
+  }
+
+  function flattenRasterValues(input, output = []) {
+    if (!input) return output;
+
+    if (typeof input.length === "number" && typeof input !== "string") {
+      for (let i = 0; i < input.length; i += 1) {
+        const value = input[i];
+
+        if (value && typeof value.length === "number" && typeof value !== "number") {
+          flattenRasterValues(value, output);
+        } else {
+          output.push(Number(value));
+        }
+      }
+    }
+
+    return output;
+  }
+
+  function rasterFiniteMinMax(values, noDataValues = []) {
+    let min = Infinity;
+    let max = -Infinity;
+    const noData = new Set(noDataValues.filter(v => v !== undefined && v !== null).map(Number));
+
+    for (let i = 0; i < values.length; i += 1) {
+      const value = Number(values[i]);
+      if (!Number.isFinite(value) || noData.has(value)) continue;
+      if (value < min) min = value;
+      if (value > max) max = value;
+    }
+
+    return {
+      min: min === Infinity ? null : min,
+      max: max === -Infinity ? null : max
+    };
+  }
+
+  function addRasterLayerItem(item) {
+    rasterLayers.set(item.id, item);
+    renderRasterLayerList();
+  }
+
+  function renderRasterLayerList() {
+    const list = document.getElementById("rasterLayerList");
+    if (!list) return;
+
+    if (rasterLayers.size === 0) {
+      list.innerHTML = `<div class="sidebar-small-note">No raster layers uploaded yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = "";
+
+    rasterLayers.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "json-layer-item raster-layer-item";
+      const sliceControls = item.type === "netcdf" ? buildNetcdfControlsHtml(item) : "";
+
+      div.innerHTML = `
+        <div class="json-layer-top">
+          <div class="json-layer-name">${escapeHtml(item.name)}</div>
+          <div class="json-layer-actions">
+            <button type="button" data-raster-action="zoom" data-id="${item.id}" title="Zoom to raster"><i class="fa-solid fa-magnifying-glass-location"></i></button>
+            <button type="button" data-raster-action="toggle" data-id="${item.id}" title="Show / hide raster"><i class="fa-solid ${item.visible ? "fa-eye" : "fa-eye-slash"}"></i></button>
+            <button type="button" data-raster-action="settings" data-id="${item.id}" title="Raster settings" onclick="event.preventDefault(); event.stopPropagation(); window.openRasterSettingsPanelSafe && window.openRasterSettingsPanelSafe('${item.id}');"><i class="fa-solid fa-gear"></i></button>
+            <button type="button" data-raster-action="remove" data-id="${item.id}" title="Remove raster"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+
+        <div class="json-layer-meta">
+          ${escapeHtml(item.description || "")}<br>
+          ${item.min !== null && item.max !== null ? `Range: ${Number(item.min).toFixed(4)} → ${Number(item.max).toFixed(4)}` : "Range: unavailable"}
+        </div>
+
+        <div class="raster-legend" style="${getRasterLegendStyle(item.style)}"></div>
+
+        <div class="raster-slider-row">
+          <span>Opacity</span>
+          <input type="range" min="0" max="1" step="0.05" value="${item.opacity ?? 1.0}" data-raster-opacity="${item.id}" />
+          <span>${Math.round((item.opacity ?? 1.0) * 100)}%</span>
+        </div>
+
+        ${sliceControls}
+      `;
+
+      list.appendChild(div);
+    });
+  }
+
+  function buildNetcdfControlsHtml(item) {
+    const variableOptions = item.variables.map(variable => {
+      const selected = variable.name === item.selectedVariable ? "selected" : "";
+      return `<option value="${escapeHtml(variable.name)}" ${selected}>${escapeHtml(variable.name)} (${escapeHtml(variable.shape.join("×"))})</option>`;
+    }).join("");
+
+    const sliders = item.sliceDims.map(dim => {
+      const maxIndex = Math.max(0, dim.length - 1);
+      const current = item.selectedIndices[dim.name] || 0;
+
+      return `
+        <div class="raster-slider-row">
+          <span>${escapeHtml(dim.name)}</span>
+          <input type="range" min="0" max="${maxIndex}" step="1" value="${current}" data-netcdf-dim="${escapeHtml(dim.name)}" data-id="${item.id}" />
+          <span>${current}/${maxIndex}</span>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <label style="display:block; margin-top:8px; font-size:12px; color:var(--muted); font-weight:700;">Variable</label>
+      <select data-netcdf-variable="${item.id}">${variableOptions}</select>
+      ${sliders}
+      <button class="raster-mini-button" type="button" data-raster-action="redraw" data-id="${item.id}">
+        <i class="fa-solid fa-rotate"></i> Redraw Slice
+      </button>
+    `;
+  }
+
+  function toggleRasterLayer(layerId) {
+    const item = rasterLayers.get(layerId);
+    if (!item || !item.layer) return;
+
+    if (item.visible) {
+      map.removeLayer(item.layer);
+      item.visible = false;
+    } else {
+      item.layer.addTo(map);
+      item.visible = true;
+    }
+
+    renderRasterLayerList();
+  }
+
+  function removeRasterLayer(layerId) {
+    const item = rasterLayers.get(layerId);
+    if (!item) return;
+
+    if (item.layer && map.hasLayer(item.layer)) {
+      map.removeLayer(item.layer);
+    }
+
+    rasterLayers.delete(layerId);
+    renderRasterLayerList();
+  }
+
+  function zoomToRasterLayer(layerId) {
+    const item = rasterLayers.get(layerId);
+    if (item && item.bounds) {
+      map.fitBounds(item.bounds, { padding: [20, 20] });
+    }
+  }
+
+  function setRasterOpacity(layerId, opacity) {
+    const item = rasterLayers.get(layerId);
+    if (!item || !item.layer) return;
+
+    item.opacity = Number(opacity);
+
+    if (typeof item.layer.setOpacity === "function") {
+      item.layer.setOpacity(item.opacity);
+    }
+
+    const panelOpacity = document.getElementById("rasterSettingsOpacity");
+    if (panelOpacity && activeRasterSettingsLayerId === layerId) {
+      panelOpacity.value = item.opacity;
+      document.getElementById("rasterSettingsOpacityLabel").textContent = `${Math.round(item.opacity * 100)}%`;
+    }
+  }
+
+  function getFiniteRasterValuesForItem(item) {
+    if (!item) return [];
+
+    if (item.type === "geotiff" && item.rawValues) {
+      return item.rawValues.filter(Number.isFinite);
+    }
+
+    if (item.type === "netcdf") {
+      try {
+        const slice = extractNc2DSlice(item);
+        return Array.from(slice.values).filter(Number.isFinite);
+      } catch (error) {
+        console.warn("Could not extract NetCDF slice values for stretching:", error);
+      }
+    }
+
+    return [];
+  }
+
+  function rasterPercentile(sortedValues, percent) {
+    if (!sortedValues.length) return null;
+
+    const p = Math.max(0, Math.min(100, Number(percent))) / 100;
+    const index = p * (sortedValues.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+
+    if (lower === upper) return sortedValues[lower];
+
+    const f = index - lower;
+    return sortedValues[lower] + (sortedValues[upper] - sortedValues[lower]) * f;
+  }
+
+  function rasterMeanStd(values) {
+    if (!values.length) return { mean: null, std: null };
+
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const variance = values.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / values.length;
+
+    return { mean, std: Math.sqrt(variance) };
+  }
+
+  function computeRasterStretchRange(item, style) {
+    const values = getFiniteRasterValuesForItem(item);
+    if (!values.length) return { min: item.min, max: item.max };
+
+    const mode = style.stretchMode || "manual";
+
+    if (mode === "actual") {
+      return rasterFiniteMinMax(values);
+    }
+
+    if (mode === "cumulative") {
+      const sorted = [...values].sort((a, b) => a - b);
+      const low = Number.isFinite(style.cumulativeLow) ? style.cumulativeLow : 2;
+      const high = Number.isFinite(style.cumulativeHigh) ? style.cumulativeHigh : 98;
+      return { min: rasterPercentile(sorted, low), max: rasterPercentile(sorted, high) };
+    }
+
+    if (mode === "stddev") {
+      const stats = rasterMeanStd(values);
+      const factor = Number.isFinite(style.stdDevFactor) ? style.stdDevFactor : 2;
+      return { min: stats.mean - factor * stats.std, max: stats.mean + factor * stats.std };
+    }
+
+    return {
+      min: Number.isFinite(style.displayMin) ? style.displayMin : item.min,
+      max: Number.isFinite(style.displayMax) ? style.displayMax : item.max
+    };
+  }
+
+  function getCustomColorsFromUI() {
+    return Array.from(document.querySelectorAll("#rasterCustomColors input[type='color']"))
+      .map(input => input.value)
+      .filter(color => /^#[0-9a-fA-F]{6}$/.test(color));
+  }
+
+  function renderCustomPaletteControls(colors = ["#313695", "#ffffbf", "#a50026"]) {
+    const container = document.getElementById("rasterCustomColors");
+    if (!container) return;
+
+    const safeColors = colors.length >= 2 ? colors : ["#313695", "#a50026"];
+
+    container.innerHTML = safeColors.map((color, index) => `
+      <div class="raster-custom-color-row" data-custom-color-row="${index}">
+        <input type="color" value="${escapeHtml(color)}" data-custom-color-input />
+        <input type="text" value="${escapeHtml(color)}" data-custom-color-text />
+        <button type="button" class="raster-icon-button" data-remove-custom-color="${index}" title="Remove color">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    `).join("");
+
+    container.querySelectorAll("[data-custom-color-input]").forEach(input => {
+      input.addEventListener("input", event => {
+        const row = event.target.closest(".raster-custom-color-row");
+        const text = row.querySelector("[data-custom-color-text]");
+        text.value = event.target.value;
+        updateRasterPalettePreview();
+      });
+    });
+
+    container.querySelectorAll("[data-custom-color-text]").forEach(input => {
+      input.addEventListener("input", event => {
+        const value = event.target.value.trim();
+        if (!/^#[0-9a-fA-F]{6}$/.test(value)) return;
+
+        const row = event.target.closest(".raster-custom-color-row");
+        const color = row.querySelector("[data-custom-color-input]");
+        color.value = value;
+        updateRasterPalettePreview();
+      });
+    });
+
+    container.querySelectorAll("[data-remove-custom-color]").forEach(button => {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const current = getCustomColorsFromUI();
+        if (current.length <= 2) {
+          showRasterSettingsMessage("A custom palette needs at least two colors.", "warning");
+          return;
+        }
+
+        current.splice(Number(button.dataset.removeCustomColor), 1);
+        renderCustomPaletteControls(current);
+        updateRasterPalettePreview();
+      });
+    });
+
+    updateRasterPalettePreview();
+  }
+
+  function addCustomPaletteColor() {
+    const current = getCustomColorsFromUI();
+    const last = current[current.length - 1] || "#a50026";
+    current.push(last);
+    renderCustomPaletteControls(current);
+    updateRasterPalettePreview();
+  }
+
+
+  function showRasterSettingsMessage(message, type = "") {
+    const box = document.getElementById("rasterSettingsMessage");
+    if (!box) return;
+    if (!message) {
+      box.textContent = "";
+      box.className = "sidebar-message";
+      return;
+    }
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function updateRasterPalettePreview() {
+    const preview = document.getElementById("rasterPalettePreview");
+    if (!preview) return;
+
+    const paletteName = document.getElementById("rasterPaletteSelect").value;
+    const customColors = getCustomColorsFromUI();
+
+    const style = {
+      palette: paletteName,
+      customColors,
+      invert: document.getElementById("rasterInvertPalette").checked
+    };
+
+    let stops = getRasterPaletteStops(style);
+    if (style.invert) stops = [...stops].reverse();
+    preview.style.background = `linear-gradient(90deg, ${stops.join(", ")})`;
+  }
+
+  function openRasterSettingsPanel(layerId) {
+    const panel = document.getElementById("rasterSettingsPanel");
+
+    if (!panel) {
+      console.error("Raster settings panel element was not found.");
+      return;
+    }
+
+    const item = rasterLayers.get(layerId);
+
+    if (!item) {
+      console.warn("Raster settings requested for missing layer:", layerId);
+      panel.classList.add("open");
+    panel.style.display = "block";
+    panel.style.position = "fixed";
+    panel.style.right = "24px";
+    panel.style.top = "92px";
+    panel.style.zIndex = "5000";
+      const nameBox = document.getElementById("rasterSettingsLayerName");
+      if (nameBox) nameBox.textContent = "Raster layer not found. Try reopening the raster sidebar/list.";
+      return;
+    }
+
+    /*
+      Open first, then populate. This guarantees the window appears even if a
+      field-specific value causes a recoverable error.
+    */
+    panel.classList.add("open");
+    activeRasterSettingsLayerId = layerId;
+
+    try {
+      if (!item.style) item.style = defaultRasterStyle({ min: item.min, max: item.max });
+
+      document.getElementById("rasterSettingsLayerName").textContent = `Layer: ${item.name}`;
+      document.getElementById("rasterPaletteSelect").value = item.style.palette || "spectral";
+      document.getElementById("rasterInvertPalette").checked = !!item.style.invert;
+
+      if (document.getElementById("rasterSettingsOpacity")) {
+        document.getElementById("rasterSettingsOpacity").value = item.opacity ?? 1.0;
+        document.getElementById("rasterSettingsOpacityLabel").textContent = `${Math.round((item.opacity ?? 1.0) * 100)}%`;
+      }
+
+      document.getElementById("rasterStretchMode").value = item.style.stretchMode || "manual";
+      document.getElementById("rasterContrastMode").value = item.style.contrastMode || "stretch_clip";
+      document.getElementById("rasterStretchMin").value = Number.isFinite(item.style.displayMin) ? item.style.displayMin : (item.min ?? "");
+      document.getElementById("rasterStretchMax").value = Number.isFinite(item.style.displayMax) ? item.style.displayMax : (item.max ?? "");
+      document.getElementById("rasterCumulativeLow").value = Number.isFinite(item.style.cumulativeLow) ? item.style.cumulativeLow : 2;
+      document.getElementById("rasterCumulativeHigh").value = Number.isFinite(item.style.cumulativeHigh) ? item.style.cumulativeHigh : 98;
+      document.getElementById("rasterStdDevFactor").value = Number.isFinite(item.style.stdDevFactor) ? item.style.stdDevFactor : 2;
+      document.getElementById("rasterThresholdMin").value = Number.isFinite(item.style.thresholdMin) ? item.style.thresholdMin : "";
+      document.getElementById("rasterThresholdMax").value = Number.isFinite(item.style.thresholdMax) ? item.style.thresholdMax : "";
+      document.getElementById("rasterThresholdTransparent").checked = item.style.transparentOutside !== false;
+      document.getElementById("rasterClampValues").checked = item.style.clamp !== false;
+
+      renderCustomPaletteControls(item.style.customColors || ["#313695", "#ffffbf", "#a50026"]);
+      updateRasterPalettePreview();
+      showRasterSettingsMessage("", "");
+    } catch (error) {
+      console.error("Raster settings panel opened, but field population failed:", error);
+      showRasterSettingsMessage(
+        "Settings panel opened, but some fields could not be populated. You can still try Apply/Reset.",
+        "warning"
+      );
+    }
+  }
+
+  window.openRasterSettingsPanelSafe = openRasterSettingsPanel;
+
+  function closeRasterSettingsPanel() {
+    const panel = document.getElementById("rasterSettingsPanel");
+    if (!panel) return;
+    panel.classList.remove("open");
+    panel.style.display = "none";
+  }
+
+  function readNullableNumberFromInput(id) {
+    const value = document.getElementById(id).value.trim();
+    if (value === "") return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function applyRasterSettingsFromPanel() {
+    const item = rasterLayers.get(activeRasterSettingsLayerId);
+    if (!item) {
+      showRasterSettingsMessage("Select a raster layer first.", "warning");
+      return;
+    }
+
+    item.opacity = Number(document.getElementById("rasterSettingsOpacity")?.value ?? item.opacity ?? 1.0);
+
+    item.style = {
+      ...(item.style || defaultRasterStyle({ min: item.min, max: item.max })),
+      palette: document.getElementById("rasterPaletteSelect").value,
+      invert: document.getElementById("rasterInvertPalette").checked,
+      stretchMode: document.getElementById("rasterStretchMode").value,
+      contrastMode: document.getElementById("rasterContrastMode").value,
+      displayMin: readNullableNumberFromInput("rasterStretchMin"),
+      displayMax: readNullableNumberFromInput("rasterStretchMax"),
+      cumulativeLow: readNullableNumberFromInput("rasterCumulativeLow") ?? 2,
+      cumulativeHigh: readNullableNumberFromInput("rasterCumulativeHigh") ?? 98,
+      stdDevFactor: readNullableNumberFromInput("rasterStdDevFactor") ?? 2,
+      thresholdMin: readNullableNumberFromInput("rasterThresholdMin"),
+      thresholdMax: readNullableNumberFromInput("rasterThresholdMax"),
+      transparentOutside: document.getElementById("rasterThresholdTransparent").checked,
+      clamp: document.getElementById("rasterClampValues").checked,
+      customColors: getCustomColorsFromUI(),
+      alpha: 255
+    };
+
+    const computedRange = computeRasterStretchRange(item, item.style);
+    if (item.style.stretchMode !== "manual") {
+      item.style.displayMin = computedRange.min;
+      item.style.displayMax = computedRange.max;
+      document.getElementById("rasterStretchMin").value = computedRange.min ?? "";
+      document.getElementById("rasterStretchMax").value = computedRange.max ?? "";
+    }
+
+    if (item.type === "geotiff") redrawGeoTiffLayer(item);
+    else if (item.type === "netcdf") redrawNetcdfLayer(item.id);
+
+    updateRasterPalettePreview();
+    showRasterSettingsMessage("Raster style applied.", "success");
+  }
+
+  function autoStretchRasterSettings() {
+    const item = rasterLayers.get(activeRasterSettingsLayerId);
+    if (!item) return;
+
+    document.getElementById("rasterStretchMode").value = "actual";
+    const range = computeRasterStretchRange(item, { ...(item.style || {}), stretchMode: "actual" });
+    document.getElementById("rasterStretchMin").value = range.min ?? "";
+    document.getElementById("rasterStretchMax").value = range.max ?? "";
+    showRasterSettingsMessage("Display min/max reset to actual raster range.", "success");
+  }
+
+  function resetRasterSettings() {
+    const item = rasterLayers.get(activeRasterSettingsLayerId);
+    if (!item) return;
+    item.style = defaultRasterStyle({ min: item.min, max: item.max });
+    openRasterSettingsPanel(item.id);
+    if (item.type === "geotiff") redrawGeoTiffLayer(item);
+    else if (item.type === "netcdf") redrawNetcdfLayer(item.id);
+    showRasterSettingsMessage("Raster style reset.", "success");
+  }
+
+
+  function handleRasterLayerClick(event) {
+    const button = event.target.closest("[data-raster-action]");
+    if (!button) return;
+
+    event.stopPropagation();
+
+    const action = button.dataset.rasterAction;
+    const layerId = button.dataset.id;
+
+    if (action === "zoom") zoomToRasterLayer(layerId);
+    if (action === "toggle") toggleRasterLayer(layerId);
+    if (action === "settings") openRasterSettingsPanel(layerId);
+    if (action === "remove") removeRasterLayer(layerId);
+    if (action === "redraw") redrawNetcdfLayer(layerId);
+  }
+
+  function handleRasterLayerChange(event) {
+    const opacityInput = event.target.closest("[data-raster-opacity]");
+    if (opacityInput) {
+      setRasterOpacity(opacityInput.dataset.rasterOpacity, opacityInput.value);
+      return;
+    }
+
+    const variableSelect = event.target.closest("[data-netcdf-variable]");
+    if (variableSelect) {
+      const item = rasterLayers.get(variableSelect.dataset.netcdfVariable);
+      if (!item) return;
+
+      item.selectedVariable = variableSelect.value;
+      configureNetcdfState(item);
+      redrawNetcdfLayer(item.id);
+      return;
+    }
+
+    const dimSlider = event.target.closest("[data-netcdf-dim]");
+    if (dimSlider) {
+      const item = rasterLayers.get(dimSlider.dataset.id);
+      if (!item) return;
+
+      item.selectedIndices[dimSlider.dataset.netcdfDim] = Number(dimSlider.value);
+      redrawNetcdfLayer(item.id);
+    }
+  }
+
+  function readFileAsArrayBufferSafe(file) {
+    /*
+      Read immediately and with fallback.
+      This avoids losing browser permission to the selected file while waiting
+      for external parser libraries or other async work.
+    */
+    if (file && typeof file.arrayBuffer === "function") {
+      return file.arrayBuffer().catch(() => readFileWithFileReader(file));
+    }
+
+    return readFileWithFileReader(file);
+  }
+
+  function readFileWithFileReader(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error("Browser could not read the selected file."));
+
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function parseRasterFileToLayer(file) {
+    const extension = file.name.split(".").pop().toLowerCase();
+
+    if (["tif", "tiff", "geotiff"].includes(extension)) {
+      await parseGeoTiffRaster(file);
+      return true;
+    }
+
+    if (["nc", "nc4", "cdf"].includes(extension)) {
+      await parseNetcdfRaster(file);
+      return true;
+    }
+
+    return false;
+  }
+
+  function createGeoTiffStyledLayer(item) {
+    return new GeoRasterLayer({
+      georaster: item.georaster,
+      opacity: item.opacity,
+      resolution: 128,
+      pixelValuesToColorFn: pixelValues => {
+        const value = Number(pixelValues[0]);
+        const min = Number.isFinite(item.style?.displayMin) ? item.style.displayMin : item.min;
+        const max = Number.isFinite(item.style?.displayMax) ? item.style.displayMax : item.max;
+        const rgba = rasterColorFromStyle(value, min, max, item.style);
+        return `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3] / 255})`;
+      }
+    });
+  }
+
+  function redrawGeoTiffLayer(item) {
+    if (!item || item.type !== "geotiff") return;
+    const wasVisible = item.visible;
+    if (item.layer && map.hasLayer(item.layer)) map.removeLayer(item.layer);
+    item.layer = createGeoTiffStyledLayer(item);
+    item.bounds = item.layer.getBounds();
+    if (wasVisible) {
+      item.layer.addTo(map);
+      item.visible = true;
+    }
+    renderRasterLayerList();
+  }
+
+
+  async function parseGeoTiffRaster(file) {
+    if (typeof parseGeoraster === "undefined" || typeof GeoRasterLayer === "undefined") {
+      throw new Error("GeoTIFF support library did not load.");
+    }
+
+    let buffer;
+
+    try {
+      buffer = await readFileAsArrayBufferSafe(file);
+    } catch (error) {
+      throw new Error(
+        "The browser could not read this GeoTIFF/TIFF file from disk. Try copying it to a simple local folder and make sure it is not open in another program. Details: " +
+        (error && error.message ? error.message : "unknown file-read error")
+      );
+    }
+
+    const georaster = await parseGeoraster(buffer);
+    const rawValues = Array.isArray(georaster.values) && georaster.values[0]
+      ? flattenRasterValues(georaster.values[0])
+      : [];
+
+    const range = rasterFiniteMinMax(rawValues, [
+      georaster.noDataValue,
+      georaster.nodata,
+      georaster.no_data_value
+    ]);
+
+    const item = {
+      id: "RASTER-" + String(rasterLayerCounter).padStart(3, "0"),
+      name: file.name,
+      type: "geotiff",
+      description: `GeoTIFF/TIFF | ${georaster.numberOfRasters || 1} band(s) | ${georaster.width}×${georaster.height}`,
+      georaster,
+      rawValues,
+      layer: null,
+      visible: true,
+      opacity: 1.0,
+      bounds: null,
+      min: range.min,
+      max: range.max,
+      style: {
+        ...defaultRasterStyle(range),
+        palette: "grayscale"
+      }
+    };
+
+    item.layer = createGeoTiffStyledLayer(item);
+    item.layer.addTo(map);
+
+    const bounds = item.layer.getBounds();
+    item.bounds = bounds;
+
+    rasterLayerCounter += 1;
+    addRasterLayerItem(item);
+
+    if (bounds && bounds.isValid && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [20, 20] });
+    }
+  }
+
+  function loadExternalScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+      const existingLoaded = Array.from(document.scripts).find(script => script.src === src && script.dataset.loaded === "true");
+      if (existingLoaded) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+
+      script.onload = () => {
+        script.dataset.loaded = "true";
+        resolve();
+      };
+
+      script.onerror = () => {
+        script.remove();
+        reject(new Error("Could not load " + src));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureNetcdfSupportLibrary() {
+    if (getNetcdfReaderClass()) return getNetcdfReaderClass();
+
+    /*
+      Try ESM builds first. Newer netcdfjs versions are published as ESM and
+      do not expose a browser global when loaded with a normal script tag.
+    */
+    const moduleCandidates = [
+      "https://esm.sh/netcdfjs@4.0.0",
+      "https://cdn.jsdelivr.net/npm/netcdfjs@4.0.0/+esm",
+      "https://cdn.jsdelivr.net/npm/netcdfjs@3.0.0/+esm",
+      "https://esm.sh/netcdfjs@3.0.0"
+    ];
+
+    for (const url of moduleCandidates) {
+      try {
+        const module = await import(/* @vite-ignore */ url);
+        const Reader =
+          module.NetCDFReader ||
+          module.default?.NetCDFReader ||
+          (typeof module.default === "function" ? module.default : null);
+
+        if (Reader) {
+          window.NetCDFReader = Reader;
+          return Reader;
+        }
+      } catch (error) {
+        console.warn("NetCDF ESM candidate failed:", url, error);
+      }
+    }
+
+    /*
+      Fallback to older UMD/browser bundles.
+    */
+    const scriptCandidates = [
+      "https://cdn.jsdelivr.net/npm/netcdfjs@0.7.0/dist/netcdfjs.min.js",
+      "https://cdn.jsdelivr.net/npm/netcdfjs@0.7.0/dist/netcdfjs.js",
+      "https://unpkg.com/netcdfjs@0.7.0/dist/netcdfjs.min.js",
+      "https://unpkg.com/netcdfjs@0.7.0/dist/netcdfjs.js"
+    ];
+
+    for (const url of scriptCandidates) {
+      try {
+        await loadExternalScriptOnce(url);
+        const Reader = getNetcdfReaderClass();
+        if (Reader) return Reader;
+      } catch (error) {
+        console.warn("NetCDF script candidate failed:", url, error);
+      }
+    }
+
+    throw new Error("NetCDF support library did not load. The app tried ESM and browser-script CDN builds. Check internet/CDN access, or convert the NetCDF to GeoTIFF/COG for client-only visualization.");
+  }
+
+  function getNetcdfReaderClass() {
+    /*
+      netcdfjs browser builds have used different globals depending on the
+      bundler/CDN. Detect all common forms without touching the rest of the app.
+    */
+    if (typeof NetCDFReader !== "undefined") return NetCDFReader;
+
+    if (typeof netcdfjs !== "undefined") {
+      if (netcdfjs.NetCDFReader) return netcdfjs.NetCDFReader;
+      if (netcdfjs.default && netcdfjs.default.NetCDFReader) return netcdfjs.default.NetCDFReader;
+      if (netcdfjs.default && typeof netcdfjs.default === "function") return netcdfjs.default;
+    }
+
+    if (typeof netcdf !== "undefined") {
+      if (netcdf.NetCDFReader) return netcdf.NetCDFReader;
+      if (netcdf.default && netcdf.default.NetCDFReader) return netcdf.default.NetCDFReader;
+    }
+
+    if (typeof window !== "undefined") {
+      if (window.NetCDFReader) return window.NetCDFReader;
+      if (window.netcdfjs && window.netcdfjs.NetCDFReader) return window.netcdfjs.NetCDFReader;
+      if (window.netcdf && window.netcdf.NetCDFReader) return window.netcdf.NetCDFReader;
+    }
+
+    return null;
+  }
+
+  function readNcAttribute(variable, names) {
+    const attrs = variable.attributes || [];
+
+    for (const name of names) {
+      const found = attrs.find(attr => String(attr.name).toLowerCase() === String(name).toLowerCase());
+      if (found) return found.value;
+    }
+
+    return undefined;
+  }
+
+  function ncVariableDimensions(reader, variable) {
+    return (variable.dimensions || []).map(dim => {
+      if (typeof dim === "string") {
+        const found = reader.dimensions.find(item => item.name === dim);
+        return { name: dim, length: found ? found.size : 1 };
+      }
+
+      if (typeof dim === "number") {
+        const found = reader.dimensions[dim];
+        return { name: found ? found.name : String(dim), length: found ? found.size : 1 };
+      }
+
+      return {
+        name: String(dim.name || dim),
+        length: Number(dim.size || dim.length || 1)
+      };
+    });
+  }
+
+  function isNcRasterVariable(reader, variable) {
+    const dims = ncVariableDimensions(reader, variable);
+    if (dims.length < 2 || dims.length > 4) return false;
+
+    const name = String(variable.name || "").toLowerCase();
+    if (/^(lat|latitude|lon|longitude|time|x|y|crs|spatial_ref|bounds?)$/.test(name)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function findNcCoordinateVariable(reader, axis) {
+    const patterns = axis === "x"
+      ? [/^lon$/, /^longitude$/, /^x$/, /degrees_east/, /projection_x_coordinate/]
+      : [/^lat$/, /^latitude$/, /^y$/, /degrees_north/, /projection_y_coordinate/];
+
+    return (reader.variables || []).find(variable => {
+      const name = String(variable.name || "").toLowerCase();
+      const units = String(readNcAttribute(variable, ["units"]) || "").toLowerCase();
+      const standardName = String(readNcAttribute(variable, ["standard_name"]) || "").toLowerCase();
+      const axisAttr = String(readNcAttribute(variable, ["axis"]) || "").toLowerCase();
+
+      return patterns.some(pattern => (
+        pattern.test(name) ||
+        pattern.test(units) ||
+        pattern.test(standardName) ||
+        pattern.test(axisAttr)
+      ));
+    });
+  }
+
+  function classifyNcDimensions(dims) {
+    const result = { x: null, y: null, slice: [] };
+
+    dims.forEach(dim => {
+      const name = dim.name.toLowerCase();
+
+      if (!result.x && /^(lon|longitude|x)$/.test(name)) {
+        result.x = dim;
+      } else if (!result.y && /^(lat|latitude|y)$/.test(name)) {
+        result.y = dim;
+      }
+    });
+
+    if (!result.x && dims.length >= 2) result.x = dims[dims.length - 1];
+    if (!result.y && dims.length >= 2) result.y = dims[dims.length - 2];
+
+    result.slice = dims.filter(dim => dim.name !== result.x.name && dim.name !== result.y.name);
+    return result;
+  }
+
+  function ncData(reader, variableName) {
+    try {
+      return reader.getDataVariable(variableName);
+    } catch (error) {
+      const variable = reader.variables.find(item => item.name === variableName);
+      if (!variable) throw error;
+      return reader.getDataVariable(variable);
+    }
+  }
+
+  async function parseNetcdfRaster(file) {
+    let buffer;
+
+    try {
+      buffer = await readFileAsArrayBufferSafe(file);
+    } catch (error) {
+      throw new Error(
+        "The browser could not read this NetCDF file from disk. Try copying it to a simple local folder such as C:\\Temp, rename it to a short name, and make sure it is not open in another program. Details: " +
+        (error && error.message ? error.message : "unknown file-read error")
+      );
+    }
+
+    let Reader;
+
+    try {
+      Reader = await ensureNetcdfSupportLibrary();
+    } catch (error) {
+      throw new Error(
+        "NetCDF support library did not load. This is usually caused by blocked CDN/internet access in the browser. " +
+        "GeoTIFF/TIFF and vector formats still work. Details: " +
+        (error && error.message ? error.message : "unknown loader error")
+      );
+    }
+
+    let reader;
+
+    try {
+      reader = new Reader(buffer);
+    } catch (error) {
+      throw new Error(
+        "NetCDF file could not be parsed in-browser. This browser reader supports classic NetCDF-style files; some NetCDF4/HDF5 files may need server-side GDAL/xarray preprocessing. Original error: " +
+        (error && error.message ? error.message : "unknown parser error")
+      );
+    }
+
+    const variables = (reader.variables || [])
+      .filter(variable => isNcRasterVariable(reader, variable))
+      .map(variable => {
+        const dimensions = ncVariableDimensions(reader, variable);
+        return {
+          name: variable.name,
+          dimensions,
+          shape: dimensions.map(dim => dim.length),
+          attributes: variable.attributes || []
+        };
+      });
+
+    if (variables.length === 0) {
+      throw new Error("No 2D/3D/4D raster-like variables were detected in this NetCDF file.");
+    }
+
+    const lonVar = findNcCoordinateVariable(reader, "x");
+    const latVar = findNcCoordinateVariable(reader, "y");
+
+    const item = {
+      id: "RASTER-" + String(rasterLayerCounter).padStart(3, "0"),
+      name: file.name,
+      type: "netcdf",
+      description: "NetCDF datacube",
+      reader,
+      variables,
+      selectedVariable: variables[0].name,
+      selectedIndices: {},
+      sliceDims: [],
+      lonVar: lonVar ? lonVar.name : null,
+      latVar: latVar ? latVar.name : null,
+      layer: null,
+      visible: true,
+      opacity: 1.0,
+      bounds: null,
+      min: null,
+      max: null,
+      style: defaultRasterStyle({ min: null, max: null })
+    };
+
+    rasterLayerCounter += 1;
+    configureNetcdfState(item);
+    addRasterLayerItem(item);
+    await redrawNetcdfLayer(item.id, item);
+
+    if (item.bounds) {
+      map.fitBounds(item.bounds, { padding: [20, 20] });
+    }
+  }
+
+  function configureNetcdfState(item) {
+    const variable = item.variables.find(v => v.name === item.selectedVariable) || item.variables[0];
+    item.selectedVariable = variable.name;
+
+    const classified = classifyNcDimensions(variable.dimensions);
+    item.xDim = classified.x;
+    item.yDim = classified.y;
+    item.sliceDims = classified.slice;
+
+    item.sliceDims.forEach(dim => {
+      if (item.selectedIndices[dim.name] === undefined) {
+        item.selectedIndices[dim.name] = 0;
+      }
+
+      item.selectedIndices[dim.name] = Math.max(
+        0,
+        Math.min(dim.length - 1, Number(item.selectedIndices[dim.name] || 0))
+      );
+    });
+
+    item.description = `NetCDF | variable: ${item.selectedVariable} | grid: ${item.xDim.length}×${item.yDim.length}` +
+      (item.sliceDims.length ? ` | slice: ${item.sliceDims.map(dim => dim.name + "=" + (item.selectedIndices[dim.name] || 0)).join(", ")}` : "");
+  }
+
+  function ncCoordinateArray(item, axis) {
+    const variableName = axis === "x" ? item.lonVar : item.latVar;
+
+    if (variableName) {
+      try {
+        const values = ncData(item.reader, variableName);
+        if (values && values.length >= 2) {
+          return Array.from(values).map(Number);
+        }
+      } catch (ignored) {}
+    }
+
+    /*
+      Fallback only: if the NetCDF lacks coordinate variables, use a temporary
+      map-centered preview extent. This keeps the browser preview usable, while
+      the layer card still identifies the file as a NetCDF datacube.
+    */
+    const dim = axis === "x" ? item.xDim : item.yDim;
+    const length = dim ? dim.length : 1;
+    const center = map.getCenter();
+
+    return Array.from({ length }, (_, index) => {
+      if (length <= 1) return axis === "x" ? center.lng : center.lat;
+      const t = index / (length - 1);
+      return (axis === "x" ? center.lng : center.lat) - 0.5 + t;
+    });
+  }
+
+  function ncFlatIndex(dimensions, indices) {
+    let index = 0;
+    let stride = 1;
+
+    for (let i = dimensions.length - 1; i >= 0; i -= 1) {
+      const dim = dimensions[i];
+      index += Number(indices[dim.name] || 0) * stride;
+      stride *= dim.length;
+    }
+
+    return index;
+  }
+
+  function extractNc2DSlice(item) {
+    const variable = item.variables.find(v => v.name === item.selectedVariable);
+    const data = ncData(item.reader, item.selectedVariable);
+    const dims = variable.dimensions;
+    const width = item.xDim.length;
+    const height = item.yDim.length;
+    const values = new Float64Array(width * height);
+
+    const variableMeta = (item.reader.variables || []).find(v => v.name === item.selectedVariable) || {};
+    const noData = readNcAttribute(variableMeta, ["_FillValue", "missing_value", "nodata", "no_data_value"]);
+
+    let outIndex = 0;
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const indices = {};
+
+        dims.forEach(dim => {
+          if (dim.name === item.xDim.name) indices[dim.name] = x;
+          else if (dim.name === item.yDim.name) indices[dim.name] = y;
+          else indices[dim.name] = item.selectedIndices[dim.name] || 0;
+        });
+
+        const value = Number(data[ncFlatIndex(dims, indices)]);
+        values[outIndex] = Number(noData) === value ? NaN : value;
+        outIndex += 1;
+      }
+    }
+
+    return { values, width, height };
+  }
+
+  function rasterCanvasFromValues(values, width, height, min, max, style = {}) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    const image = context.createImageData(width, height);
+
+    for (let i = 0; i < values.length; i += 1) {
+      const rgba = rasterColorFromStyle(values[i], min, max, style);
+      image.data[i * 4] = rgba[0];
+      image.data[i * 4 + 1] = rgba[1];
+      image.data[i * 4 + 2] = rgba[2];
+      image.data[i * 4 + 3] = rgba[3];
+    }
+
+    context.putImageData(image, 0, 0);
+    return canvas;
+  }
+
+  async function redrawNetcdfLayer(layerId, existingItem = null) {
+    const item = existingItem || rasterLayers.get(layerId);
+    if (!item) return;
+
+    if (item.layer && map.hasLayer(item.layer)) {
+      map.removeLayer(item.layer);
+    }
+
+    configureNetcdfState(item);
+
+    const slice = extractNc2DSlice(item);
+    const range = rasterFiniteMinMax(slice.values);
+    item.min = range.min;
+    item.max = range.max;
+
+    if (!item.style) item.style = defaultRasterStyle(range);
+    if (!Number.isFinite(item.style.displayMin)) item.style.displayMin = range.min;
+    if (!Number.isFinite(item.style.displayMax)) item.style.displayMax = range.max;
+
+    const displayMin = Number.isFinite(item.style.displayMin) ? item.style.displayMin : range.min;
+    const displayMax = Number.isFinite(item.style.displayMax) ? item.style.displayMax : range.max;
+    const canvas = rasterCanvasFromValues(slice.values, slice.width, slice.height, displayMin, displayMax, item.style);
+    const imageUrl = canvas.toDataURL("image/png");
+
+    const xCoords = ncCoordinateArray(item, "x");
+    const yCoords = ncCoordinateArray(item, "y");
+    const west = Math.min(...xCoords);
+    const east = Math.max(...xCoords);
+    const south = Math.min(...yCoords);
+    const north = Math.max(...yCoords);
+
+    item.bounds = L.latLngBounds([south, west], [north, east]);
+    item.layer = L.imageOverlay(imageUrl, item.bounds, { opacity: item.opacity || 1.0 });
+
+    if (item.visible !== false) {
+      item.layer.addTo(map);
+      item.visible = true;
+    }
+
+    renderRasterLayerList();
+  }
+
+
   async function parseUploadedDataFile(file) {
     const extension = file.name.split(".").pop().toLowerCase();
     const text = await file.text();
@@ -4680,6 +6241,12 @@
         if (consumedShapefileSidecars.has(file.name)) continue;
         if (["shp", "shx", "dbf", "prj", "cpg"].includes(extension)) continue;
 
+        if (isRasterFileExtension(extension)) {
+          await parseRasterFileToLayer(file);
+          successCount += 1;
+          continue;
+        }
+
         const features = await parseUploadedDataFile(file);
 
         if (!features || features.length === 0) {
@@ -4906,6 +6473,119 @@
     event.stopPropagation();
     toggleLegendPanel(false);
   });
+
+
+  document.getElementById("closeRasterSettingsPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    closeRasterSettingsPanel();
+  });
+
+  document.getElementById("rasterApplySettingsBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    applyRasterSettingsFromPanel();
+  });
+
+  document.getElementById("rasterAutoStretchBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    autoStretchRasterSettings();
+  });
+
+  document.getElementById("rasterResetSettingsBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    resetRasterSettings();
+  });
+
+  const rasterSettingsOpacityElement = document.getElementById("rasterSettingsOpacity");
+  if (rasterSettingsOpacityElement) {
+    rasterSettingsOpacityElement.addEventListener("input", event => {
+      document.getElementById("rasterSettingsOpacityLabel").textContent = `${Math.round(Number(event.target.value) * 100)}%`;
+    });
+  }
+
+  ["rasterPaletteSelect", "rasterInvertPalette"].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.addEventListener("input", updateRasterPalettePreview);
+      element.addEventListener("change", updateRasterPalettePreview);
+    }
+  });
+
+  if (document.getElementById("rasterAddCustomColorBtn")) {
+    document.getElementById("rasterAddCustomColorBtn").addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      addCustomPaletteColor();
+    });
+  }
+
+
+  if (!window.__rasterSettingsDelegatedClickBound) {
+    window.__rasterSettingsDelegatedClickBound = true;
+    document.addEventListener("click", event => {
+      const rasterSettingsButton = event.target.closest('[data-raster-action="settings"]');
+      if (!rasterSettingsButton) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      openRasterSettingsPanel(rasterSettingsButton.dataset.id);
+    }, true);
+  }
+
+  if (!window.__rasterSettingsButtonsBound) {
+    window.__rasterSettingsButtonsBound = true;
+
+    document.addEventListener("click", event => {
+      if (event.target.closest("#rasterApplySettingsBtn")) {
+        event.preventDefault();
+        event.stopPropagation();
+        applyRasterSettingsFromPanel();
+      }
+
+      if (event.target.closest("#rasterAutoStretchBtn")) {
+        event.preventDefault();
+        event.stopPropagation();
+        autoStretchRasterSettings();
+      }
+
+      if (event.target.closest("#rasterResetSettingsBtn")) {
+        event.preventDefault();
+        event.stopPropagation();
+        resetRasterSettings();
+      }
+
+      if (event.target.closest("#closeRasterSettingsPanelBtn")) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeRasterSettingsPanel();
+      }
+    }, true);
+  }
+
+  if (document.getElementById("rasterSettingsPanel")) {
+    L.DomEvent.disableClickPropagation(document.getElementById("rasterSettingsPanel"));
+    L.DomEvent.disableScrollPropagation(document.getElementById("rasterSettingsPanel"));
+  }
+
+  if (!window.__rasterSettingsGearDirectBound) {
+    window.__rasterSettingsGearDirectBound = true;
+    document.addEventListener("pointerdown", event => {
+      const button = event.target.closest('[data-raster-action="settings"]');
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const layerId = button.dataset.id;
+      openRasterSettingsPanel(layerId);
+    }, true);
+  }
+
+  const rasterLayerListElement = document.getElementById("rasterLayerList");
+  if (rasterLayerListElement) {
+    rasterLayerListElement.addEventListener("click", handleRasterLayerClick);
+    rasterLayerListElement.addEventListener("input", handleRasterLayerChange);
+    rasterLayerListElement.addEventListener("change", handleRasterLayerChange);
+  }
 
 
   rebuildCrsMenu("EPSG:4326");
