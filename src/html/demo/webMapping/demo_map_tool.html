@@ -311,6 +311,125 @@
       padding: 6px 8px;
     }
 
+
+
+    .layer-symbology-panel {
+      position: absolute;
+      right: 390px;
+      top: 86px;
+      width: 340px;
+      z-index: 1210;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 15px;
+      display: none;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .layer-symbology-panel.open { display: block; }
+
+    .hidden-sidebar-section { display: none; }
+
+
+    .legend-control {
+      position: absolute;
+      left: 116px;
+      bottom: 22px;
+      z-index: 900;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .legend-button {
+      width: 86px;
+      height: 86px;
+      border-radius: 14px;
+      border: 3px solid #ffffff;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.35);
+      cursor: pointer;
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 27px;
+    }
+
+    .legend-button-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 7px 4px;
+      background: rgba(0,0,0,0.65);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .legend-panel {
+      position: absolute;
+      left: 0;
+      bottom: 98px;
+      width: 315px;
+      max-height: 420px;
+      overflow-y: auto;
+      background: rgba(255,255,255,0.98);
+      border-radius: 15px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 14px;
+      display: none;
+    }
+
+    .legend-panel.open {
+      display: block;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      font-size: 12px;
+    }
+
+    .legend-symbol-preview {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+
+    .legend-label {
+      font-weight: 800;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .legend-count {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+
     .layer-control {
       position: absolute;
       left: 18px;
@@ -707,6 +826,156 @@
       margin-top: 7px;
     }
 
+
+    .symbology-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .symbology-row input[type="color"] {
+      width: 44px;
+      height: 36px;
+      padding: 2px;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .symbology-button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .symbology-button {
+      padding: 9px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .symbology-button.primary {
+      background: var(--blue) !important;
+      border-color: var(--blue) !important;
+      color: #ffffff !important;
+    }
+
+    .symbol-marker {
+      width: 26px;
+      height: 26px;
+      position: relative;
+      transform-origin: center center;
+      transform: rotate(var(--symbol-rotation, 0deg));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.28));
+    }
+
+    .symbol-marker .symbol-core {
+      width: 100%;
+      height: 100%;
+      background: var(--symbol-color, #7b3fc7);
+      border: 2px solid #ffffff;
+      box-sizing: border-box;
+    }
+
+    .symbol-circle .symbol-core {
+      border-radius: 50%;
+    }
+
+    .symbol-square .symbol-core {
+      border-radius: 4px;
+    }
+
+    .symbol-diamond .symbol-core {
+      transform: rotate(45deg) scale(0.82);
+      border-radius: 4px;
+    }
+
+    .symbol-triangle .symbol-core {
+      width: 0;
+      height: 0;
+      background: transparent;
+      border-left: 13px solid transparent;
+      border-right: 13px solid transparent;
+      border-bottom: 25px solid var(--symbol-color, #7b3fc7);
+      border-top: 0;
+    }
+
+    .symbol-pin .symbol-core {
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg) scale(0.88);
+    }
+
+    .symbol-pin::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      left: 9.5px;
+      top: 9.5px;
+      background: #ffffff;
+      border-radius: 50%;
+    }
+
+    .symbol-arrow .symbol-core {
+      width: 0;
+      height: 0;
+      background: transparent;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 25px solid var(--symbol-color, #7b3fc7);
+      border-top: 0;
+      transform: rotate(45deg);
+    }
+
+
+    .symbol-icon-wrapper {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(var(--symbol-rotation, 0deg));
+      transform-origin: center center;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.32));
+    }
+
+    .symbol-icon-wrapper .symbol-icon-img {
+      filter: none;
+    }
+
+    .symbol-icon-mask {
+      width: 32px;
+      height: 32px;
+      display: block;
+      background-color: var(--symbol-color, #7b3fc7);
+      mask-image: var(--icon-url);
+      -webkit-mask-image: var(--icon-url);
+      mask-repeat: no-repeat;
+      -webkit-mask-repeat: no-repeat;
+      mask-position: center;
+      -webkit-mask-position: center;
+      mask-size: contain;
+      -webkit-mask-size: contain;
+      pointer-events: none;
+    }
+
+
+    .symbol-icon-img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.32));
+    }
+
+
     .sidebar-message {
       display: none;
       margin-top: 10px;
@@ -856,6 +1125,76 @@
           <div class="sidebar-small-note">No data layers uploaded yet.</div>
         </div>
       </div>
+
+      <div class="sidebar-section hidden-sidebar-section">
+        <div class="sidebar-section-title">
+          <i class="fa-solid fa-palette"></i>
+          Symbology by Type
+        </div>
+
+        <label for="symbologyCategorySelect" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:5px;">
+          Category / Type
+        </label>
+        <select id="symbologyCategorySelect" class="json-layer-select" style="margin-top:0;">
+          <option value="">Upload data to detect categories</option>
+        </select>
+
+        <label for="symbologyShapeSelect" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px; margin-bottom:5px;">
+          Shape
+        </label>
+        <select id="symbologyShapeSelect" class="json-layer-select" style="margin-top:0;">
+          <option value="circle">Circle</option>
+          <option value="square">Square</option>
+          <option value="diamond">Diamond</option>
+          <option value="triangle">Triangle</option>
+          <option value="pin">Pin</option>
+          <option value="arrow">Arrow</option>
+          <option value="icon">Icon</option>
+        </select>
+
+        <label style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px; margin-bottom:5px;">
+          Color
+        </label>
+        <div class="symbology-row">
+          <input id="symbologyColorPicker" type="color" value="#7b3fc7" />
+          <input id="symbologyColorHex" type="text" value="#7b3fc7" placeholder="#7b3fc7" />
+        </div>
+
+        <label for="symbologyIconUrl" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px; margin-bottom:5px;">
+          Icon URL / web path
+        </label>
+        <input id="symbologyIconUrl" type="text" placeholder="https://.../icon.png or relative/path/icon.svg" />
+
+        <input id="symbologyIconFile" class="json-file-input" type="file" accept="image/*" />
+
+        <div class="symbology-button-row">
+          <button id="symbologyUploadIconBtn" class="symbology-button" type="button">
+            <i class="fa-solid fa-image"></i> Icon File
+          </button>
+          <button id="symbologyClearIconBtn" class="symbology-button" type="button">
+            <i class="fa-solid fa-ban"></i> Clear Icon
+          </button>
+        </div>
+
+        <div class="symbology-button-row">
+          <button id="symbologyApplyBtn" class="symbology-button primary" type="button">
+            <i class="fa-solid fa-check"></i> Apply to Type
+          </button>
+          <button id="symbologyApplyAllBtn" class="symbology-button" type="button">
+            Apply to All
+          </button>
+        </div>
+
+        <button id="symbologyRandomizeBtn" class="symbology-button" type="button" style="width:100%; margin-top:8px;">
+          <i class="fa-solid fa-shuffle"></i> Randomize Colors by Category
+        </button>
+
+        <div class="sidebar-small-note">
+          Symbology is applied to uploaded features by their <b>category</b> / type. Icons may be selected from your filesystem or referenced with a URL/path.
+        </div>
+
+        <div id="symbologyMessage" class="sidebar-message"></div>
+      </div>
     </aside>
 
 
@@ -921,6 +1260,16 @@
         <option value="flood">Flood</option>
         <option value="weather">Weather Alert</option>
         <option value="infrastructure">Infrastructure Incident</option>
+      </select>
+
+      <label for="pinShape">Shape</label>
+      <select id="pinShape">
+        <option value="pin">Pin</option>
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="diamond">Diamond</option>
+        <option value="triangle">Triangle</option>
+        <option value="arrow">Arrow</option>
       </select>
 
       <label for="pinColorPicker">Color</label>
@@ -1017,6 +1366,23 @@
       </div>
     </div>
 
+    <div class="legend-control">
+      <div class="legend-panel" id="legendPanel">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fa-solid fa-list"></i> Visible Legend</div>
+          <button class="panel-close" type="button" id="closeLegendPanelBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="legendItems" class="legend-items">
+          <div class="sidebar-small-note">No visible uploaded features yet.</div>
+        </div>
+      </div>
+
+      <div class="legend-button" id="openLegendPanelBtn" title="Legend">
+        <i class="fa-solid fa-list"></i>
+        <div class="legend-button-label">Legend</div>
+      </div>
+    </div>
+
     <div class="epsg-panel panel-base" id="epsgPanel">
       <div class="panel-header">
         <div class="panel-title"><i class="fa-solid fa-earth-europe"></i> Coordinate Reference System</div>
@@ -1057,6 +1423,67 @@
         Proj4 mode lets you paste your own projection definition.
         The basemap remains Web Mercator; only the coordinate readout and pin-editor coordinates are transformed.
       </div>
+    </div>
+
+    <div id="layerSymbologyPanel" class="layer-symbology-panel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="fa-solid fa-palette"></i> Layer Symbology</div>
+        <button id="closeLayerSymbologyPanelBtn" class="panel-close" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="sidebar-small-note" id="layerSymbologyLayerName" style="margin-bottom:10px;">Select a layer from the Data Manager.</div>
+
+      <label for="layerSymbologyCategorySelect" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:5px;">Category / Type in selected layer</label>
+      <select id="layerSymbologyCategorySelect" class="json-layer-select" style="margin-top:0;"><option value="">Select a layer first</option></select>
+
+      <label for="layerSymbologyShapeSelect" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px; margin-bottom:5px;">Shape</label>
+      <select id="layerSymbologyShapeSelect" class="json-layer-select" style="margin-top:0;">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="diamond">Diamond</option>
+        <option value="triangle">Triangle</option>
+        <option value="pin">Pin</option>
+        <option value="arrow">Arrow</option>
+        <option value="icon">Icon</option>
+      </select>
+
+      <label style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px; margin-bottom:5px;">Color</label>
+      <div class="symbology-row">
+        <input id="layerSymbologyColorPicker" type="color" value="#7b3fc7" />
+        <input id="layerSymbologyColorHex" type="text" value="#7b3fc7" placeholder="#7b3fc7" />
+      </div>
+
+      <label for="layerSymbologyIconUrl" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px; margin-bottom:5px;">Icon URL / web path</label>
+      <input id="layerSymbologyIconUrl" type="text" placeholder="https://.../icon.png or relative/path/icon.svg" />
+
+      <label style="display:flex; gap:8px; align-items:center; font-size:12px; color:var(--muted); font-weight:700; margin-top:8px;">
+        <input id="layerSymbologyIconColorize" type="checkbox" style="width:auto; margin:0;" />
+        Colorize monochrome icon
+      </label>
+
+      <label style="display:flex; gap:8px; align-items:center; font-size:12px; color:var(--muted); font-weight:700; margin-top:6px;">
+        <input id="layerSymbologyIconRotate" type="checkbox" style="width:auto; margin:0;" />
+        Rotate icon by movement direction
+      </label>
+
+      <input id="layerSymbologyIconFile" class="json-file-input" type="file" accept="image/*" />
+
+      <div class="symbology-button-row">
+        <button id="layerSymbologyUploadIconBtn" class="symbology-button" type="button"><i class="fa-solid fa-image"></i> Icon File</button>
+        <button id="layerSymbologyClearIconBtn" class="symbology-button" type="button"><i class="fa-solid fa-ban"></i> Clear Icon</button>
+      </div>
+
+      <div class="symbology-button-row">
+        <button id="layerSymbologyApplyBtn" class="symbology-button primary" type="button"><i class="fa-solid fa-check"></i> Apply to Type</button>
+        <button id="layerSymbologyApplyLayerBtn" class="symbology-button" type="button">Apply to Layer</button>
+      </div>
+
+      <button id="layerSymbologyRandomizeBtn" class="symbology-button" type="button" style="width:100%; margin-top:8px;">
+        <i class="fa-solid fa-shuffle"></i> Randomize Layer Colors
+      </button>
+
+      <div class="sidebar-small-note">Randomize changes colors only and preserves existing shapes/icons.</div>
+      <div id="layerSymbologyMessage" class="sidebar-message"></div>
     </div>
 
     <div class="coordinate-wrapper">
@@ -1399,7 +1826,142 @@
     document.getElementById("customCode").value = "CUSTOM:USER_CRS";
     document.getElementById("customProj4").value = "";
     setCrsMode("epsg");
-    rebuildCrsMenu("EPSG:4326");
+    document.getElementById("symbologyCategorySelect").addEventListener("change", () => {
+    loadSymbologyRuleToForm();
+  });
+
+  document.getElementById("symbologyColorPicker").addEventListener("input", event => {
+    setSymbologyColor(event.target.value);
+  });
+
+  document.getElementById("symbologyColorHex").addEventListener("input", event => {
+    if (/^#?[0-9a-fA-F]{6}$/.test(event.target.value.trim())) {
+      setSymbologyColor(event.target.value);
+    }
+  });
+
+  document.getElementById("symbologyUploadIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("symbologyIconFile").click();
+  });
+
+  document.getElementById("symbologyIconFile").addEventListener("change", event => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    document.getElementById("symbologyIconUrl").value = url;
+    document.getElementById("symbologyShapeSelect").value = "icon";
+    showSymbologyMessage("Icon loaded from local file for the current session.", "success");
+  });
+
+  document.getElementById("symbologyClearIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("symbologyIconUrl").value = "";
+    if (document.getElementById("symbologyShapeSelect").value === "icon") {
+      document.getElementById("symbologyShapeSelect").value = "circle";
+    }
+  });
+
+  document.getElementById("symbologyApplyBtn").addEventListener("click", event => {
+    event.stopPropagation();
+
+    const category = document.getElementById("symbologyCategorySelect").value;
+    if (!category) {
+      showSymbologyMessage("Select a category/type first.", "warning");
+      return;
+    }
+
+    const rule = getCurrentSymbologyRuleFromForm();
+    uploadedSymbologyRules.set(category, rule);
+
+    const changed = applySymbologyToFeatures(category, rule, false);
+    showSymbologyMessage(`Applied symbology to ${changed} feature(s) of type "${category}".`, "success");
+  });
+
+  document.getElementById("symbologyApplyAllBtn").addEventListener("click", event => {
+    event.stopPropagation();
+
+    const rule = getCurrentSymbologyRuleFromForm();
+    const changed = applySymbologyToFeatures("__ALL__", rule, true);
+    showSymbologyMessage(`Applied symbology to all uploaded features (${changed}).`, "success");
+  });
+
+  document.getElementById("symbologyRandomizeBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    randomizeColorsByCategory();
+  });
+
+  document.getElementById("closeLayerSymbologyPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    closeLayerSymbologyPanel();
+  });
+
+  document.getElementById("layerSymbologyCategorySelect").addEventListener("change", () => loadLayerSymbologyRuleToForm());
+
+  document.getElementById("layerSymbologyColorPicker").addEventListener("input", event => setLayerSymbologyColor(event.target.value));
+
+  document.getElementById("layerSymbologyColorHex").addEventListener("input", event => {
+    if (/^#?[0-9a-fA-F]{6}$/.test(event.target.value.trim())) setLayerSymbologyColor(event.target.value);
+  });
+
+  document.getElementById("layerSymbologyUploadIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("layerSymbologyIconFile").click();
+  });
+
+  document.getElementById("layerSymbologyIconFile").addEventListener("change", event => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    document.getElementById("layerSymbologyIconUrl").value = url;
+    document.getElementById("layerSymbologyShapeSelect").value = "icon";
+    showLayerSymbologyMessage("Icon loaded from local file for the current session.", "success");
+  });
+
+  document.getElementById("layerSymbologyClearIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("layerSymbologyIconUrl").value = "";
+    if (document.getElementById("layerSymbologyIconColorize")) document.getElementById("layerSymbologyIconColorize").checked = false;
+    if (document.getElementById("layerSymbologyIconRotate")) document.getElementById("layerSymbologyIconRotate").checked = false;
+    if (document.getElementById("layerSymbologyShapeSelect").value === "icon") document.getElementById("layerSymbologyShapeSelect").value = "circle";
+  });
+
+  document.getElementById("layerSymbologyApplyBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    const category = document.getElementById("layerSymbologyCategorySelect").value;
+    if (!activeSymbologyLayerId || !category) { showLayerSymbologyMessage("Select a layer and category first.", "warning"); return; }
+    const rule = getLayerSymbologyRuleFromForm();
+    uploadedSymbologyRules.set(category, rule);
+    const changed = applyLayerSymbologyToFeatures(activeSymbologyLayerId, category, rule, false);
+    showLayerSymbologyMessage(`Applied symbology to ${changed} feature(s) of type "${category}" in this layer.`, "success");
+  });
+
+  document.getElementById("layerSymbologyApplyLayerBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    if (!activeSymbologyLayerId) { showLayerSymbologyMessage("Select a layer first.", "warning"); return; }
+    const rule = getLayerSymbologyRuleFromForm();
+    const changed = applyLayerSymbologyToFeatures(activeSymbologyLayerId, "__ALL__", rule, true);
+    showLayerSymbologyMessage(`Applied symbology to all features in this layer (${changed}).`, "success");
+  });
+
+  document.getElementById("layerSymbologyRandomizeBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    randomizeColorsForActiveLayer();
+  });
+
+  document.getElementById("openLegendPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    toggleLegendPanel();
+  });
+
+  document.getElementById("closeLegendPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    toggleLegendPanel(false);
+  });
+
+
+  rebuildCrsMenu("EPSG:4326");
     updateCoordinateBox(lastLatLng);
     refreshSelectedPinEditorCoordinates();
     refreshUploadedFeatureProjectionAttributes();
@@ -1556,16 +2118,17 @@
   document.getElementById("pinColorG").addEventListener("input", syncColorFromRgb);
   document.getElementById("pinColorB").addEventListener("input", syncColorFromRgb);
 
-  function createPinIcon(color) {
+  function createPinIcon(color, shape = "pin") {
     const safeColor = normalizeHexColor(color);
+    const safeShape = ["pin", "circle", "square", "diamond", "triangle", "arrow"].includes(shape) ? shape : "pin";
 
     return L.divIcon({
       className: "",
-      html: `<div class="custom-pin" style="--pin-color:${safeColor};"></div>`,
-      iconSize: [26, 26],
-      iconAnchor: [13, 26],
-      popupAnchor: [0, -26],
-      tooltipAnchor: [14, -20]
+      html: `<div class="symbol-marker symbol-${safeShape}" style="--symbol-color:${safeColor};"><div class="symbol-core"></div></div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16],
+      tooltipAnchor: [14, -12]
     });
   }
 
@@ -1592,13 +2155,14 @@
       label: options.label || defaults.label + " " + id.replace("PIN-", ""),
       category,
       color: options.color || defaults.color,
+      shape: options.shape || "pin",
       notes: options.notes || "",
       lat,
       lon
     };
 
     const marker = L.marker([lat, lon], {
-      icon: createPinIcon(record.color),
+      icon: createPinIcon(record.color, record.shape),
       draggable: true
     }).addTo(map);
 
@@ -1657,6 +2221,7 @@
     document.getElementById("pinLabel").value = data.label;
     document.getElementById("pinCategory").value = data.category;
     setColorInputs(data.color);
+    if (document.getElementById("pinShape")) document.getElementById("pinShape").value = data.shape || "pin";
     document.getElementById("pinNotes").value = data.notes;
     updateEditorCoordinates(data.lat, data.lon);
 
@@ -1746,12 +2311,13 @@
     data.label = document.getElementById("pinLabel").value.trim() || data.id;
     data.category = document.getElementById("pinCategory").value;
     data.color = getEditorColor();
+    if (document.getElementById("pinShape")) data.shape = document.getElementById("pinShape").value;
     data.notes = document.getElementById("pinNotes").value.trim();
     data.lat = lat;
     data.lon = lon;
 
     marker.setLatLng([lat, lon]);
-    marker.setIcon(createPinIcon(data.color));
+    marker.setIcon(createPinIcon(data.color, data.shape || "pin"));
     marker.setTooltipContent(buildTooltipText(data));
 
     showBoxMessage("epsgMessage", "Pin updated successfully.", "success");
@@ -1825,8 +2391,12 @@
           id: props.id || `${layerItem.id}_${index + 1}`,
           label: props.label || props.name || props.title || `${layerItem.name} ${index + 1}`,
           category: props.category || "uploaded",
-          color: props.color || "#7b3fc7",
+          color: props.color || props.symbol_color || "#7b3fc7",
           notes: props.notes || "",
+          symbol_shape: props.symbol_shape || "",
+          symbol_icon: props.symbol_icon || "",
+          symbol_icon_colorize: readBooleanLike(props.symbol_icon_colorize, false),
+          symbol_icon_rotate: readBooleanLike(props.symbol_icon_rotate, false),
           lat: roundCoordinate(lat),
           lon: roundCoordinate(lon),
           x: roundCoordinate(projected.x),
@@ -2118,6 +2688,8 @@
           category: item.category,
           color: item.color,
           notes: item.notes,
+          symbol_shape: item.symbol_shape || "",
+          symbol_icon: item.symbol_icon || "",
           source_type: item.source_type,
           source_layer: item.source_layer,
           source_crs: item.source_crs,
@@ -2353,7 +2925,7 @@
     await exportPinsSelectedFormat();
   });
 
-  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu", "rightSidebar"].forEach(id => {
+  ["pinEditor", "exportPanel", "epsgPanel", "layerMenu", "legendPanel", "layerSymbologyPanel", "rightSidebar"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       L.DomEvent.disableClickPropagation(el);
@@ -3412,9 +3984,528 @@
     return `<table>${rows}</table>`;
   }
 
+  const uploadedSymbologyRules = new Map();
+
+  function getFeatureCategory(feature) {
+    const props = feature?.properties || {};
+    return String(
+      props.category ||
+      props.vessel_type ||
+      props.event_type ||
+      props.type ||
+      "uncategorized"
+    );
+  }
+
+  function getAvailableUploadedCategories() {
+    const categories = new Set();
+
+    if (typeof uploadedDataLayers !== "undefined") {
+      uploadedDataLayers.forEach(item => {
+        item.features.forEach(feature => categories.add(getFeatureCategory(feature)));
+      });
+    }
+
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  }
+
+  function getFeatureHeadingDegrees(feature) {
+    const props = feature?.properties || {};
+    const rawHeading = firstDefined(
+      props.heading,
+      props.heading_deg,
+      props.course,
+      props.course_deg,
+      props.bearing,
+      props.bearing_deg,
+      props.direction,
+      props.direction_deg,
+      props.cog,
+      props.COG
+    );
+
+    const heading = Number(rawHeading);
+    return Number.isFinite(heading) ? ((heading % 360) + 360) % 360 : 0;
+  }
+
+  function readBooleanLike(value, fallback = false) {
+    if (value === undefined || value === null || value === "") return fallback;
+    if (value === true || value === "true" || value === "1" || value === 1 || value === "yes") return true;
+    if (value === false || value === "false" || value === "0" || value === 0 || value === "no") return false;
+    return fallback;
+  }
+
+  function getFeatureSymbology(feature) {
+    const props = feature?.properties || {};
+    const category = getFeatureCategory(feature);
+    const rule = uploadedSymbologyRules.get(category) || {};
+
+    return {
+      color: normalizeHexColor(props.symbol_color || rule.color || props.color || "#7b3fc7"),
+      shape: props.symbol_shape || rule.shape || "circle",
+      iconUrl: props.symbol_icon || rule.iconUrl || "",
+      iconColorize: readBooleanLike(props.symbol_icon_colorize, !!rule.iconColorize),
+      iconRotate: readBooleanLike(props.symbol_icon_rotate, !!rule.iconRotate),
+      rotation: getFeatureHeadingDegrees(feature)
+    };
+  }
+
+  function makeSymbolDivIcon(symbology) {
+    const shape = ["circle", "square", "diamond", "triangle", "pin", "arrow"].includes(symbology.shape)
+      ? symbology.shape
+      : "circle";
+
+    const rotation = shape === "arrow" ? Number(symbology.rotation || 0) : 0;
+
+    return L.divIcon({
+      className: "",
+      html: `<div class="symbol-marker symbol-${shape}" style="--symbol-color:${symbology.color}; --symbol-rotation:${rotation}deg;"><div class="symbol-core"></div></div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16],
+      tooltipAnchor: [14, -12]
+    });
+  }
+
+  function makeImageIcon(iconUrl, symbology = {}) {
+    const rotation = symbology.iconRotate ? Number(symbology.rotation || 0) : 0;
+    const safeUrl = escapeHtml(iconUrl);
+    const cssUrl = String(iconUrl || "").replace(/'/g, "\\'");
+    const color = normalizeHexColor(symbology.color || "#7b3fc7");
+
+    const markerHtml = symbology.iconColorize
+      ? `<div class="symbol-icon-wrapper" style="--symbol-color:${color}; --symbol-rotation:${rotation}deg;"><span class="symbol-icon-mask" style="--icon-url:url('${cssUrl}');"></span></div>`
+      : `<div class="symbol-icon-wrapper" style="--symbol-rotation:${rotation}deg;"><img class="symbol-icon-img" src="${safeUrl}" alt="icon" /></div>`;
+
+    return L.divIcon({
+      className: "",
+      html: markerHtml,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16],
+      tooltipAnchor: [14, -12]
+    });
+  }
+
+  function createStyledUploadPointLayer(feature, latlng) {
+    const symbology = getFeatureSymbology(feature);
+
+    if (symbology.shape === "icon" && symbology.iconUrl) {
+      return L.marker(latlng, {
+        icon: makeImageIcon(symbology.iconUrl, symbology)
+      });
+    }
+
+    if (["circle", "square", "diamond", "triangle", "pin", "arrow"].includes(symbology.shape)) {
+      return L.marker(latlng, {
+        icon: makeSymbolDivIcon(symbology)
+      });
+    }
+
+    return L.circleMarker(latlng, {
+      radius: 7,
+      color: "#ffffff",
+      weight: 2,
+      fillColor: symbology.color,
+      fillOpacity: 0.95
+    });
+  }
+
+  function refreshSymbologyCategorySelect() {
+    const select = document.getElementById("symbologyCategorySelect");
+    if (!select) return;
+
+    const previous = select.value;
+    const categories = getAvailableUploadedCategories();
+
+    if (categories.length === 0) {
+      select.innerHTML = `<option value="">Upload data to detect categories</option>`;
+      return;
+    }
+
+    select.innerHTML = categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("");
+
+    if (categories.includes(previous)) {
+      select.value = previous;
+    }
+
+    loadSymbologyRuleToForm();
+  }
+
+  function showSymbologyMessage(message, type = "") {
+    const box = document.getElementById("symbologyMessage");
+    if (!box) return;
+
+    if (!message) {
+      box.textContent = "";
+      box.className = "sidebar-message";
+      return;
+    }
+
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function setSymbologyColor(hex) {
+    const normalized = normalizeHexColor(hex);
+    document.getElementById("symbologyColorPicker").value = normalized;
+    document.getElementById("symbologyColorHex").value = normalized;
+  }
+
+  function loadSymbologyRuleToForm() {
+    const category = document.getElementById("symbologyCategorySelect")?.value;
+    if (!category) return;
+
+    const rule = uploadedSymbologyRules.get(category) || {};
+    document.getElementById("symbologyShapeSelect").value = rule.shape || "circle";
+    setSymbologyColor(rule.color || "#7b3fc7");
+    document.getElementById("symbologyIconUrl").value = rule.iconUrl || "";
+  }
+
+  function applySymbologyToFeatures(category, rule, applyAll = false) {
+    if (typeof uploadedDataLayers === "undefined") return 0;
+
+    let changed = 0;
+
+    uploadedDataLayers.forEach(item => {
+      item.features.forEach(feature => {
+        const featureCategory = getFeatureCategory(feature);
+        if (!applyAll && featureCategory !== category) return;
+
+        const props = feature.properties || {};
+
+        feature.properties = {
+          ...props,
+          category: featureCategory,
+          color: rule.color || props.color || "#7b3fc7",
+          symbol_color: rule.color || props.symbol_color || props.color || "#7b3fc7",
+          symbol_shape: rule.shape || props.symbol_shape || "circle",
+          symbol_icon: rule.iconUrl !== undefined ? rule.iconUrl : (props.symbol_icon || ""),
+          symbol_icon_colorize: rule.iconColorize !== undefined ? !!rule.iconColorize : readBooleanLike(props.symbol_icon_colorize, false),
+          symbol_icon_rotate: rule.iconRotate !== undefined ? !!rule.iconRotate : readBooleanLike(props.symbol_icon_rotate, false)
+        };
+
+        changed += 1;
+      });
+
+      item.groups = getUploadLayerGroups(item.features);
+      replaceDisplayedUploadLayer(item, item.selectedGroup || "__ALL__");
+    });
+
+    renderUploadedDataLayerList();
+    refreshSymbologyCategorySelect();
+    refreshLegend();
+
+    return changed;
+  }
+
+  function getCurrentSymbologyRuleFromForm() {
+    return {
+      shape: document.getElementById("symbologyShapeSelect").value,
+      color: normalizeHexColor(document.getElementById("symbologyColorHex").value),
+      iconUrl: document.getElementById("symbologyIconUrl").value.trim()
+    };
+  }
+
+  function randomHexColorForCategory(index) {
+    const hue = (index * 137.508) % 360;
+    return hslToHex(hue, 68, 48);
+  }
+
+  function hslToHex(h, s, l) {
+    s /= 100;
+    l /= 100;
+
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+
+    return "#" + [f(0), f(8), f(4)]
+      .map(value => Math.round(255 * value).toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  function randomizeColorsByCategory() {
+    const categories = getAvailableUploadedCategories();
+
+    categories.forEach((category, index) => {
+      const existing = uploadedSymbologyRules.get(category) || {};
+
+      const rule = {
+        ...existing,
+        color: randomHexColorForCategory(index)
+      };
+
+      uploadedSymbologyRules.set(category, rule);
+      applySymbologyToFeatures(category, rule, false);
+    });
+
+    refreshLegend();
+    refreshSymbologyCategorySelect();
+    showSymbologyMessage(`Randomized colors for ${categories.length} categor${categories.length === 1 ? "y" : "ies"} while preserving shapes.`, "success");
+  }
+
+  function getVisibleUploadedFeaturesForLegend() {
+    const result = [];
+
+    if (typeof uploadedDataLayers === "undefined") return result;
+
+    uploadedDataLayers.forEach(item => {
+      if (!item.visible) return;
+
+      const features = item.selectedGroup === "__ALL__"
+        ? item.features
+        : (item.groups.get(item.selectedGroup) || []);
+
+      features.forEach(feature => result.push(feature));
+    });
+
+    return result;
+  }
+
+  function makeLegendSymbolHtml(symbology) {
+    if (symbology.shape === "icon" && symbology.iconUrl) {
+      const safeUrl = escapeHtml(symbology.iconUrl);
+      const cssUrl = String(symbology.iconUrl || "").replace(/'/g, "\\'");
+      const color = normalizeHexColor(symbology.color || "#7b3fc7");
+
+      if (symbology.iconColorize) {
+        return `<div class="symbol-icon-wrapper" style="--symbol-color:${color}; --symbol-rotation:0deg;"><span class="symbol-icon-mask" style="--icon-url:url('${cssUrl}');"></span></div>`;
+      }
+
+      return `<div class="symbol-icon-wrapper" style="--symbol-rotation:0deg;"><img class="symbol-icon-img" src="${safeUrl}" alt="icon" /></div>`;
+    }
+
+    const shape = ["circle", "square", "diamond", "triangle", "pin", "arrow"].includes(symbology.shape)
+      ? symbology.shape
+      : "circle";
+
+    /*
+      Legend symbols are category references, not individual moving objects.
+      Keep arrow/triangle symbols aligned in a single reference direction.
+      Feature arrows/icons on the map may rotate according to heading/course.
+    */
+    const legendRotation = 0;
+
+    return `<div class="symbol-marker symbol-${shape}" style="--symbol-color:${symbology.color}; --symbol-rotation:${legendRotation}deg;"><div class="symbol-core"></div></div>`;
+  }
+
+  function refreshLegend() {
+    const legendItems = document.getElementById("legendItems");
+    if (!legendItems) return;
+
+    const features = getVisibleUploadedFeaturesForLegend();
+    const grouped = new Map();
+
+    features.forEach(feature => {
+      const category = getFeatureCategory(feature);
+      if (!grouped.has(category)) {
+        grouped.set(category, {
+          category,
+          count: 0,
+          feature
+        });
+      }
+      grouped.get(category).count += 1;
+    });
+
+    if (grouped.size === 0) {
+      legendItems.innerHTML = `<div class="sidebar-small-note">No visible uploaded features yet.</div>`;
+      return;
+    }
+
+    legendItems.innerHTML = Array.from(grouped.values())
+      .sort((a, b) => a.category.localeCompare(b.category))
+      .map(item => {
+        const symbology = getFeatureSymbology(item.feature);
+        return `
+          <div class="legend-item">
+            <div class="legend-symbol-preview">${makeLegendSymbolHtml(symbology)}</div>
+            <div class="legend-label">${escapeHtml(item.category)}</div>
+            <div class="legend-count">${item.count}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function toggleLegendPanel(forceState) {
+    const panel = document.getElementById("legendPanel");
+    if (!panel) return;
+
+    const shouldOpen = typeof forceState === "boolean"
+      ? forceState
+      : !panel.classList.contains("open");
+
+    panel.classList.toggle("open", shouldOpen);
+
+    if (shouldOpen) {
+      refreshLegend();
+    }
+  }
+
+  let activeSymbologyLayerId = null;
+
+  function showLayerSymbologyMessage(message, type = "") {
+    const box = document.getElementById("layerSymbologyMessage");
+    if (!box) return;
+    if (!message) { box.textContent = ""; box.className = "sidebar-message"; return; }
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function getCategoriesForLayer(layerItem) {
+    const categories = new Set();
+    if (!layerItem) return [];
+    layerItem.features.forEach(feature => categories.add(getFeatureCategory(feature)));
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  }
+
+  function setLayerSymbologyColor(hex) {
+    const normalized = normalizeHexColor(hex);
+    document.getElementById("layerSymbologyColorPicker").value = normalized;
+    document.getElementById("layerSymbologyColorHex").value = normalized;
+  }
+
+  function getLayerSymbologyRuleFromForm() {
+    return {
+      shape: document.getElementById("layerSymbologyShapeSelect").value,
+      color: normalizeHexColor(document.getElementById("layerSymbologyColorHex").value),
+      iconUrl: document.getElementById("layerSymbologyIconUrl").value.trim(),
+      iconColorize: !!document.getElementById("layerSymbologyIconColorize")?.checked,
+      iconRotate: !!document.getElementById("layerSymbologyIconRotate")?.checked
+    };
+  }
+
+  function loadLayerSymbologyRuleToForm() {
+    const category = document.getElementById("layerSymbologyCategorySelect").value;
+    if (!category) return;
+
+    const item = uploadedDataLayers.get(activeSymbologyLayerId);
+    const rule = getLayerCategoryCurrentSymbology(item, category);
+
+    document.getElementById("layerSymbologyShapeSelect").value = rule.shape || "circle";
+    setLayerSymbologyColor(rule.color || "#7b3fc7");
+    document.getElementById("layerSymbologyIconUrl").value = rule.iconUrl || "";
+
+    if (document.getElementById("layerSymbologyIconColorize")) {
+      document.getElementById("layerSymbologyIconColorize").checked = !!rule.iconColorize;
+    }
+
+    if (document.getElementById("layerSymbologyIconRotate")) {
+      document.getElementById("layerSymbologyIconRotate").checked = !!rule.iconRotate;
+    }
+
+    showLayerSymbologyMessage("", "");
+  }
+
+  function openLayerSymbologyPanel(layerId) {
+    const item = uploadedDataLayers.get(layerId);
+    if (!item) return;
+    activeSymbologyLayerId = layerId;
+    document.getElementById("layerSymbologyLayerName").textContent = `Layer: ${item.name}`;
+    const categories = getCategoriesForLayer(item);
+    const select = document.getElementById("layerSymbologyCategorySelect");
+    select.innerHTML = categories.length
+      ? categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("")
+      : `<option value="">No categories found</option>`;
+    loadLayerSymbologyRuleToForm();
+    document.getElementById("layerSymbologyPanel").classList.add("open");
+  }
+
+  function closeLayerSymbologyPanel() {
+    document.getElementById("layerSymbologyPanel").classList.remove("open");
+  }
+
+  function getFirstFeatureByCategoryInLayer(layerItem, category) {
+    if (!layerItem || !category) return null;
+    return layerItem.features.find(feature => getFeatureCategory(feature) === category) || null;
+  }
+
+  function getLayerCategoryCurrentSymbology(layerItem, category) {
+    const feature = getFirstFeatureByCategoryInLayer(layerItem, category);
+    if (feature) return getFeatureSymbology(feature);
+
+    const rule = uploadedSymbologyRules.get(category) || {};
+    return {
+      color: rule.color || "#7b3fc7",
+      shape: rule.shape || "circle",
+      iconUrl: rule.iconUrl || "",
+      iconColorize: !!rule.iconColorize,
+      iconRotate: !!rule.iconRotate,
+      rotation: 0
+    };
+  }
+
+
+
+  function applyLayerSymbologyToFeatures(layerId, category, rule, applyWholeLayer = false) {
+    const item = uploadedDataLayers.get(layerId);
+    if (!item) return 0;
+    let changed = 0;
+    item.features.forEach(feature => {
+      const featureCategory = getFeatureCategory(feature);
+      if (!applyWholeLayer && featureCategory !== category) return;
+      const props = feature.properties || {};
+      feature.properties = {
+        ...props,
+        category: featureCategory,
+        color: rule.color || props.color || "#7b3fc7",
+        symbol_color: rule.color || props.symbol_color || props.color || "#7b3fc7",
+        symbol_shape: rule.shape || props.symbol_shape || "circle",
+        symbol_icon: rule.iconUrl !== undefined ? rule.iconUrl : (props.symbol_icon || ""),
+        symbol_icon_colorize: rule.iconColorize !== undefined ? !!rule.iconColorize : readBooleanLike(props.symbol_icon_colorize, false),
+        symbol_icon_rotate: rule.iconRotate !== undefined ? !!rule.iconRotate : readBooleanLike(props.symbol_icon_rotate, false)
+      };
+      changed += 1;
+    });
+    item.groups = getUploadLayerGroups(item.features);
+    replaceDisplayedUploadLayer(item, item.selectedGroup || "__ALL__");
+    renderUploadedDataLayerList();
+    refreshSymbologyCategorySelect();
+    refreshLegend();
+    return changed;
+  }
+
+  function randomizeColorsForActiveLayer() {
+    const item = uploadedDataLayers.get(activeSymbologyLayerId);
+    if (!item) { showLayerSymbologyMessage("Select a layer first.", "warning"); return; }
+
+    const selectedCategory = document.getElementById("layerSymbologyCategorySelect").value;
+    const categories = getCategoriesForLayer(item);
+
+    categories.forEach((category, index) => {
+      const current = getLayerCategoryCurrentSymbology(item, category);
+      const rule = {
+        shape: current.shape || "circle",
+        iconUrl: current.iconUrl || "",
+        iconColorize: !!current.iconColorize,
+        iconRotate: !!current.iconRotate,
+        color: randomHexColorForCategory(index)
+      };
+
+      uploadedSymbologyRules.set(category, rule);
+      applyLayerSymbologyToFeatures(item.id, category, rule, false);
+    });
+
+    if (selectedCategory) {
+      const select = document.getElementById("layerSymbologyCategorySelect");
+      if ([...select.options].some(option => option.value === selectedCategory)) {
+        select.value = selectedCategory;
+      }
+    }
+
+    loadLayerSymbologyRuleToForm();
+    showLayerSymbologyMessage(`Randomized colors for ${categories.length} categor${categories.length === 1 ? "y" : "ies"} in this layer while preserving shapes/icons.`, "success");
+  }
+
+
+
+
+
   function createUploadLeafletLayer(featureCollection, layerName) {
     return L.geoJSON(featureCollection, {
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, uploadPointStyle(feature)),
+      pointToLayer: (feature, latlng) => createStyledUploadPointLayer(feature, latlng),
       style: feature => ({ color: normalizeHexColor(feature.properties?.color || "#7b3fc7"), weight: 2, opacity: 0.9, fillOpacity: 0.25 }),
       onEachFeature: (feature, leafletLayer) => {
         const props = feature.properties || {};
@@ -3466,6 +4557,7 @@
           <div class="json-layer-actions">
             <button type="button" data-action="zoom" data-id="${item.id}" title="Zoom to layer"><i class="fa-solid fa-magnifying-glass-location"></i></button>
             <button type="button" data-action="toggle" data-id="${item.id}" title="Show / hide layer"><i class="fa-solid ${item.visible ? "fa-eye" : "fa-eye-slash"}"></i></button>
+            <button type="button" data-action="symbology" data-id="${item.id}" title="Layer symbology"><i class="fa-solid fa-gear"></i></button>
             <button type="button" data-action="remove" data-id="${item.id}" title="Remove layer"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
@@ -3507,7 +4599,8 @@
       renderUploadedDataLayerList();
       return;
     }
-    if (action === "remove") { if (item.layer) map.removeLayer(item.layer); uploadedDataLayers.delete(layerId); renderUploadedDataLayerList(); return; }
+    if (action === "symbology") return openLayerSymbologyPanel(layerId);
+    if (action === "remove") { if (item.layer) map.removeLayer(item.layer); uploadedDataLayers.delete(layerId); renderUploadedDataLayerList(); refreshSymbologyCategorySelect(); refreshLegend(); return; }
     if (action === "prev-group") return shiftUploadedLayerGroup(item, -1);
     if (action === "next-group") return shiftUploadedLayerGroup(item, 1);
   }
@@ -3676,8 +4769,144 @@
     const item = uploadedDataLayers.get(select.dataset.id);
     if (!item) return;
     replaceDisplayedUploadLayer(item, select.value);
+    refreshLegend();
     zoomToUploadedLayer(item);
   });
+
+  document.getElementById("symbologyCategorySelect").addEventListener("change", () => {
+    loadSymbologyRuleToForm();
+  });
+
+  document.getElementById("symbologyColorPicker").addEventListener("input", event => {
+    setSymbologyColor(event.target.value);
+  });
+
+  document.getElementById("symbologyColorHex").addEventListener("input", event => {
+    if (/^#?[0-9a-fA-F]{6}$/.test(event.target.value.trim())) {
+      setSymbologyColor(event.target.value);
+    }
+  });
+
+  document.getElementById("symbologyUploadIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("symbologyIconFile").click();
+  });
+
+  document.getElementById("symbologyIconFile").addEventListener("change", event => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    document.getElementById("symbologyIconUrl").value = url;
+    document.getElementById("symbologyShapeSelect").value = "icon";
+    showSymbologyMessage("Icon loaded from local file for the current session.", "success");
+  });
+
+  document.getElementById("symbologyClearIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("symbologyIconUrl").value = "";
+    if (document.getElementById("symbologyShapeSelect").value === "icon") {
+      document.getElementById("symbologyShapeSelect").value = "circle";
+    }
+  });
+
+  document.getElementById("symbologyApplyBtn").addEventListener("click", event => {
+    event.stopPropagation();
+
+    const category = document.getElementById("symbologyCategorySelect").value;
+    if (!category) {
+      showSymbologyMessage("Select a category/type first.", "warning");
+      return;
+    }
+
+    const rule = getCurrentSymbologyRuleFromForm();
+    uploadedSymbologyRules.set(category, rule);
+
+    const changed = applySymbologyToFeatures(category, rule, false);
+    showSymbologyMessage(`Applied symbology to ${changed} feature(s) of type "${category}".`, "success");
+  });
+
+  document.getElementById("symbologyApplyAllBtn").addEventListener("click", event => {
+    event.stopPropagation();
+
+    const rule = getCurrentSymbologyRuleFromForm();
+    const changed = applySymbologyToFeatures("__ALL__", rule, true);
+    showSymbologyMessage(`Applied symbology to all uploaded features (${changed}).`, "success");
+  });
+
+  document.getElementById("symbologyRandomizeBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    randomizeColorsByCategory();
+  });
+
+  document.getElementById("closeLayerSymbologyPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    closeLayerSymbologyPanel();
+  });
+
+  document.getElementById("layerSymbologyCategorySelect").addEventListener("change", () => loadLayerSymbologyRuleToForm());
+
+  document.getElementById("layerSymbologyColorPicker").addEventListener("input", event => setLayerSymbologyColor(event.target.value));
+
+  document.getElementById("layerSymbologyColorHex").addEventListener("input", event => {
+    if (/^#?[0-9a-fA-F]{6}$/.test(event.target.value.trim())) setLayerSymbologyColor(event.target.value);
+  });
+
+  document.getElementById("layerSymbologyUploadIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("layerSymbologyIconFile").click();
+  });
+
+  document.getElementById("layerSymbologyIconFile").addEventListener("change", event => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    document.getElementById("layerSymbologyIconUrl").value = url;
+    document.getElementById("layerSymbologyShapeSelect").value = "icon";
+    showLayerSymbologyMessage("Icon loaded from local file for the current session.", "success");
+  });
+
+  document.getElementById("layerSymbologyClearIconBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    document.getElementById("layerSymbologyIconUrl").value = "";
+    if (document.getElementById("layerSymbologyIconColorize")) document.getElementById("layerSymbologyIconColorize").checked = false;
+    if (document.getElementById("layerSymbologyIconRotate")) document.getElementById("layerSymbologyIconRotate").checked = false;
+    if (document.getElementById("layerSymbologyShapeSelect").value === "icon") document.getElementById("layerSymbologyShapeSelect").value = "circle";
+  });
+
+  document.getElementById("layerSymbologyApplyBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    const category = document.getElementById("layerSymbologyCategorySelect").value;
+    if (!activeSymbologyLayerId || !category) { showLayerSymbologyMessage("Select a layer and category first.", "warning"); return; }
+    const rule = getLayerSymbologyRuleFromForm();
+    uploadedSymbologyRules.set(category, rule);
+    const changed = applyLayerSymbologyToFeatures(activeSymbologyLayerId, category, rule, false);
+    showLayerSymbologyMessage(`Applied symbology to ${changed} feature(s) of type "${category}" in this layer.`, "success");
+  });
+
+  document.getElementById("layerSymbologyApplyLayerBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    if (!activeSymbologyLayerId) { showLayerSymbologyMessage("Select a layer first.", "warning"); return; }
+    const rule = getLayerSymbologyRuleFromForm();
+    const changed = applyLayerSymbologyToFeatures(activeSymbologyLayerId, "__ALL__", rule, true);
+    showLayerSymbologyMessage(`Applied symbology to all features in this layer (${changed}).`, "success");
+  });
+
+  document.getElementById("layerSymbologyRandomizeBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    randomizeColorsForActiveLayer();
+  });
+
+  document.getElementById("openLegendPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    toggleLegendPanel();
+  });
+
+  document.getElementById("closeLegendPanelBtn").addEventListener("click", event => {
+    event.stopPropagation();
+    toggleLegendPanel(false);
+  });
+
 
   rebuildCrsMenu("EPSG:4326");
   updateCoordinateBox(lastLatLng);
