@@ -937,6 +937,86 @@
     }
 
 
+
+    .raster-stack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 7px;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px;
+      background: rgba(255,255,255,0.72);
+    }
+
+    .raster-stack-row {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 7px;
+      align-items: start;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .raster-stack-row input {
+      width: auto;
+      margin-top: 1px;
+    }
+
+
+    .clip-selection-rectangle {
+      pointer-events: none;
+      fill: rgba(37, 99, 235, 0.12);
+      stroke: #2563eb;
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+    }
+
+
+    .stack-settings-panel {
+      position: fixed;
+      right: 24px;
+      top: 92px;
+      width: 380px;
+      max-height: calc(100vh - 130px);
+      overflow-y: auto;
+      z-index: 5000;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      padding: 15px;
+      display: none;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .stack-settings-panel.open {
+      display: block !important;
+    }
+
+    .stack-settings-panel label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 9px;
+      margin-bottom: 5px;
+    }
+
+    .stack-settings-panel input,
+    .stack-settings-panel select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+
+
     .raster-custom-colors {
       display: flex;
       flex-direction: column;
@@ -1304,6 +1384,35 @@
           GeoTIFF/TIFF files are rendered as georeferenced raster overlays. NetCDF files are inspected for 2D/3D/4D raster-like variables and exposed as selectable 2D slices. NetCDF parsing loads a browser parser from a CDN when a NetCDF file is selected.
         </div>
       </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <i class="fa-solid fa-layer-group"></i>
+          Stacked RGB
+        </div>
+
+        <label for="stackNameInput" style="display:block; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:5px;">Stack name</label>
+        <input id="stackNameInput" class="json-layer-select" type="text" placeholder="Band stack" style="margin-top:0;" />
+
+        <div id="availableBandStackList" class="raster-stack-list">
+          <div class="sidebar-small-note">Upload raster layers first.</div>
+        </div>
+
+        <button id="createRasterStackBtn" class="symbology-button primary" type="button" style="width:100%; margin-top:10px;">
+          <i class="fa-solid fa-layer-group"></i> Create Band Stack
+        </button>
+
+        <div id="rasterStackList" class="json-layer-list" style="margin-top:10px;">
+          <div class="sidebar-small-note">No raster stacks created yet.</div>
+        </div>
+
+        <div class="sidebar-small-note">
+          Create a virtual band stack, then choose which band is Red, Green, Blue, or None. The RGB image is only rendered after clipping/settings are applied.
+        </div>
+
+        <div id="rasterStackMessage" class="sidebar-message"></div>
+      </div>
+
 
       <div class="sidebar-section hidden-sidebar-section">
         <div class="sidebar-section-title">
@@ -1763,6 +1872,11 @@
       </label>
 
       <label class="raster-check-row">
+        <input id="rasterNoDataTransparent" type="checkbox" checked />
+        Make NoData / null pixels transparent
+      </label>
+
+      <label class="raster-check-row">
         <input id="rasterClampValues" type="checkbox" checked />
         Clamp values to display min/max
       </label>
@@ -1791,6 +1905,146 @@
       </div>
 
       <div id="rasterSettingsMessage" class="sidebar-message"></div>
+    </div>
+
+    <div id="stackSettingsPanel" class="stack-settings-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fa-solid fa-sliders"></i>
+          Stack RGB Settings
+        </div>
+        <button id="closeStackSettingsPanelBtn" class="panel-close" type="button">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-small-note" id="stackSettingsLayerName" style="margin-bottom:10px;">
+        Select a stack.
+      </div>
+
+      <label for="stackRedSelect">Red channel</label>
+      <select id="stackRedSelect"></select>
+
+      <label for="stackGreenSelect">Green channel</label>
+      <select id="stackGreenSelect"></select>
+
+      <label for="stackBlueSelect">Blue channel</label>
+      <select id="stackBlueSelect"></select>
+
+      <label for="stackCompositeNameInput">RGB layer name</label>
+      <input id="stackCompositeNameInput" type="text" placeholder="Stack RGB composite" />
+
+      <label for="stackPreviewSizeSelect">Preview / export size</label>
+      <select id="stackPreviewSizeSelect">
+        <option value="512">512 px max</option>
+        <option value="1024" selected>1024 px max — safer</option>
+        <option value="2048">2048 px max</option>
+        <option value="4096">4096 px max</option>
+        <option value="original">Original size</option>
+      </select>
+
+      <label class="raster-check-row">
+        <input id="stackAutoDownsample" type="checkbox" checked />
+        Auto-downsample very large scenes
+      </label>
+
+      <label for="stackRgbStretchMode">RGB stretch</label>
+      <select id="stackRgbStretchMode">
+        <option value="cumulative" selected>Cumulative count cut — recommended</option>
+        <option value="actual">Actual min / max</option>
+        <option value="stddev">Mean ± standard deviation</option>
+        <option value="manual">Use source/layer settings</option>
+      </select>
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="stackRgbLowCut">Low cut %</label>
+          <input id="stackRgbLowCut" type="number" step="0.1" value="2" />
+        </div>
+        <div>
+          <label for="stackRgbHighCut">High cut %</label>
+          <input id="stackRgbHighCut" type="number" step="0.1" value="98" />
+        </div>
+      </div>
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="stackRgbStdDev">Std. dev. factor</label>
+          <input id="stackRgbStdDev" type="number" step="0.1" value="2" />
+        </div>
+        <div>
+          <label for="stackRgbGamma">Gamma</label>
+          <input id="stackRgbGamma" type="number" step="0.05" value="1" />
+        </div>
+      </div>
+
+      <label for="stackRgbBrightness">Brightness</label>
+      <input id="stackRgbBrightness" type="range" min="0.2" max="3" step="0.05" value="1" />
+
+      <label for="stackClipModeSelect">Clip before merge</label>
+      <select id="stackClipModeSelect">
+        <option value="full">Full red-band extent</option>
+        <option value="map">Current map view</option>
+        <option value="manual">Manual WGS84 bounds</option>
+        <option value="canvas">Select from map canvas — two clicks</option>
+      </select>
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="stackClipWest">West / min lon</label>
+          <input id="stackClipWest" type="number" step="any" />
+        </div>
+        <div>
+          <label for="stackClipSouth">South / min lat</label>
+          <input id="stackClipSouth" type="number" step="any" />
+        </div>
+      </div>
+
+      <div class="raster-settings-grid-2">
+        <div>
+          <label for="stackClipEast">East / max lon</label>
+          <input id="stackClipEast" type="number" step="any" />
+        </div>
+        <div>
+          <label for="stackClipNorth">North / max lat</label>
+          <input id="stackClipNorth" type="number" step="any" />
+        </div>
+      </div>
+
+      <div class="symbology-button-row" style="margin-top:8px;">
+        <button id="stackUseMapViewClipBtn" class="symbology-button" type="button">Use map view</button>
+        <button id="stackUseFullExtentClipBtn" class="symbology-button" type="button">Use full extent</button>
+      </div>
+
+      <button id="stackSelectCanvasClipBtn" class="symbology-button" type="button" style="width:100%; margin-top:8px;">
+        <i class="fa-solid fa-crop-simple"></i> Select clip from map canvas
+      </button>
+
+      <div class="symbology-button-row" style="margin-top:10px;">
+        <button id="stackApplyRgbBtn" class="symbology-button primary" type="button">
+          <i class="fa-solid fa-eye"></i> View RGB
+        </button>
+        <button id="stackRemoveRgbBtn" class="symbology-button" type="button">
+          Remove RGB
+        </button>
+      </div>
+
+      <label for="stackExportFormatSelect">Export current stack RGB</label>
+      <select id="stackExportFormatSelect">
+        <option value="png">PNG</option>
+        <option value="jpeg">JPEG</option>
+        <option value="geotiff">GeoTIFF — 3 RGB bands</option>
+      </select>
+
+      <button id="stackExportRgbBtn" class="symbology-button" type="button" style="width:100%; margin-top:8px;">
+        <i class="fa-solid fa-download"></i> Download
+      </button>
+
+      <div class="sidebar-small-note">
+        Blue can be set to None for two-band products. Start with 512/1024 px or map-view clipping for large Landsat/Sentinel rasters to avoid browser memory crashes.
+      </div>
+
+      <div id="stackSettingsMessage" class="sidebar-message"></div>
     </div>
 
     <div class="coordinate-wrapper">
@@ -4197,6 +4451,16 @@
 
   const rasterLayers = new Map();
   let rasterLayerCounter = 1;
+  let rgbCompositeCounter = 1;
+  const rasterStacks = new Map();
+  let rasterStackCounter = 1;
+  let activeRasterStackId = null;
+  let stackClipCanvasSelection = {
+    active: false,
+    firstPoint: null,
+    rectangle: null
+  };
+  let geotiffWriterPromise = null;
 
   function isRasterFileExtension(extension) {
     return ["tif", "tiff", "geotiff", "nc", "nc4", "cdf"].includes(String(extension || "").toLowerCase());
@@ -4306,6 +4570,7 @@
       thresholdMin: null,
       thresholdMax: null,
       transparentOutside: true,
+      transparentNoData: true,
       clamp: true,
       customColors: ["#313695", "#ffffbf", "#a50026"],
       alpha: 255
@@ -4380,6 +4645,7 @@
   function addRasterLayerItem(item) {
     rasterLayers.set(item.id, item);
     renderRasterLayerList();
+    renderRgbComposerOptions();
   }
 
   function renderRasterLayerList() {
@@ -4388,6 +4654,7 @@
 
     if (rasterLayers.size === 0) {
       list.innerHTML = `<div class="sidebar-small-note">No raster layers uploaded yet.</div>`;
+      renderRgbComposerOptions();
       return;
     }
 
@@ -4397,6 +4664,11 @@
       const div = document.createElement("div");
       div.className = "json-layer-item raster-layer-item";
       const sliceControls = item.type === "netcdf" ? buildNetcdfControlsHtml(item) : "";
+      const showSettings = item.type === "geotiff" || item.type === "netcdf";
+      const settingsButton = showSettings
+        ? `<button type="button" data-raster-action="settings" data-id="${item.id}" title="Raster settings" onclick="event.preventDefault(); event.stopPropagation(); window.openRasterSettingsPanelSafe && window.openRasterSettingsPanelSafe('${item.id}');"><i class="fa-solid fa-gear"></i></button>`
+        : "";
+      const legendStyle = item.legendStyle || getRasterLegendStyle(item.style || defaultRasterStyle({ min: 0, max: 255 }));
 
       div.innerHTML = `
         <div class="json-layer-top">
@@ -4404,7 +4676,7 @@
           <div class="json-layer-actions">
             <button type="button" data-raster-action="zoom" data-id="${item.id}" title="Zoom to raster"><i class="fa-solid fa-magnifying-glass-location"></i></button>
             <button type="button" data-raster-action="toggle" data-id="${item.id}" title="Show / hide raster"><i class="fa-solid ${item.visible ? "fa-eye" : "fa-eye-slash"}"></i></button>
-            <button type="button" data-raster-action="settings" data-id="${item.id}" title="Raster settings" onclick="event.preventDefault(); event.stopPropagation(); window.openRasterSettingsPanelSafe && window.openRasterSettingsPanelSafe('${item.id}');"><i class="fa-solid fa-gear"></i></button>
+            ${settingsButton}
             <button type="button" data-raster-action="remove" data-id="${item.id}" title="Remove raster"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
@@ -4412,9 +4684,11 @@
         <div class="json-layer-meta">
           ${escapeHtml(item.description || "")}<br>
           ${item.min !== null && item.max !== null ? `Range: ${Number(item.min).toFixed(4)} → ${Number(item.max).toFixed(4)}` : "Range: unavailable"}
+          ${item.noDataValues && item.noDataValues.length ? `<br>NoData transparent: ${escapeHtml(item.noDataValues.join(", "))}` : ""}
+          ${item.type === "rgb-composite" ? `<br>Export from RGB Composer below.` : ""}
         </div>
 
-        <div class="raster-legend" style="${getRasterLegendStyle(item.style)}"></div>
+        <div class="raster-legend" style="${legendStyle}"></div>
 
         <div class="raster-slider-row">
           <span>Opacity</span>
@@ -4427,6 +4701,8 @@
 
       list.appendChild(div);
     });
+
+    renderRgbComposerOptions();
   }
 
   function buildNetcdfControlsHtml(item) {
@@ -4483,6 +4759,7 @@
 
     rasterLayers.delete(layerId);
     renderRasterLayerList();
+    renderRgbComposerOptions();
   }
 
   function zoomToRasterLayer(layerId) {
@@ -4507,6 +4784,1205 @@
       panelOpacity.value = item.opacity;
       document.getElementById("rasterSettingsOpacityLabel").textContent = `${Math.round(item.opacity * 100)}%`;
     }
+  }
+
+
+
+
+  function setStackClipInputsFromBounds(bounds) {
+    if (!bounds) return;
+
+    document.getElementById("stackClipWest").value = Number(bounds.west).toFixed(6);
+    document.getElementById("stackClipSouth").value = Number(bounds.south).toFixed(6);
+    document.getElementById("stackClipEast").value = Number(bounds.east).toFixed(6);
+    document.getElementById("stackClipNorth").value = Number(bounds.north).toFixed(6);
+  }
+
+  function getBoundsFromMapView() {
+    const bounds = map.getBounds();
+    return {
+      west: bounds.getWest(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      north: bounds.getNorth()
+    };
+  }
+
+  function getFullExtentFromStack(stack) {
+    if (!stack || !stack.redSourceId) return null;
+
+    try {
+      const red = getRgbSourceData(stack.redSourceId);
+      return {
+        west: red.west,
+        south: red.south,
+        east: red.east,
+        north: red.north
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function readManualClipBoundsFromPanel() {
+    const west = Number(document.getElementById("stackClipWest").value);
+    const south = Number(document.getElementById("stackClipSouth").value);
+    const east = Number(document.getElementById("stackClipEast").value);
+    const north = Number(document.getElementById("stackClipNorth").value);
+
+    if (![west, south, east, north].every(Number.isFinite)) return null;
+    if (east <= west || north <= south) return null;
+
+    return { west, south, east, north };
+  }
+
+  function clearStackCanvasClipSelection() {
+    stackClipCanvasSelection.active = false;
+    stackClipCanvasSelection.firstPoint = null;
+
+    if (stackClipCanvasSelection.rectangle) {
+      map.removeLayer(stackClipCanvasSelection.rectangle);
+      stackClipCanvasSelection.rectangle = null;
+    }
+
+    map.getContainer().style.cursor = "";
+  }
+
+  function beginStackCanvasClipSelection() {
+    if (!rasterStacks.get(activeRasterStackId)) {
+      showStackSettingsMessage("Open a stack settings window first.", "warning");
+      return;
+    }
+
+    clearStackCanvasClipSelection();
+    stackClipCanvasSelection.active = true;
+    stackClipCanvasSelection.firstPoint = null;
+    map.getContainer().style.cursor = "crosshair";
+
+    document.getElementById("stackClipModeSelect").value = "canvas";
+    showStackSettingsMessage("Click the first corner of the clip area on the map.", "success");
+  }
+
+  function handleStackCanvasClipClick(event) {
+    if (!stackClipCanvasSelection.active) return;
+
+    const point = event.latlng;
+
+    if (!stackClipCanvasSelection.firstPoint) {
+      stackClipCanvasSelection.firstPoint = point;
+      showStackSettingsMessage("First corner selected. Click the opposite corner.", "success");
+      return;
+    }
+
+    const first = stackClipCanvasSelection.firstPoint;
+    const west = Math.min(first.lng, point.lng);
+    const east = Math.max(first.lng, point.lng);
+    const south = Math.min(first.lat, point.lat);
+    const north = Math.max(first.lat, point.lat);
+
+    const bounds = { west, south, east, north };
+    setStackClipInputsFromBounds(bounds);
+
+    const stack = rasterStacks.get(activeRasterStackId);
+    if (stack) {
+      stack.clipMode = "manual";
+      stack.clipBounds = bounds;
+    }
+
+    document.getElementById("stackClipModeSelect").value = "manual";
+
+    if (stackClipCanvasSelection.rectangle) {
+      map.removeLayer(stackClipCanvasSelection.rectangle);
+    }
+
+    stackClipCanvasSelection.rectangle = L.rectangle([[south, west], [north, east]], {
+      color: "#2563eb",
+      weight: 2,
+      dashArray: "6 4",
+      fillColor: "#2563eb",
+      fillOpacity: 0.12,
+      interactive: false
+    }).addTo(map);
+
+    stackClipCanvasSelection.active = false;
+    stackClipCanvasSelection.firstPoint = null;
+    map.getContainer().style.cursor = "";
+
+    showStackSettingsMessage("Clip area selected from map canvas. Press View RGB to render.", "success");
+  }
+
+  function handleStackCanvasClipMouseMove(event) {
+    if (!stackClipCanvasSelection.active || !stackClipCanvasSelection.firstPoint) return;
+
+    const first = stackClipCanvasSelection.firstPoint;
+    const point = event.latlng;
+    const west = Math.min(first.lng, point.lng);
+    const east = Math.max(first.lng, point.lng);
+    const south = Math.min(first.lat, point.lat);
+    const north = Math.max(first.lat, point.lat);
+
+    if (!stackClipCanvasSelection.rectangle) {
+      stackClipCanvasSelection.rectangle = L.rectangle([[south, west], [north, east]], {
+        color: "#2563eb",
+        weight: 2,
+        dashArray: "6 4",
+        fillColor: "#2563eb",
+        fillOpacity: 0.12,
+        interactive: false
+      }).addTo(map);
+    } else {
+      stackClipCanvasSelection.rectangle.setBounds([[south, west], [north, east]]);
+    }
+  }
+
+  function intersectBounds(a, b) {
+    if (!a || !b) return a || b || null;
+
+    const west = Math.max(Math.min(a.west, a.east), Math.min(b.west, b.east));
+    const east = Math.min(Math.max(a.west, a.east), Math.max(b.west, b.east));
+    const south = Math.max(Math.min(a.south, a.north), Math.min(b.south, b.north));
+    const north = Math.min(Math.max(a.south, a.north), Math.max(b.south, b.north));
+
+    if (east <= west || north <= south) return null;
+    return { west, south, east, north };
+  }
+
+  function resolveStackClipBounds(stack, redSource) {
+    const redBounds = {
+      west: redSource.west,
+      south: redSource.south,
+      east: redSource.east,
+      north: redSource.north
+    };
+
+    let requested = null;
+
+    if (stack.clipMode === "map") {
+      requested = stack.clipBounds || getBoundsFromMapView();
+    } else if (stack.clipMode === "manual") {
+      requested = stack.clipBounds;
+    } else {
+      requested = redBounds;
+    }
+
+    return intersectBounds(redBounds, requested) || redBounds;
+  }
+
+
+  function showRasterStackMessage(message, type = "") {
+    const box = document.getElementById("rasterStackMessage");
+    if (!box) return;
+    if (!message) {
+      box.textContent = "";
+      box.className = "sidebar-message";
+      return;
+    }
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function showStackSettingsMessage(message, type = "") {
+    const box = document.getElementById("stackSettingsMessage");
+    if (!box) return;
+    if (!message) {
+      box.textContent = "";
+      box.className = "sidebar-message";
+      return;
+    }
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function renderAvailableBandStackList() {
+    const list = document.getElementById("availableBandStackList");
+    if (!list) return;
+
+    const options = buildRasterBandSourceOptions();
+    if (!options.length) {
+      list.innerHTML = `<div class="sidebar-small-note">Upload raster layers first.</div>`;
+      return;
+    }
+
+    list.innerHTML = options.map(option => `
+      <label class="raster-stack-row">
+        <input type="checkbox" value="${escapeHtml(option.id)}" data-stack-band-source />
+        <span>${escapeHtml(option.label)}</span>
+      </label>
+    `).join("");
+  }
+
+  function renderRasterStackList() {
+    const list = document.getElementById("rasterStackList");
+    if (!list) return;
+
+    if (!rasterStacks.size) {
+      list.innerHTML = `<div class="sidebar-small-note">No raster stacks created yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = "";
+
+    rasterStacks.forEach(stack => {
+      const div = document.createElement("div");
+      div.className = "json-layer-item";
+      div.innerHTML = `
+        <div class="json-layer-top">
+          <div class="json-layer-name">${escapeHtml(stack.name)}</div>
+          <div class="json-layer-actions">
+            <button type="button" data-stack-action="settings" data-id="${stack.id}" title="Stack RGB settings"><i class="fa-solid fa-gear"></i></button>
+            <button type="button" data-stack-action="zoom" data-id="${stack.id}" title="Zoom to RGB"><i class="fa-solid fa-magnifying-glass-location"></i></button>
+            <button type="button" data-stack-action="toggle" data-id="${stack.id}" title="Show / hide RGB"><i class="fa-solid ${stack.visible ? "fa-eye" : "fa-eye-slash"}"></i></button>
+            <button type="button" data-stack-action="remove" data-id="${stack.id}" title="Remove stack"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="json-layer-meta">
+          ${stack.sources.length} band source${stack.sources.length === 1 ? "" : "s"}<br>
+          RGB: R=${escapeHtml(getStackSourceShortLabel(stack, stack.redSourceId))},
+          G=${escapeHtml(getStackSourceShortLabel(stack, stack.greenSourceId))},
+          B=${escapeHtml(getStackSourceShortLabel(stack, stack.blueSourceId))}
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function renderRasterStackUi() {
+    renderAvailableBandStackList();
+    renderRasterStackList();
+  }
+
+  function getStackSourceShortLabel(stack, sourceId) {
+    if (!sourceId) return "None";
+    const source = stack.sources.find(item => item.id === sourceId);
+    if (!source) return "Missing";
+    return source.label.split("|").pop().trim();
+  }
+
+  function createRasterStackFromUi() {
+    const selected = Array.from(document.querySelectorAll("[data-stack-band-source]:checked")).map(input => input.value);
+    if (!selected.length) {
+      showRasterStackMessage("Select at least one raster band/source to create a stack.", "warning");
+      return;
+    }
+
+    const allOptions = buildRasterBandSourceOptions();
+    const sources = selected
+      .map(id => allOptions.find(option => option.id === id))
+      .filter(Boolean);
+
+    if (!sources.length) {
+      showRasterStackMessage("The selected raster sources are no longer available.", "warning");
+      return;
+    }
+
+    const nameInput = document.getElementById("stackNameInput");
+    const name = (nameInput?.value || "").trim() || `Raster Stack ${rasterStackCounter}`;
+    const stack = {
+      id: "STACK-" + String(rasterStackCounter).padStart(3, "0"),
+      name,
+      sources,
+      redSourceId: sources[0]?.id || "",
+      greenSourceId: sources[1]?.id || sources[0]?.id || "",
+      blueSourceId: sources[2]?.id || "",
+      compositeItemId: null,
+      visible: true,
+      previewSize: "1024",
+      autoDownsample: true,
+      rgbStretchMode: "cumulative",
+      rgbLowCut: 2,
+      rgbHighCut: 98,
+      rgbStdDev: 2,
+      rgbGamma: 1,
+      rgbBrightness: 1,
+      clipMode: "map",
+      clipBounds: getBoundsFromMapView()
+    };
+
+    rasterStackCounter += 1;
+    rasterStacks.set(stack.id, stack);
+    if (nameInput) nameInput.value = name;
+    renderRasterStackList();
+    openStackSettingsPanel(stack.id);
+    showRasterStackMessage(`Created ${name}.`, "success");
+  }
+
+  function openStackSettingsPanel(stackId) {
+    const stack = rasterStacks.get(stackId);
+    const panel = document.getElementById("stackSettingsPanel");
+    if (!stack || !panel) return;
+
+    activeRasterStackId = stackId;
+    panel.classList.add("open");
+    panel.style.display = "block";
+
+    document.getElementById("stackSettingsLayerName").textContent = `Stack: ${stack.name}`;
+    document.getElementById("stackCompositeNameInput").value = stack.rgbName || `${stack.name} RGB`;
+    document.getElementById("stackPreviewSizeSelect").value = stack.previewSize || "1024";
+    document.getElementById("stackAutoDownsample").checked = stack.autoDownsample !== false;
+    document.getElementById("stackRgbStretchMode").value = stack.rgbStretchMode || "cumulative";
+    document.getElementById("stackRgbLowCut").value = Number.isFinite(stack.rgbLowCut) ? stack.rgbLowCut : 2;
+    document.getElementById("stackRgbHighCut").value = Number.isFinite(stack.rgbHighCut) ? stack.rgbHighCut : 98;
+    document.getElementById("stackRgbStdDev").value = Number.isFinite(stack.rgbStdDev) ? stack.rgbStdDev : 2;
+    document.getElementById("stackRgbGamma").value = Number.isFinite(stack.rgbGamma) ? stack.rgbGamma : 1;
+    document.getElementById("stackRgbBrightness").value = Number.isFinite(stack.rgbBrightness) ? stack.rgbBrightness : 1;
+    document.getElementById("stackClipModeSelect").value = stack.clipMode || "full";
+
+    const clipBounds = stack.clipBounds || getFullExtentFromStack(stack);
+    if (clipBounds) setStackClipInputsFromBounds(clipBounds);
+
+    populateStackChannelSelect(document.getElementById("stackRedSelect"), stack, stack.redSourceId, "Red");
+    populateStackChannelSelect(document.getElementById("stackGreenSelect"), stack, stack.greenSourceId, "Green");
+    populateStackChannelSelect(document.getElementById("stackBlueSelect"), stack, stack.blueSourceId, "Blue");
+
+    showStackSettingsMessage("", "");
+  }
+
+  function closeStackSettingsPanel() {
+    const panel = document.getElementById("stackSettingsPanel");
+    if (!panel) return;
+    panel.classList.remove("open");
+    panel.style.display = "none";
+  }
+
+  function populateStackChannelSelect(select, stack, selectedValue, channelName) {
+    if (!select) return;
+    const none = channelName === "Blue" ? `<option value="">None</option>` : "";
+    select.innerHTML = none + stack.sources.map(source => `<option value="${escapeHtml(source.id)}">${escapeHtml(source.label)}</option>`).join("");
+    if (selectedValue && stack.sources.some(source => source.id === selectedValue)) {
+      select.value = selectedValue;
+    } else if (channelName === "Blue") {
+      select.value = "";
+    }
+  }
+
+  function handleRasterStackAction(action, stackId) {
+    const stack = rasterStacks.get(stackId);
+    if (!stack) return;
+
+    if (action === "settings") {
+      openStackSettingsPanel(stackId);
+      return;
+    }
+
+    if (action === "zoom") {
+      const item = stack.compositeItemId ? rasterLayers.get(stack.compositeItemId) : null;
+      if (item?.bounds) map.fitBounds(item.bounds, { padding: [20, 20] });
+      return;
+    }
+
+    if (action === "toggle") {
+      const item = stack.compositeItemId ? rasterLayers.get(stack.compositeItemId) : null;
+      if (!item?.layer) return;
+
+      if (stack.visible) {
+        map.removeLayer(item.layer);
+        item.visible = false;
+        stack.visible = false;
+      } else {
+        item.layer.addTo(map);
+        item.visible = true;
+        stack.visible = true;
+      }
+
+      renderRasterStackList();
+      renderRasterLayerList();
+      return;
+    }
+
+    if (action === "remove") {
+      if (stack.compositeItemId) {
+        removeRasterLayer(stack.compositeItemId);
+      }
+      rasterStacks.delete(stackId);
+      closeStackSettingsPanel();
+      renderRasterStackList();
+    }
+  }
+
+  function getCompositeItemForStack(stack) {
+    if (!stack || !stack.compositeItemId) return null;
+    const item = rasterLayers.get(stack.compositeItemId);
+    return item && item.type === "rgb-composite" ? item : null;
+  }
+
+  function removeStackCompositeOnly(stack) {
+    const item = getCompositeItemForStack(stack);
+    if (item) removeRasterLayer(item.id);
+    stack.compositeItemId = null;
+    renderRasterStackList();
+  }
+
+  async function applyStackRgbSettings() {
+    const stack = rasterStacks.get(activeRasterStackId);
+    if (!stack) {
+      showStackSettingsMessage("Select a stack first.", "warning");
+      return;
+    }
+
+    stack.redSourceId = document.getElementById("stackRedSelect").value;
+    stack.greenSourceId = document.getElementById("stackGreenSelect").value;
+    stack.blueSourceId = document.getElementById("stackBlueSelect").value;
+    stack.rgbName = (document.getElementById("stackCompositeNameInput").value || "").trim() || `${stack.name} RGB`;
+    stack.previewSize = document.getElementById("stackPreviewSizeSelect").value || "1024";
+    stack.autoDownsample = document.getElementById("stackAutoDownsample").checked;
+    stack.rgbStretchMode = document.getElementById("stackRgbStretchMode").value || "cumulative";
+    stack.rgbLowCut = Number(document.getElementById("stackRgbLowCut").value);
+    stack.rgbHighCut = Number(document.getElementById("stackRgbHighCut").value);
+    stack.rgbStdDev = Number(document.getElementById("stackRgbStdDev").value);
+    stack.rgbGamma = Number(document.getElementById("stackRgbGamma").value);
+    stack.rgbBrightness = Number(document.getElementById("stackRgbBrightness").value);
+    stack.clipMode = document.getElementById("stackClipModeSelect").value || "full";
+
+    if (stack.clipMode === "map") {
+      stack.clipBounds = getBoundsFromMapView();
+      setStackClipInputsFromBounds(stack.clipBounds);
+    } else if (stack.clipMode === "manual" || stack.clipMode === "canvas") {
+      stack.clipBounds = readManualClipBoundsFromPanel();
+      if (!stack.clipBounds) {
+        showStackSettingsMessage("Clip bounds are invalid. Select two map points or check west/south/east/north values.", "warning");
+        return;
+      }
+      stack.clipMode = "manual";
+      document.getElementById("stackClipModeSelect").value = "manual";
+    } else {
+      stack.clipBounds = null;
+    }
+
+    if (!stack.redSourceId || !stack.greenSourceId) {
+      showStackSettingsMessage("Choose at least Red and Green. Blue may be None.", "warning");
+      return;
+    }
+
+    await createRgbCompositeFromSources({
+      redId: stack.redSourceId,
+      greenId: stack.greenSourceId,
+      blueId: stack.blueSourceId,
+      name: stack.rgbName,
+      existingCompositeId: stack.compositeItemId,
+      sizeMode: stack.previewSize,
+      autoDownsample: stack.autoDownsample,
+      stackId: stack.id,
+      clipMode: stack.clipMode,
+      clipBounds: stack.clipBounds,
+      rgbStretchMode: stack.rgbStretchMode,
+      rgbLowCut: stack.rgbLowCut,
+      rgbHighCut: stack.rgbHighCut,
+      rgbStdDev: stack.rgbStdDev,
+      rgbGamma: stack.rgbGamma,
+      rgbBrightness: stack.rgbBrightness
+    });
+  }
+
+  async function exportActiveStackRgb() {
+    const stack = rasterStacks.get(activeRasterStackId);
+    if (!stack) {
+      showStackSettingsMessage("Select a stack first.", "warning");
+      return;
+    }
+
+    if (!stack.compositeItemId) {
+      await applyStackRgbSettings();
+    }
+
+    const item = getCompositeItemForStack(stack);
+    if (!item) {
+      showStackSettingsMessage("Create/View the RGB composite before exporting.", "warning");
+      return;
+    }
+
+    const exportSelect = document.getElementById("rgbCompositeExportSelect");
+    if (exportSelect) exportSelect.value = item.id;
+
+    const format = document.getElementById("stackExportFormatSelect").value;
+    if (format === "geotiff") await exportRgbCompositeGeotiff();
+    else await exportRgbCompositeImage(format);
+
+    showStackSettingsMessage(`Exported ${stack.rgbName || stack.name}.`, "success");
+  }
+
+  async function createRgbCompositeFromSources(options) {
+    const red = getRgbSourceData(options.redId);
+    const green = getRgbSourceData(options.greenId);
+    const blue = options.blueId ? getRgbSourceData(options.blueId) : null;
+
+    const rgbOptions = {
+      rgbStretchMode: options.rgbStretchMode || "cumulative",
+      rgbLowCut: Number.isFinite(options.rgbLowCut) ? options.rgbLowCut : 2,
+      rgbHighCut: Number.isFinite(options.rgbHighCut) ? options.rgbHighCut : 98,
+      rgbStdDev: Number.isFinite(options.rgbStdDev) ? options.rgbStdDev : 2,
+      rgbGamma: Number.isFinite(options.rgbGamma) ? options.rgbGamma : 1,
+      rgbBrightness: Number.isFinite(options.rgbBrightness) ? options.rgbBrightness : 1
+    };
+
+    red.displayRange = computeRgbChannelRange(red, rgbOptions);
+    green.displayRange = computeRgbChannelRange(green, rgbOptions);
+    if (blue) blue.displayRange = computeRgbChannelRange(blue, rgbOptions);
+
+    const stack = options.stackId ? rasterStacks.get(options.stackId) : null;
+    const redBounds = { west: red.west, south: red.south, east: red.east, north: red.north };
+    const clipBounds = stack
+      ? resolveStackClipBounds(stack, red)
+      : (options.clipBounds ? intersectBounds(redBounds, options.clipBounds) : redBounds);
+
+    if (!clipBounds) {
+      throw new Error("The selected clip extent does not overlap the red source image.");
+    }
+
+    const redPixelWidth = Math.abs((red.east - red.west) / Math.max(1, red.width));
+    const redPixelHeight = Math.abs((red.north - red.south) / Math.max(1, red.height));
+
+    let width = Math.max(1, Math.round(Math.abs(clipBounds.east - clipBounds.west) / redPixelWidth));
+    let height = Math.max(1, Math.round(Math.abs(clipBounds.north - clipBounds.south) / redPixelHeight));
+
+    const sizeMode = options.sizeMode || "2048";
+    const maxSize = sizeMode === "original" ? Math.max(width, height) : Number(sizeMode);
+
+    if (options.autoDownsample !== false && Number.isFinite(maxSize) && Math.max(width, height) > maxSize) {
+      const scale = maxSize / Math.max(width, height);
+      width = Math.max(1, Math.round(width * scale));
+      height = Math.max(1, Math.round(height * scale));
+    }
+
+    const total = width * height;
+    const hardLimit = 12000000;
+    if (total > hardLimit) {
+      throw new Error("The selected clipped RGB output is too large for browser rendering. Choose 512/1024 px, enable auto-downsample, or clip a smaller area.");
+    }
+
+    const rBand = new Uint8Array(total);
+    const gBand = new Uint8Array(total);
+    const bBand = new Uint8Array(total);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d", { willReadFrequently: false });
+    const image = context.createImageData(width, height);
+
+    for (let row = 0; row < height; row += 1) {
+      for (let col = 0; col < width; col += 1) {
+        const lon = clipBounds.west + ((col + 0.5) / width) * (clipBounds.east - clipBounds.west);
+        const lat = clipBounds.north - ((row + 0.5) / height) * (clipBounds.north - clipBounds.south);
+        const index = row * width + col;
+
+        const rValue = scaleSourceValueToRgbByte(red, sampleRasterNearest(red, lat, lon), rgbOptions);
+        const gValue = scaleSourceValueToRgbByte(green, sampleRasterNearest(green, lat, lon), rgbOptions);
+        const bValue = blue ? scaleSourceValueToRgbByte(blue, sampleRasterNearest(blue, lat, lon), rgbOptions) : 0;
+
+        const missing = rValue === null || gValue === null || bValue === null;
+        rBand[index] = missing ? 0 : rValue;
+        gBand[index] = missing ? 0 : gValue;
+        bBand[index] = missing ? 0 : bValue;
+
+        image.data[index * 4] = rBand[index];
+        image.data[index * 4 + 1] = gBand[index];
+        image.data[index * 4 + 2] = bBand[index];
+        image.data[index * 4 + 3] = missing ? 0 : 255;
+      }
+
+      if (row % 128 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+    }
+
+    context.putImageData(image, 0, 0);
+
+    const imageUrl = canvas.toDataURL("image/png");
+    const bounds = L.latLngBounds([clipBounds.south, clipBounds.west], [clipBounds.north, clipBounds.east]);
+    const name = options.name || `RGB Composite ${rgbCompositeCounter}`;
+    const existing = options.existingCompositeId ? rasterLayers.get(options.existingCompositeId) : null;
+
+    if (existing?.layer && map.hasLayer(existing.layer)) {
+      map.removeLayer(existing.layer);
+    }
+
+    const id = existing?.id || "RGB-" + String(rgbCompositeCounter).padStart(3, "0");
+    if (!existing) rgbCompositeCounter += 1;
+
+    const item = {
+      id,
+      name,
+      type: "rgb-composite",
+      description: `Stacked RGB | R: ${red.label} | G: ${green.label} | B: ${blue ? blue.label : "None"} | ${rgbOptions.rgbStretchMode} stretch | clipped`,
+      layer: L.imageOverlay(imageUrl, bounds, { opacity: 1.0 }),
+      visible: true,
+      opacity: 1.0,
+      bounds,
+      min: 0,
+      max: 255,
+      legendStyle: 'background: linear-gradient(90deg, #ff0000 0%, #00ff00 50%, #0000ff 100%);',
+      style: defaultRasterStyle({ min: 0, max: 255 }),
+      canvas,
+      stackId: options.stackId || null,
+      clipBounds,
+      exportData: {
+        rBand,
+        gBand,
+        bBand,
+        width,
+        height,
+        west: clipBounds.west,
+        east: clipBounds.east,
+        south: clipBounds.south,
+        north: clipBounds.north
+      }
+    };
+
+    rasterLayers.set(id, item);
+    item.layer.addTo(map);
+
+    if (options.stackId && rasterStacks.has(options.stackId)) {
+      const activeStack = rasterStacks.get(options.stackId);
+      activeStack.compositeItemId = id;
+      activeStack.visible = true;
+    }
+
+    renderRasterLayerList();
+    renderRasterStackList();
+    map.fitBounds(bounds, { padding: [20, 20] });
+
+    const exportSelect = document.getElementById("rgbCompositeExportSelect");
+    if (exportSelect) {
+      renderRgbComposerOptions();
+      exportSelect.value = id;
+    }
+
+    showStackSettingsMessage(`Rendered ${name} from clipped stack.`, "success");
+    return item;
+  }
+
+  function showRgbComposerMessage(message, type = "") {
+    const box = document.getElementById("rgbComposerMessage");
+    if (!box) return;
+
+    if (!message) {
+      box.textContent = "";
+      box.className = "sidebar-message";
+      return;
+    }
+
+    box.textContent = message;
+    box.className = "sidebar-message " + type;
+  }
+
+  function sanitizeFilenameBase(name) {
+    return String(name || "rgb_composite")
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "rgb_composite";
+  }
+
+  function buildRasterBandSourceOptions() {
+    const options = [];
+
+    rasterLayers.forEach(item => {
+      if (item.type === "geotiff" && item.georaster) {
+        const bandCount = Math.max(1, Number(item.georaster.numberOfRasters || item.georaster.values?.length || 1));
+        for (let bandIndex = 0; bandIndex < bandCount; bandIndex += 1) {
+          options.push({
+            id: `${item.id}::band::${bandIndex}`,
+            label: `${item.name} | band ${bandIndex + 1}`
+          });
+        }
+      } else if (item.type === "netcdf") {
+        const sliceLabel = item.sliceDims && item.sliceDims.length
+          ? item.sliceDims.map(dim => `${dim.name}=${item.selectedIndices[dim.name] || 0}`).join(", ")
+          : "current slice";
+
+        options.push({
+          id: `${item.id}::netcdf::0`,
+          label: `${item.name} | ${item.selectedVariable} | ${sliceLabel}`
+        });
+      }
+    });
+
+    return options;
+  }
+
+  function buildRgbCompositeOptions() {
+    const options = [];
+    rasterLayers.forEach(item => {
+      if (item.type === "rgb-composite") {
+        options.push({ id: item.id, label: item.name });
+      }
+    });
+    return options;
+  }
+
+  function populateSelectWithOptions(select, options, emptyLabel) {
+    if (!select) return;
+    const previous = select.value;
+    if (!options.length) {
+      select.innerHTML = `<option value="">${escapeHtml(emptyLabel)}</option>`;
+      return;
+    }
+
+    select.innerHTML = options.map(option => `<option value="${escapeHtml(option.id)}">${escapeHtml(option.label)}</option>`).join("");
+
+    const stillExists = options.some(option => option.id === previous);
+    if (stillExists) {
+      select.value = previous;
+    }
+  }
+
+  function renderRgbComposerOptions() {
+    const bandOptions = buildRasterBandSourceOptions();
+    populateSelectWithOptions(document.getElementById("rgbRedSelect"), bandOptions, "Upload raster layers first");
+    populateSelectWithOptions(document.getElementById("rgbGreenSelect"), bandOptions, "Upload raster layers first");
+    populateSelectWithOptions(document.getElementById("rgbBlueSelect"), bandOptions, "Upload raster layers first");
+
+    const compositeOptions = buildRgbCompositeOptions();
+    populateSelectWithOptions(document.getElementById("rgbCompositeExportSelect"), compositeOptions, "No RGB composite created yet");
+    renderRasterStackUi();
+  }
+
+  function parseRgbSourceId(sourceId) {
+    const parts = String(sourceId || "").split("::");
+    if (parts.length < 3) return null;
+    return { layerId: parts[0], sourceType: parts[1], bandIndex: Number(parts[2] || 0) };
+  }
+
+  function computeDisplayRangeFromValues(values, noDataValues, style = {}, fallbackMin = null, fallbackMax = null) {
+    const clean = Array.from(values || []).filter(value => Number.isFinite(value) && !rasterIsNoData(value, noDataValues || []));
+    if (!clean.length) return { min: fallbackMin, max: fallbackMax };
+
+    const mode = style.stretchMode || "manual";
+
+    if (mode === "actual") {
+      return rasterFiniteMinMax(clean);
+    }
+
+    if (mode === "cumulative") {
+      const sorted = [...clean].sort((a, b) => a - b);
+      const low = Number.isFinite(style.cumulativeLow) ? style.cumulativeLow : 2;
+      const high = Number.isFinite(style.cumulativeHigh) ? style.cumulativeHigh : 98;
+      return {
+        min: rasterPercentile(sorted, low),
+        max: rasterPercentile(sorted, high)
+      };
+    }
+
+    if (mode === "stddev") {
+      const stats = rasterMeanStd(clean);
+      const factor = Number.isFinite(style.stdDevFactor) ? style.stdDevFactor : 2;
+      return {
+        min: stats.mean - factor * stats.std,
+        max: stats.mean + factor * stats.std
+      };
+    }
+
+    return {
+      min: Number.isFinite(style.displayMin) ? style.displayMin : fallbackMin,
+      max: Number.isFinite(style.displayMax) ? style.displayMax : fallbackMax
+    };
+  }
+
+
+  function computeRgbChannelRange(source, options = {}) {
+    const mode = options.rgbStretchMode || "cumulative";
+
+    if (mode === "manual") {
+      return computeDisplayRangeFromValues(source.values, source.noDataValues, source.style, source.min, source.max);
+    }
+
+    /*
+      Avoid copying millions of pixels more than necessary. For percentile/stddev,
+      sample large rasters instead of sorting the full band.
+    */
+    const input = source.values || [];
+    const step = input.length > 1000000 ? Math.ceil(input.length / 1000000) : 1;
+    const values = [];
+
+    for (let i = 0; i < input.length; i += step) {
+      const value = Number(input[i]);
+      if (Number.isFinite(value) && !rasterIsNoData(value, source.noDataValues || [])) {
+        values.push(value);
+      }
+    }
+
+    if (!values.length) {
+      return { min: source.min, max: source.max };
+    }
+
+    if (mode === "actual") {
+      return rasterFiniteMinMax(values);
+    }
+
+    if (mode === "stddev") {
+      const stats = rasterMeanStd(values);
+      const factor = Number.isFinite(options.rgbStdDev) ? options.rgbStdDev : 2;
+      return {
+        min: stats.mean - factor * stats.std,
+        max: stats.mean + factor * stats.std
+      };
+    }
+
+    values.sort((a, b) => a - b);
+    const low = Number.isFinite(options.rgbLowCut) ? options.rgbLowCut : 2;
+    const high = Number.isFinite(options.rgbHighCut) ? options.rgbHighCut : 98;
+
+    return {
+      min: rasterPercentile(values, low),
+      max: rasterPercentile(values, high)
+    };
+  }
+
+  function scaleSourceValueToRgbByte(source, value, options = {}) {
+    if (!Number.isFinite(value)) return null;
+    if (rasterIsNoData(value, source.noDataValues || [])) return null;
+
+    const style = source.style || {};
+    if (Number.isFinite(style.thresholdMin) && value < style.thresholdMin && style.transparentOutside !== false) return null;
+    if (Number.isFinite(style.thresholdMax) && value > style.thresholdMax && style.transparentOutside !== false) return null;
+
+    const range = source.displayRange || { min: source.min, max: source.max };
+    if (!Number.isFinite(range.min) || !Number.isFinite(range.max) || range.min === range.max) return 0;
+
+    let t = (value - range.min) / (range.max - range.min);
+    t = Math.max(0, Math.min(1, t));
+
+    const gamma = Number.isFinite(options.rgbGamma) && options.rgbGamma > 0 ? options.rgbGamma : 1;
+    const brightness = Number.isFinite(options.rgbBrightness) ? options.rgbBrightness : 1;
+
+    t = Math.pow(t, 1 / gamma);
+    t = Math.max(0, Math.min(1, t * brightness));
+
+    return Math.round(t * 255);
+  }
+
+
+
+  function flattenRasterValuesToFloat32(input) {
+    const flat = flattenRasterValues(input);
+    const typed = new Float32Array(flat.length);
+
+    for (let i = 0; i < flat.length; i += 1) {
+      const value = Number(flat[i]);
+      typed[i] = Number.isFinite(value) ? value : NaN;
+    }
+
+    return typed;
+  }
+
+  function getCachedGeoTiffBandValues(item, bandIndex) {
+    if (!item) return new Float32Array();
+
+    /*
+      Most uploaded band files are single-band GeoTIFFs. Reuse the already
+      stored rawValues to avoid duplicating a full Landsat-sized band in memory.
+    */
+    if (bandIndex === 0 && item.rawValues) {
+      if (item.rawValues instanceof Float32Array || item.rawValues instanceof Float64Array || item.rawValues instanceof Uint8Array || item.rawValues instanceof Uint16Array || item.rawValues instanceof Int16Array || item.rawValues instanceof Uint32Array || item.rawValues instanceof Int32Array) {
+        return item.rawValues;
+      }
+
+      item.rawValues = Float32Array.from(item.rawValues.map(value => {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : NaN;
+      }));
+
+      return item.rawValues;
+    }
+
+    if (!item.bandValueCache) {
+      item.bandValueCache = new Map();
+    }
+
+    if (item.bandValueCache.has(bandIndex)) {
+      return item.bandValueCache.get(bandIndex);
+    }
+
+    const valuesTree = Array.isArray(item.georaster?.values) ? item.georaster.values : [];
+    const selectedBand = valuesTree[bandIndex] || valuesTree[0];
+    const typed = flattenRasterValuesToFloat32(selectedBand);
+
+    item.bandValueCache.set(bandIndex, typed);
+    return typed;
+  }
+
+
+    function buildGeotiffBandSource(item, bandIndex) {
+    const values = getCachedGeoTiffBandValues(item, bandIndex);
+    const provisional = rasterFiniteMinMax(values, [
+      item.georaster?.noDataValue,
+      item.georaster?.nodata,
+      item.georaster?.no_data_value,
+      item.georaster?._FillValue,
+      item.georaster?.missing_value
+    ]);
+    const noDataValues = detectGeoTiffNoDataValues(item.georaster, values, provisional);
+    const range = rasterFiniteMinMax(values, noDataValues);
+    const bounds = item.bounds;
+
+    return {
+      id: `${item.id}::band::${bandIndex}`,
+      label: `${item.name} | band ${bandIndex + 1}`,
+      parentItem: item,
+      sourceType: "geotiff",
+      bandIndex,
+      values,
+      width: Number(item.georaster.width),
+      height: Number(item.georaster.height),
+      west: bounds.getWest(),
+      east: bounds.getEast(),
+      south: bounds.getSouth(),
+      north: bounds.getNorth(),
+      noDataValues,
+      style: item.style || defaultRasterStyle(range),
+      min: range.min,
+      max: range.max
+    };
+  }
+
+  function buildNetcdfSource(item) {
+    const slice = extractNc2DSlice(item);
+    const xCoords = ncCoordinateArray(item, "x");
+    const yCoords = ncCoordinateArray(item, "y");
+    const range = rasterFiniteMinMax(slice.values);
+
+    return {
+      id: `${item.id}::netcdf::0`,
+      label: `${item.name} | ${item.selectedVariable}`,
+      parentItem: item,
+      sourceType: "netcdf",
+      values: slice.values,
+      width: slice.width,
+      height: slice.height,
+      west: Math.min(...xCoords),
+      east: Math.max(...xCoords),
+      south: Math.min(...yCoords),
+      north: Math.max(...yCoords),
+      noDataValues: item.noDataValues || [],
+      style: item.style || defaultRasterStyle(range),
+      min: item.min ?? range.min,
+      max: item.max ?? range.max
+    };
+  }
+
+  function getRgbSourceData(sourceId) {
+    const descriptor = parseRgbSourceId(sourceId);
+    if (!descriptor) throw new Error("Invalid RGB source selection.");
+
+    const item = rasterLayers.get(descriptor.layerId);
+    if (!item) throw new Error("A selected raster source is no longer available.");
+
+    if (descriptor.sourceType === "band") {
+      if (item.type !== "geotiff") throw new Error("Selected band source must come from a GeoTIFF layer.");
+      return buildGeotiffBandSource(item, descriptor.bandIndex);
+    }
+
+    if (descriptor.sourceType === "netcdf") {
+      if (item.type !== "netcdf") throw new Error("Selected NetCDF source is no longer available.");
+      return buildNetcdfSource(item);
+    }
+
+    throw new Error("Unsupported RGB source type.");
+  }
+
+  function sampleRasterNearest(source, lat, lon) {
+    if (!source || !Number.isFinite(lat) || !Number.isFinite(lon)) return NaN;
+    if (lon < Math.min(source.west, source.east) || lon > Math.max(source.west, source.east) || lat < Math.min(source.south, source.north) || lat > Math.max(source.south, source.north)) {
+      return NaN;
+    }
+
+    const widthDen = Math.max(1, source.width - 1);
+    const heightDen = Math.max(1, source.height - 1);
+    const xRatio = source.east === source.west ? 0 : (lon - source.west) / (source.east - source.west);
+    const yRatio = source.north === source.south ? 0 : (source.north - lat) / (source.north - source.south);
+    const col = Math.max(0, Math.min(source.width - 1, Math.round(xRatio * widthDen)));
+    const row = Math.max(0, Math.min(source.height - 1, Math.round(yRatio * heightDen)));
+    return Number(source.values[row * source.width + col]);
+  }
+
+  function scaleSourceValueToByte(source, value) {
+    if (!Number.isFinite(value)) return null;
+    if (rasterIsNoData(value, source.noDataValues || [])) return null;
+
+    const style = source.style || {};
+    if (Number.isFinite(style.thresholdMin) && value < style.thresholdMin && style.transparentOutside !== false) return null;
+    if (Number.isFinite(style.thresholdMax) && value > style.thresholdMax && style.transparentOutside !== false) return null;
+
+    const range = source.displayRange || { min: source.min, max: source.max };
+    if (!Number.isFinite(range.min) || !Number.isFinite(range.max) || range.min === range.max) return 0;
+
+    let t = (value - range.min) / (range.max - range.min);
+    t = Math.max(0, Math.min(1, t));
+    if (style.invert) t = 1 - t;
+    return Math.round(t * 255);
+  }
+
+  function buildCanvasBlob(canvas, mimeType, quality = 0.95) {
+    return new Promise((resolve, reject) => {
+      if (!canvas) {
+        reject(new Error("Canvas was not available for export."));
+        return;
+      }
+
+      if (canvas.toBlob) {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error("Could not encode canvas."));
+        }, mimeType, quality);
+        return;
+      }
+
+      try {
+        const dataUrl = canvas.toDataURL(mimeType, quality);
+        const parts = dataUrl.split(",");
+        const binary = atob(parts[1]);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        resolve(new Blob([bytes], { type: mimeType }));
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  async function ensureGeotiffWriterLibrary() {
+    if (window.__writeGeotiffArrayBuffer) return window.__writeGeotiffArrayBuffer;
+    if (geotiffWriterPromise) return geotiffWriterPromise;
+
+    geotiffWriterPromise = (async () => {
+      const candidates = [
+        "https://cdn.jsdelivr.net/npm/geotiff@2.1.3/+esm",
+        "https://esm.sh/geotiff@2.1.3",
+        "https://cdn.jsdelivr.net/npm/geotiff/+esm"
+      ];
+
+      for (const url of candidates) {
+        try {
+          const module = await import(/* @vite-ignore */ url);
+          const writer = module.writeArrayBuffer || module.default?.writeArrayBuffer;
+          if (writer) {
+            window.__writeGeotiffArrayBuffer = writer;
+            return writer;
+          }
+        } catch (error) {
+          console.warn("GeoTIFF writer candidate failed:", url, error);
+        }
+      }
+
+      throw new Error("GeoTIFF writer library could not load from CDN.");
+    })();
+
+    return geotiffWriterPromise;
+  }
+
+  function getSelectedRgbComposite() {
+    const select = document.getElementById("rgbCompositeExportSelect");
+    const item = rasterLayers.get(select?.value || "");
+    if (!item || item.type !== "rgb-composite") {
+      throw new Error("Select an RGB composite first.");
+    }
+    return item;
+  }
+
+  async function exportRgbCompositeImage(format) {
+    const item = getSelectedRgbComposite();
+    const base = sanitizeFilenameBase(item.name || item.id);
+    const isJpeg = format === "jpeg";
+    const mimeType = isJpeg ? "image/jpeg" : "image/png";
+    const extension = isJpeg ? ".jpg" : ".png";
+    const blob = await buildCanvasBlob(item.canvas, mimeType, 0.95);
+    await downloadBlobFile(base + extension, blob);
+    showRgbComposerMessage(`${base + extension} exported.`, "success");
+  }
+
+  async function exportRgbCompositeGeotiff() {
+    const item = getSelectedRgbComposite();
+    const writer = await ensureGeotiffWriterLibrary();
+    const data = item.exportData;
+    if (!data) throw new Error("RGB composite pixel data are missing.");
+
+    const pixelWidth = (data.east - data.west) / Math.max(1, data.width);
+    const pixelHeight = (data.north - data.south) / Math.max(1, data.height);
+
+    const metadata = {
+      width: data.width,
+      height: data.height,
+      SamplesPerPixel: 3,
+      BitsPerSample: [8, 8, 8],
+      SampleFormat: [1, 1, 1],
+      PhotometricInterpretation: 2,
+      PlanarConfiguration: 1,
+      ModelPixelScale: [pixelWidth, pixelHeight, 0],
+      ModelTiepoint: [0, 0, 0, data.west, data.north, 0],
+      GTModelTypeGeoKey: 2,
+      GTRasterTypeGeoKey: 1,
+      GeographicTypeGeoKey: 4326
+    };
+
+    const arrayBuffer = await writer([data.rBand, data.gBand, data.bBand], metadata);
+    const blob = new Blob([arrayBuffer], { type: "image/tiff" });
+    const base = sanitizeFilenameBase(item.name || item.id);
+    await downloadBlobFile(base + ".tif", blob);
+    showRgbComposerMessage(`${base}.tif exported.`, "success");
+  }
+
+
+  function getRgbComposerMaxDimension() {
+    const select = document.getElementById("rgbCompositeMaxSize");
+    const value = select ? select.value : "2048";
+    if (value === "original") return Infinity;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 2048;
+  }
+
+  function computeRgbOutputGeometry(baseSource) {
+    const sourceWidth = Number(baseSource.width);
+    const sourceHeight = Number(baseSource.height);
+    const autoDownsample = document.getElementById("rgbAutoDownsample")?.checked !== false;
+    let maxDimension = getRgbComposerMaxDimension();
+
+    if (!autoDownsample && !Number.isFinite(maxDimension)) {
+      maxDimension = Math.max(sourceWidth, sourceHeight);
+    }
+
+    if (Number.isFinite(maxDimension)) {
+      const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+      return {
+        width: Math.max(1, Math.round(sourceWidth * scale)),
+        height: Math.max(1, Math.round(sourceHeight * scale)),
+        scale,
+        downsampled: scale < 1
+      };
+    }
+
+    return {
+      width: sourceWidth,
+      height: sourceHeight,
+      scale: 1,
+      downsampled: false
+    };
+  }
+
+  function waitForBrowserFrame() {
+    return new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+
+    async function createRgbCompositeFromUi() {
+    const redId = document.getElementById("rgbRedSelect")?.value;
+    const greenId = document.getElementById("rgbGreenSelect")?.value;
+    const blueId = document.getElementById("rgbBlueSelect")?.value;
+    const nameInput = document.getElementById("rgbCompositeName");
+
+    if (!redId || !greenId || !blueId) {
+      showRgbComposerMessage("Choose red, green, and blue raster sources first. For two-band composites, use Stacked RGB.", "warning");
+      return;
+    }
+
+    return createRgbCompositeFromSources({
+      redId,
+      greenId,
+      blueId,
+      name: (nameInput?.value || "").trim() || `RGB Composite ${rgbCompositeCounter}`,
+      sizeMode: "2048",
+      autoDownsample: true
+    }).catch(error => {
+      showRgbComposerMessage(error.message || "RGB composite failed.", "warning");
+    });
   }
 
   function getFiniteRasterValuesForItem(item) {
@@ -4734,6 +6210,9 @@
       document.getElementById("rasterThresholdMin").value = Number.isFinite(item.style.thresholdMin) ? item.style.thresholdMin : "";
       document.getElementById("rasterThresholdMax").value = Number.isFinite(item.style.thresholdMax) ? item.style.thresholdMax : "";
       document.getElementById("rasterThresholdTransparent").checked = item.style.transparentOutside !== false;
+      if (document.getElementById("rasterNoDataTransparent")) {
+        document.getElementById("rasterNoDataTransparent").checked = item.style.transparentNoData !== false;
+      }
       document.getElementById("rasterClampValues").checked = item.style.clamp !== false;
 
       renderCustomPaletteControls(item.style.customColors || ["#313695", "#ffffbf", "#a50026"]);
@@ -4787,6 +6266,7 @@
       thresholdMin: readNullableNumberFromInput("rasterThresholdMin"),
       thresholdMax: readNullableNumberFromInput("rasterThresholdMax"),
       transparentOutside: document.getElementById("rasterThresholdTransparent").checked,
+      transparentNoData: document.getElementById("rasterNoDataTransparent") ? document.getElementById("rasterNoDataTransparent").checked : true,
       clamp: document.getElementById("rasterClampValues").checked,
       customColors: getCustomColorsFromUI(),
       alpha: 255
@@ -4913,6 +6393,50 @@
     return false;
   }
 
+  function normalizeNoDataValues(values) {
+    const result = [];
+
+    (values || []).forEach(value => {
+      const number = Number(value);
+      if (Number.isFinite(number) && !result.includes(number)) {
+        result.push(number);
+      }
+    });
+
+    return result;
+  }
+
+  function rasterIsNoData(value, noDataValues = []) {
+    if (!Number.isFinite(value)) return true;
+
+    return noDataValues.some(noData => {
+      if (!Number.isFinite(noData)) return false;
+      return Object.is(value, noData) || Math.abs(value - noData) <= 1e-12;
+    });
+  }
+
+  function detectGeoTiffNoDataValues(georaster, rawValues, range) {
+    const values = normalizeNoDataValues([
+      georaster.noDataValue,
+      georaster.nodata,
+      georaster.no_data_value,
+      georaster._FillValue,
+      georaster.missing_value
+    ]);
+
+    /*
+      Landsat/Sentinel-style products often use 0 as the black background /
+      no-data value. If 0 is present as the minimum, include it as a transparent
+      candidate by default. The user can disable it from Raster Settings.
+    */
+    if (range && Number(range.min) === 0 && rawValues && rawValues.some(value => Number(value) === 0)) {
+      if (!values.includes(0)) values.push(0);
+    }
+
+    return values;
+  }
+
+
   function createGeoTiffStyledLayer(item) {
     return new GeoRasterLayer({
       georaster: item.georaster,
@@ -4920,6 +6444,11 @@
       resolution: 128,
       pixelValuesToColorFn: pixelValues => {
         const value = Number(pixelValues[0]);
+
+        if ((item.style?.transparentNoData !== false) && rasterIsNoData(value, item.noDataValues || [])) {
+          return "rgba(0, 0, 0, 0)";
+        }
+
         const min = Number.isFinite(item.style?.displayMin) ? item.style.displayMin : item.min;
         const max = Number.isFinite(item.style?.displayMax) ? item.style.displayMax : item.max;
         const rgba = rasterColorFromStyle(value, min, max, item.style);
@@ -4960,14 +6489,19 @@
 
     const georaster = await parseGeoraster(buffer);
     const rawValues = Array.isArray(georaster.values) && georaster.values[0]
-      ? flattenRasterValues(georaster.values[0])
-      : [];
+      ? flattenRasterValuesToFloat32(georaster.values[0])
+      : new Float32Array();
 
-    const range = rasterFiniteMinMax(rawValues, [
+    const provisionalRange = rasterFiniteMinMax(rawValues, [
       georaster.noDataValue,
       georaster.nodata,
-      georaster.no_data_value
+      georaster.no_data_value,
+      georaster._FillValue,
+      georaster.missing_value
     ]);
+
+    const noDataValues = detectGeoTiffNoDataValues(georaster, rawValues, provisionalRange);
+    const range = rasterFiniteMinMax(rawValues, noDataValues);
 
     const item = {
       id: "RASTER-" + String(rasterLayerCounter).padStart(3, "0"),
@@ -4976,6 +6510,7 @@
       description: `GeoTIFF/TIFF | ${georaster.numberOfRasters || 1} band(s) | ${georaster.width}×${georaster.height}`,
       georaster,
       rawValues,
+      noDataValues,
       layer: null,
       visible: true,
       opacity: 1.0,
@@ -5361,6 +6896,7 @@
 
     const variableMeta = (item.reader.variables || []).find(v => v.name === item.selectedVariable) || {};
     const noData = readNcAttribute(variableMeta, ["_FillValue", "missing_value", "nodata", "no_data_value"]);
+    item.noDataValues = normalizeNoDataValues([noData]);
 
     let outIndex = 0;
 
@@ -6561,6 +8097,11 @@
     }, true);
   }
 
+  if (document.getElementById("stackSettingsPanel")) {
+    L.DomEvent.disableClickPropagation(document.getElementById("stackSettingsPanel"));
+    L.DomEvent.disableScrollPropagation(document.getElementById("stackSettingsPanel"));
+  }
+
   if (document.getElementById("rasterSettingsPanel")) {
     L.DomEvent.disableClickPropagation(document.getElementById("rasterSettingsPanel"));
     L.DomEvent.disableScrollPropagation(document.getElementById("rasterSettingsPanel"));
@@ -6579,6 +8120,128 @@
       openRasterSettingsPanel(layerId);
     }, true);
   }
+
+
+
+  document.getElementById("createRasterStackBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    createRasterStackFromUi();
+  });
+
+  document.getElementById("rasterStackList")?.addEventListener("click", event => {
+    const button = event.target.closest("[data-stack-action]");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    handleRasterStackAction(button.dataset.stackAction, button.dataset.id);
+  });
+
+  document.getElementById("closeStackSettingsPanelBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    closeStackSettingsPanel();
+  });
+
+
+  document.getElementById("stackUseMapViewClipBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    clearStackCanvasClipSelection();
+    document.getElementById("stackClipModeSelect").value = "map";
+    setStackClipInputsFromBounds(getBoundsFromMapView());
+    showStackSettingsMessage("Clip extent set to current map view.", "success");
+  });
+
+  document.getElementById("stackUseFullExtentClipBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const stack = rasterStacks.get(activeRasterStackId);
+    if (!stack) return;
+    clearStackCanvasClipSelection();
+    document.getElementById("stackClipModeSelect").value = "full";
+    const bounds = getFullExtentFromStack(stack);
+    if (bounds) setStackClipInputsFromBounds(bounds);
+    showStackSettingsMessage("Clip extent reset to full red-band extent.", "success");
+  });
+
+
+  document.getElementById("stackSelectCanvasClipBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    beginStackCanvasClipSelection();
+  });
+
+  map.on("click", handleStackCanvasClipClick);
+  map.on("mousemove", handleStackCanvasClipMouseMove);
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && stackClipCanvasSelection.active) {
+      clearStackCanvasClipSelection();
+      showStackSettingsMessage("Canvas clip selection cancelled.", "warning");
+    }
+  });
+
+
+  document.getElementById("stackApplyRgbBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    applyStackRgbSettings().catch(error => showStackSettingsMessage(error.message || "Could not view stack RGB.", "warning"));
+  });
+
+  document.getElementById("stackRemoveRgbBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const stack = rasterStacks.get(activeRasterStackId);
+    if (!stack) return;
+    removeStackCompositeOnly(stack);
+    showStackSettingsMessage("RGB preview removed; stack sources remain.", "success");
+  });
+
+  document.getElementById("stackExportRgbBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    exportActiveStackRgb().catch(error => showStackSettingsMessage(error.message || "Stack RGB export failed.", "warning"));
+  });
+
+
+  document.getElementById("createRgbCompositeBtn")?.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    createRgbCompositeFromUi();
+  });
+
+  document.getElementById("exportRgbPngBtn")?.addEventListener("click", async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      await exportRgbCompositeImage("png");
+    } catch (error) {
+      showRgbComposerMessage(error.message || "PNG export failed.", "warning");
+    }
+  });
+
+  document.getElementById("exportRgbJpegBtn")?.addEventListener("click", async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      await exportRgbCompositeImage("jpeg");
+    } catch (error) {
+      showRgbComposerMessage(error.message || "JPEG export failed.", "warning");
+    }
+  });
+
+  document.getElementById("exportRgbGeotiffBtn")?.addEventListener("click", async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      await exportRgbCompositeGeotiff();
+    } catch (error) {
+      showRgbComposerMessage(error.message || "GeoTIFF export failed.", "warning");
+    }
+  });
+
+  renderRgbComposerOptions();
 
   const rasterLayerListElement = document.getElementById("rasterLayerList");
   if (rasterLayerListElement) {
