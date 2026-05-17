@@ -19,7 +19,7 @@ async function loadBasemapMenu() {
   const menu = document.getElementById("basemapMenu");
 
   try {
-    const response = await fetch("../html/basemap.html");
+    const response = await fetch("./html/basemap.html");
 
     if (!response.ok) {
       throw new Error("Basemap fragment could not be loaded.");
