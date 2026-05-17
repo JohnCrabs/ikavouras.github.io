@@ -3,15 +3,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     map: null,
     activeTool: "select",
     activeBasemapKey: "osmStandard",
-    activeBasemapLayer: null
+    activeBasemapLayer: null,
+    isScaleLocked: false,
+    lockedZoom: null,
+    requestedScale: null
   };
 
   await loadBasemapMenu();
+  await loadScaleMenu();
 
   setupHeaderActions();
   setupToolButtons(appState);
   setupPanelTabs();
   setupBasemapSelector(appState);
+  setupScaleMenu(appState);
   initializeMap(appState);
 });
 
@@ -38,6 +43,30 @@ async function loadBasemapMenu() {
 
 const BASEMAP_MENU_FALLBACK_HTML = "            <div id=\"basemapMenu\" class=\"basemap-menu\" aria-label=\"Basemap list\">\n              <div class=\"basemap-provider open\">\n                <button class=\"basemap-provider-toggle\" type=\"button\">\n                  <span>OpenStreetMap</span>\n                  <i class=\"fa-solid fa-chevron-right\"></i>\n                </button>\n\n                <div class=\"basemap-provider-options\">\n                  <button class=\"basemap-option active\" type=\"button\" data-basemap=\"osmStandard\">\n                    <span class=\"basemap-preview preview-osm\"></span>\n                    <span>Standard</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"osmHumanitarian\">\n                    <span class=\"basemap-preview preview-hot\"></span>\n                    <span>Humanitarian</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"osmGermany\">\n                    <span class=\"basemap-preview preview-osm-de\"></span>\n                    <span>Germany Style</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"osmFrance\">\n                    <span class=\"basemap-preview preview-france\"></span>\n                    <span>France Style</span>\n                  </button>\n                </div>\n              </div>\n\n              <div class=\"basemap-provider\">\n                <button class=\"basemap-provider-toggle\" type=\"button\">\n                  <span>Google</span>\n                  <i class=\"fa-solid fa-chevron-right\"></i>\n                </button>\n\n                <div class=\"basemap-provider-options\">\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"googleRoad\">\n                    <span class=\"basemap-preview preview-google-road\"></span>\n                    <span>Road Map</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"googleSatellite\">\n                    <span class=\"basemap-preview preview-google-satellite\"></span>\n                    <span>Satellite</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"googleHybrid\">\n                    <span class=\"basemap-preview preview-google-hybrid\"></span>\n                    <span>Hybrid</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"googleTerrain\">\n                    <span class=\"basemap-preview preview-google-terrain\"></span>\n                    <span>Terrain</span>\n                  </button>\n                </div>\n              </div>\n\n              <div class=\"basemap-provider\">\n                <button class=\"basemap-provider-toggle\" type=\"button\">\n                  <span>ESRI</span>\n                  <i class=\"fa-solid fa-chevron-right\"></i>\n                </button>\n\n                <div class=\"basemap-provider-options\">\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriImagery\">\n                    <span class=\"basemap-preview preview-imagery\"></span>\n                    <span>World Imagery</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriStreet\">\n                    <span class=\"basemap-preview preview-street\"></span>\n                    <span>World Streets</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriTopo\">\n                    <span class=\"basemap-preview preview-topo\"></span>\n                    <span>World Topographic</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriTerrain\">\n                    <span class=\"basemap-preview preview-terrain\"></span>\n                    <span>World Terrain</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriPhysical\">\n                    <span class=\"basemap-preview preview-physical\"></span>\n                    <span>Physical Map</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriShadedRelief\">\n                    <span class=\"basemap-preview preview-relief\"></span>\n                    <span>Shaded Relief</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriLightGray\">\n                    <span class=\"basemap-preview preview-gray\"></span>\n                    <span>Light Gray Canvas</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriDarkGray\">\n                    <span class=\"basemap-preview preview-dark-gray\"></span>\n                    <span>Dark Gray Canvas</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriOceans\">\n                    <span class=\"basemap-preview preview-oceans\"></span>\n                    <span>Oceans</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"esriNatGeo\">\n                    <span class=\"basemap-preview preview-natgeo\"></span>\n                    <span>National Geographic</span>\n                  </button>\n                </div>\n              </div>\n\n              <div class=\"basemap-provider\">\n                <button class=\"basemap-provider-toggle\" type=\"button\">\n                  <span>OpenTopo / Terrain</span>\n                  <i class=\"fa-solid fa-chevron-right\"></i>\n                </button>\n\n                <div class=\"basemap-provider-options\">\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"openTopoMap\">\n                    <span class=\"basemap-preview preview-open-topo\"></span>\n                    <span>OpenTopoMap</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"opnvKarte\">\n                    <span class=\"basemap-preview preview-opnv\"></span>\n                    <span>OPNVKarte</span>\n                  </button>\n                </div>\n              </div>\n<div class=\"basemap-provider\">\n                <button class=\"basemap-provider-toggle\" type=\"button\">\n                  <span>Carto</span>\n                  <i class=\"fa-solid fa-chevron-right\"></i>\n                </button>\n\n                <div class=\"basemap-provider-options\">\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"cartoLight\">\n                    <span class=\"basemap-preview preview-light\"></span>\n                    <span>Positron</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"cartoLightNoLabels\">\n                    <span class=\"basemap-preview preview-light-no-labels\"></span>\n                    <span>Positron No Labels</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"cartoVoyager\">\n                    <span class=\"basemap-preview preview-voyager\"></span>\n                    <span>Voyager</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"cartoVoyagerNoLabels\">\n                    <span class=\"basemap-preview preview-voyager-no-labels\"></span>\n                    <span>Voyager No Labels</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"cartoDark\">\n                    <span class=\"basemap-preview preview-dark\"></span>\n                    <span>Dark Matter</span>\n                  </button>\n\n                  <button class=\"basemap-option\" type=\"button\" data-basemap=\"cartoDarkNoLabels\">\n                    <span class=\"basemap-preview preview-dark-no-labels\"></span>\n                    <span>Dark Matter No Labels</span>\n                  </button>\n                </div>\n              </div>\n            </div>\n";
 
+
+
+async function loadScaleMenu() {
+  const menu = document.getElementById("scaleMenu");
+
+  try {
+    const response = await fetch("./html/scale.html");
+
+    if (!response.ok) {
+      throw new Error("Scale fragment could not be loaded.");
+    }
+
+    menu.outerHTML = await response.text();
+  } catch (error) {
+    console.warn(
+      "Using embedded scale fallback because scale.html could not be fetched.",
+      error
+    );
+
+    menu.outerHTML = SCALE_MENU_FALLBACK_HTML;
+  }
+}
+
+const SCALE_MENU_FALLBACK_HTML = "<div id=\"scaleMenu\" class=\"scale-menu\" aria-label=\"Scale menu\">\n  <label class=\"scale-menu-label\" for=\"scaleInput\">Scale</label>\n\n  <div class=\"scale-compact-row\">\n    <span class=\"scale-prefix\">1 :</span>\n\n    <input\n      id=\"scaleInput\"\n      type=\"text\"\n      inputmode=\"numeric\"\n      placeholder=\"10000\"\n      aria-label=\"Scale denominator\"\n    />\n\n    <button\n      id=\"scaleLockBtn\"\n      class=\"scale-icon-button\"\n      type=\"button\"\n      title=\"Lock scale\"\n      aria-label=\"Lock scale\"\n    >\n      <i class=\"fa-solid fa-lock-open\"></i>\n    </button>\n\n    <button\n      id=\"worldScaleBtn\"\n      class=\"scale-icon-button\"\n      type=\"button\"\n      title=\"World scale\"\n      aria-label=\"World scale\"\n    >\n      <i class=\"fa-solid fa-globe\"></i>\n    </button>\n  </div>\n\n  <div class=\"scale-menu-hint\">\n    Press Enter after typing a scale.\n  </div>\n</div>\n";
 
 function setupHeaderActions() {
   document.querySelectorAll(".header-action").forEach((button) => {
@@ -74,6 +103,207 @@ function setupPanelTabs() {
       console.log(`Panel selected: ${tab.dataset.panel}`);
     });
   });
+}
+
+function setupScaleMenu(appState) {
+  const toggleButton = document.getElementById("scaleToggleBtn");
+  const menu = document.getElementById("scaleMenu");
+  const scaleInput = document.getElementById("scaleInput");
+  const scaleLockButton = document.getElementById("scaleLockBtn");
+  const worldScaleButton = document.getElementById("worldScaleBtn");
+
+  toggleButton.addEventListener("click", () => {
+    const isOpen = menu.classList.toggle("open");
+    toggleButton.setAttribute("aria-expanded", String(isOpen));
+
+    if (isOpen) {
+      scaleInput.focus();
+      scaleInput.select();
+    }
+  });
+
+  scaleInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      const scale = parseScaleInput(scaleInput.value);
+
+      if (scale) {
+        applyScale(appState, scale);
+        menu.classList.remove("open");
+        toggleButton.setAttribute("aria-expanded", "false");
+      }
+    }
+  });
+
+  scaleLockButton.addEventListener("click", () => {
+    toggleScaleLock(appState);
+  });
+
+  worldScaleButton.addEventListener("click", () => {
+    goToWorldScale(appState);
+    menu.classList.remove("open");
+    toggleButton.setAttribute("aria-expanded", "false");
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".scale-control")) {
+      menu.classList.remove("open");
+      toggleButton.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+function parseScaleInput(value) {
+  const cleaned = String(value)
+    .replace(/1\s*:/i, "")
+    .replaceAll(",", "")
+    .replaceAll(" ", "")
+    .trim();
+
+  const scale = Number(cleaned);
+
+  if (!Number.isFinite(scale) || scale <= 0) {
+    return null;
+  }
+
+  return scale;
+}
+
+function applyScale(appState, targetScale) {
+  const targetZoom = scaleToZoom(appState.map, targetScale);
+  const wasLocked = appState.isScaleLocked;
+
+  appState.requestedScale = targetScale;
+
+  if (wasLocked) {
+    temporarilyUnlockZoom(appState);
+  }
+
+  appState.map.setZoom(targetZoom, {
+    animate: false
+  });
+
+  updateScaleReadout(appState.map, targetScale);
+
+  if (wasLocked) {
+    appState.isScaleLocked = true;
+    appState.lockedZoom = appState.map.getZoom();
+    applyScaleLockState(appState);
+  }
+}
+
+
+
+function toggleScaleLock(appState) {
+  appState.isScaleLocked = !appState.isScaleLocked;
+
+  if (appState.isScaleLocked) {
+    appState.lockedZoom = appState.map.getZoom();
+    appState.requestedScale = getScaleNumber(appState.map);
+  } else {
+    appState.lockedZoom = null;
+    appState.requestedScale = null;
+  }
+
+  applyScaleLockState(appState);
+  updateScaleReadout(
+    appState.map,
+    appState.isScaleLocked ? appState.requestedScale : null
+  );
+}
+
+
+function applyScaleLockState(appState) {
+  const lockButton = document.getElementById("scaleLockBtn");
+
+  if (appState.isScaleLocked) {
+    appState.lockedZoom = appState.map.getZoom();
+
+    appState.map.setMinZoom(appState.lockedZoom);
+    appState.map.setMaxZoom(appState.lockedZoom);
+
+    appState.map.scrollWheelZoom.disable();
+    appState.map.doubleClickZoom.disable();
+    appState.map.boxZoom.disable();
+    appState.map.keyboard.disable();
+
+    if (appState.map.touchZoom) {
+      appState.map.touchZoom.disable();
+    }
+
+    lockButton.classList.add("active");
+    lockButton.title = "Unlock scale";
+    lockButton.setAttribute("aria-label", "Unlock scale");
+    lockButton.innerHTML = `<i class="fa-solid fa-lock"></i>`;
+  } else {
+    temporarilyUnlockZoom(appState);
+
+    lockButton.classList.remove("active");
+    lockButton.title = "Lock scale";
+    lockButton.setAttribute("aria-label", "Lock scale");
+    lockButton.innerHTML = `<i class="fa-solid fa-lock-open"></i>`;
+  }
+}
+
+
+
+function temporarilyUnlockZoom(appState) {
+  appState.isScaleLocked = false;
+  appState.lockedZoom = null;
+
+  appState.map.setMinZoom(2);
+  appState.map.setMaxZoom(20);
+
+  appState.map.scrollWheelZoom.enable();
+  appState.map.doubleClickZoom.enable();
+  appState.map.boxZoom.enable();
+  appState.map.keyboard.enable();
+
+  if (appState.map.touchZoom) {
+    appState.map.touchZoom.enable();
+  }
+}
+
+
+function goToWorldScale(appState) {
+  const wasLocked = appState.isScaleLocked;
+
+  appState.requestedScale = null;
+
+  if (wasLocked) {
+    temporarilyUnlockZoom(appState);
+  }
+
+  appState.map.setView([20, 0], 2, {
+    animate: false
+  });
+
+  appState.map.setMinZoom(2);
+
+  if (wasLocked) {
+    appState.isScaleLocked = true;
+    appState.lockedZoom = appState.map.getZoom();
+    appState.requestedScale = getScaleNumber(appState.map);
+    applyScaleLockState(appState);
+  }
+
+  updateScaleReadout(appState.map, appState.requestedScale);
+}
+
+
+
+function scaleToZoom(map, targetScale) {
+  const center = map.getCenter();
+  const latitudeFactor = Math.cos(center.lat * Math.PI / 180);
+  const metersPerPixel = targetScale * 0.0254 / 96;
+  const zoom = Math.log2(156543.03392 * latitudeFactor / metersPerPixel);
+
+  return clamp(zoom, 2, 20);
+}
+
+
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
 
 const BASEMAPS = {
@@ -310,6 +540,10 @@ function setBasemap(appState, basemapKey) {
   appState.activeBasemapLayer = createBasemapLayer(basemap).addTo(appState.map);
   appState.activeBasemapKey = basemapKey;
 
+  if (appState.isScaleLocked) {
+    applyScaleLockState(appState);
+  }
+
   document.getElementById("activeBasemapLabel").textContent = basemap.label;
 
   document.querySelectorAll(".basemap-option").forEach((button) => {
@@ -376,18 +610,26 @@ function initializeMap(appState) {
   appState.map = L.map("map", {
     zoomControl: true,
     minZoom: 2,
+    zoomSnap: 0,
+    zoomDelta: 0.25,
+    wheelPxPerZoomLevel: 90,
     worldCopyJump: true
   }).setView([20, 0], 2);
 
   setBasemap(appState, "osmStandard");
 
-  appState.map.setMinZoom(appState.map.getZoom());
+  appState.map.setMinZoom(2);
 
   appState.map.on("mousemove", (event) => {
     updateCoordinateReadout(event.latlng);
   });
 
   appState.map.on("zoomend moveend", () => {
+    if (appState.isScaleLocked && appState.requestedScale) {
+      updateScaleReadout(appState.map, appState.requestedScale);
+      return;
+    }
+
     updateScaleReadout(appState.map);
   });
 
@@ -403,19 +645,36 @@ function updateCoordinateReadout(latlng) {
   ].join("   ");
 }
 
-function updateScaleReadout(map) {
-  const approximateScale = getApproximateScale(map);
+function updateScaleReadout(map, requestedScale = null) {
+  const scaleNumber = requestedScale || getScaleNumber(map);
+  const formattedScale = formatScale(scaleNumber);
 
-  document.getElementById("scaleReadout").textContent = `1:${approximateScale}`;
-  document.getElementById("statusScale").textContent = `Scale: 1:${approximateScale}`;
+  document.getElementById("scaleReadout").textContent = `1:${formattedScale}`;
+  document.getElementById("statusScale").textContent = `Scale: 1:${formattedScale}`;
+
+  const scaleInput = document.getElementById("scaleInput");
+
+  if (scaleInput && document.activeElement !== scaleInput) {
+    scaleInput.value = formattedScale;
+  }
 }
 
-function getApproximateScale(map) {
+
+function getScaleNumber(map) {
   const center = map.getCenter();
   const zoom = map.getZoom();
   const latitudeFactor = Math.cos(center.lat * Math.PI / 180);
   const metersPerPixel = 156543.03392 * latitudeFactor / Math.pow(2, zoom);
-  const scale = Math.round(metersPerPixel * 96 / 0.0254);
+  const scale = metersPerPixel * 96 / 0.0254;
 
-  return scale.toLocaleString("en-US");
+  return Math.round(scale);
 }
+
+function formatScale(scale) {
+  return Math.round(scale).toLocaleString("en-US");
+}
+
+function getApproximateScale(map) {
+  return formatScale(getScaleNumber(map));
+}
+

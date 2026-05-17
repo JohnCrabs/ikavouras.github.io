@@ -1,0 +1,39 @@
+<div id="scaleMenu" class="scale-menu" aria-label="Scale menu">
+  <label class="scale-menu-label" for="scaleInput">Scale</label>
+
+  <div class="scale-compact-row">
+    <span class="scale-prefix">1 :</span>
+
+    <input
+      id="scaleInput"
+      type="text"
+      inputmode="numeric"
+      placeholder="10000"
+      aria-label="Scale denominator"
+    />
+
+    <button
+      id="scaleLockBtn"
+      class="scale-icon-button"
+      type="button"
+      title="Lock scale"
+      aria-label="Lock scale"
+    >
+      <i class="fa-solid fa-lock-open"></i>
+    </button>
+
+    <button
+      id="worldScaleBtn"
+      class="scale-icon-button"
+      type="button"
+      title="World scale"
+      aria-label="World scale"
+    >
+      <i class="fa-solid fa-globe"></i>
+    </button>
+  </div>
+
+  <div class="scale-menu-hint">
+    Press Enter after typing a scale.
+  </div>
+</div>
