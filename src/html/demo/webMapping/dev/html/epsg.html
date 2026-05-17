@@ -1,0 +1,30 @@
+<div id="epsgMenu" class="epsg-menu" aria-label="Coordinate reference system menu">
+  <label class="epsg-menu-label" for="epsgSelect">Coordinate System</label>
+
+  <select id="epsgSelect" aria-label="Select EPSG code">
+    <option value="EPSG:3857">EPSG:3857 — Web Mercator</option>
+    <option value="EPSG:4326" selected>EPSG:4326 — WGS84 Longitude / Latitude</option>
+    <option value="EPSG:2100">EPSG:2100 — Greek Grid / GGRS87</option>
+    <option value="EPSG:32634">EPSG:32634 — WGS84 / UTM Zone 34N</option>
+    <option value="EPSG:32635">EPSG:32635 — WGS84 / UTM Zone 35N</option>
+    <option value="EPSG:3035">EPSG:3035 — ETRS89 / LAEA Europe</option>
+    <option value="EPSG:4258">EPSG:4258 — ETRS89 Longitude / Latitude</option>
+  </select>
+
+  <label class="epsg-menu-label custom-epsg-label" for="customEpsgInput">
+    Add / use custom EPSG
+  </label>
+
+  <input
+    id="customEpsgInput"
+    class="custom-epsg-input"
+    type="text"
+    inputmode="numeric"
+    placeholder="Example: 2100 or EPSG:2100"
+    aria-label="Custom EPSG code"
+  />
+
+  <div class="epsg-menu-hint">
+    Select from the list, or type a code and press Enter.
+  </div>
+</div>

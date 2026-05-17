@@ -7,27 +7,33 @@
   <title>GeoWorks Web GIS</title>
 
   <!-- External libraries -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
 
   <!-- Project CSS -->
   <link rel="stylesheet" href="css/map.css" />
+  <link rel="stylesheet" href="css/basemap.css" />
+  <link rel="stylesheet" href="css/scale.css" />
+  <link rel="stylesheet" href="css/epsg.css" />
 </head>
 
 <body>
   <div class="app">
-    <!-- HEADER -->
     <header class="app-header">
-      <!-- GeoWorks Logo -->
       <div class="brand" aria-label="GeoWorks home">
         <div class="brand-logo">
           <i class="fa-solid fa-layer-group"></i>
         </div>
-        <!-- Brand Name -->
         <div class="brand-name">GeoWorks</div>
       </div>
 
-      <!-- Search Bar -->
       <div class="header-search" role="search">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input
@@ -38,7 +44,6 @@
         />
       </div>
 
-      <!-- Main Navigation Bar -->
       <nav class="header-actions" aria-label="Main actions">
         <button class="header-action" type="button" data-action="add">
           <i class="fa-solid fa-plus"></i>
@@ -65,30 +70,75 @@
           <span>Help</span>
         </button>
       </nav>
-
     </header>
 
-    <!-- WORKSPACE -->
     <main class="workspace">
       <aside class="tool-sidebar" aria-label="Editing tools">
-        <button class="tool-btn active" type="button" data-tool="select"><i class="fa-solid fa-arrow-pointer"></i><span>Select</span></button>
-        <button class="tool-btn" type="button" data-tool="draw-point"><i class="fa-solid fa-location-dot"></i><span>Point</span></button>
-        <button class="tool-btn" type="button" data-tool="draw-line"><i class="fa-solid fa-route"></i><span>Line</span></button>
-        <button class="tool-btn" type="button" data-tool="draw-polygon"><i class="fa-solid fa-draw-polygon"></i><span>Polygon</span></button>
-        <button class="tool-btn" type="button" data-tool="edit"><i class="fa-solid fa-pen-to-square"></i><span>Edit</span></button>
-        <button class="tool-btn danger-tool" type="button" data-tool="delete"><i class="fa-solid fa-trash-can"></i><span>Delete</span></button>
+        <button class="tool-btn active" type="button" data-tool="select">
+          <i class="fa-solid fa-arrow-pointer"></i>
+          <span>Select</span>
+        </button>
+
+        <button class="tool-btn" type="button" data-tool="draw-point">
+          <i class="fa-solid fa-location-dot"></i>
+          <span>Point</span>
+        </button>
+
+        <button class="tool-btn" type="button" data-tool="draw-line">
+          <i class="fa-solid fa-route"></i>
+          <span>Line</span>
+        </button>
+
+        <button class="tool-btn" type="button" data-tool="draw-polygon">
+          <i class="fa-solid fa-draw-polygon"></i>
+          <span>Polygon</span>
+        </button>
+
+        <button class="tool-btn" type="button" data-tool="edit">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>Edit</span>
+        </button>
+
+        <button class="tool-btn danger-tool" type="button" data-tool="delete">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Delete</span>
+        </button>
+
         <div class="tool-separator"></div>
-        <button class="tool-btn" type="button" data-tool="measure-distance"><i class="fa-solid fa-ruler-horizontal"></i><span>Distance</span></button>
-        <button class="tool-btn" type="button" data-tool="measure-area"><i class="fa-regular fa-square"></i><span>Area</span></button>
-        <button class="tool-btn" type="button" data-tool="measure-volume"><i class="fa-solid fa-cube"></i><span>Volume</span></button>
+
+        <button class="tool-btn" type="button" data-tool="measure-distance">
+          <i class="fa-solid fa-ruler-horizontal"></i>
+          <span>Distance</span>
+        </button>
+
+        <button class="tool-btn" type="button" data-tool="measure-area">
+          <i class="fa-regular fa-square"></i>
+          <span>Area</span>
+        </button>
+
+        <button class="tool-btn" type="button" data-tool="measure-volume">
+          <i class="fa-solid fa-cube"></i>
+          <span>Volume</span>
+        </button>
+
         <div class="tool-separator"></div>
-        <button class="tool-btn simulation-tool" type="button" data-tool="simulation"><i class="fa-solid fa-flask"></i><span>Scenario</span></button>
+
+        <button class="tool-btn simulation-tool" type="button" data-tool="simulation">
+          <i class="fa-solid fa-flask"></i>
+          <span>Scenario</span>
+        </button>
       </aside>
 
       <section class="map-workspace" aria-label="Map workspace">
         <div class="map-top-toolbar">
           <div class="basemap-control">
-            <button id="basemapToggleBtn" class="map-chip" type="button" aria-expanded="false" aria-controls="basemapMenu">
+            <button
+              id="basemapToggleBtn"
+              class="map-chip"
+              type="button"
+              aria-expanded="false"
+              aria-controls="basemapMenu"
+            >
               <i class="fa-solid fa-map"></i>
               <span id="activeBasemapLabel">OpenStreetMap</span>
               <i class="fa-solid fa-chevron-down"></i>
@@ -101,15 +151,43 @@
             </div>
           </div>
 
-          <button class="map-chip" type="button">
-            <span id="scaleReadout">1:—</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
+          <div class="scale-control">
+            <button
+              id="scaleToggleBtn"
+              class="map-chip"
+              type="button"
+              aria-expanded="false"
+              aria-controls="scaleMenu"
+            >
+              <span id="scaleReadout">1:—</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
 
-          <button class="map-chip" type="button">
-            <span>EPSG:3857</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
+            <div id="scaleMenu" class="scale-menu" aria-label="Scale menu">
+              <div class="scale-loading-state">
+                Loading scale menu...
+              </div>
+            </div>
+          </div>
+
+          <div class="epsg-control">
+            <button
+              id="epsgToggleBtn"
+              class="map-chip"
+              type="button"
+              aria-expanded="false"
+              aria-controls="epsgMenu"
+            >
+              <span id="activeEpsgLabel">EPSG:4326</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+
+            <div id="epsgMenu" class="epsg-menu" aria-label="Coordinate reference system menu">
+              <div class="epsg-loading-state">
+                Loading coordinate systems...
+              </div>
+            </div>
+          </div>
 
           <button class="map-chip toggle-chip active" type="button">
             <span class="toggle-dot"></span>
@@ -162,7 +240,7 @@
         </div>
 
         <div id="statusScale">Scale: —</div>
-        <div>CRS: EPSG:3857</div>
+        <div>CRS: EPSG:4326</div>
         <div id="selectionReadout">Selected Features: 0</div>
 
         <div class="system-ok">
@@ -171,14 +249,17 @@
         </div>
       </footer>
     </main>
-
   </div>
 
   <!-- External libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.10.0/proj4.js"></script>
 
   <!-- Project JavaScript -->
+  <script src="js/basemap.js"></script>
+  <script src="js/scale.js"></script>
+  <script src="js/epsg.js"></script>
   <script src="js/map.js"></script>
 </body>
 </html>
