@@ -51,6 +51,11 @@ const TOOL_SETS = {
           icon: "fa-solid fa-route"
         },
         {
+          id: "draw-arc",
+          label: "Arc",
+          icon: "fa-solid fa-archway"
+        },
+        {
           id: "draw-polygon",
           label: "Polygon",
           icon: "fa-solid fa-draw-polygon"
@@ -69,6 +74,26 @@ const TOOL_SETS = {
           id: "draw-circle",
           label: "Circle",
           icon: "fa-regular fa-circle"
+        },
+        {
+          id: "draw-ellipse",
+          label: "Ellipse",
+          icon: "fa-regular fa-circle"
+        },
+        {
+          id: "draw-triangle",
+          label: "Triangle",
+          icon: "fa-solid fa-play"
+        },
+        {
+          id: "draw-rhombus",
+          label: "Rhombus",
+          icon: "fa-regular fa-gem"
+        },
+        {
+          id: "draw-regular-polygon",
+          label: "Regular Polygon",
+          icon: "fa-solid fa-dice-d6"
         }
       ]
     },

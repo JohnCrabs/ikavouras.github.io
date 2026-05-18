@@ -857,3 +857,31 @@
 .style-form-grid input[type="number"] {
   text-align: left;
 }
+
+
+/* ------------------------------------------------------------
+   Version 045 — color alpha controls and regular polygon wheel
+------------------------------------------------------------ */
+
+.color-alpha-control {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.color-alpha-control input[type="color"] {
+  width: 42px;
+  min-width: 42px;
+  height: 30px;
+  padding: 1px;
+}
+
+.color-alpha-control input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  text-align: left;
+}

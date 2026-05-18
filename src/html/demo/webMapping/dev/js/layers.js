@@ -665,6 +665,10 @@ function getVectorEntityCategory(entity) {
     entity.entityType === "Rectangle" ||
     entity.entityType === "Square" ||
     entity.entityType === "Circle" ||
+    entity.entityType === "Ellipse" ||
+    entity.entityType === "Triangle" ||
+    entity.entityType === "Rhombus" ||
+    entity.entityType === "RegularPolygon" ||
     entity.entityType === "ClosedPolyline" ||
     entity.geometry?.type === "Polygon"
   ) {
@@ -673,6 +677,7 @@ function getVectorEntityCategory(entity) {
 
   return "Line";
 }
+
 
 function openLayerStyleEditor(appState, layer) {
   closeLayerStyleEditor();
@@ -707,22 +712,23 @@ function openLayerStyleEditor(appState, layer) {
       <div class="style-form-grid">
         <label>
           <span>Stroke</span>
-          <input id="layerDefaultColor" type="color" value="${layer.style.default.color}" />
+          <div class="color-alpha-control">
+            <input id="layerDefaultColor" type="color" value="${getColorHexPart(layer.style.default.color)}" />
+            <input id="layerDefaultColorAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.default.color, layer.style.default.opacity ?? 1)}" />
+          </div>
         </label>
 
         <label>
           <span>Fill</span>
-          <input id="layerDefaultFill" type="color" value="${layer.style.default.fillColor}" />
+          <div class="color-alpha-control">
+            <input id="layerDefaultFill" type="color" value="${getColorHexPart(layer.style.default.fillColor)}" />
+            <input id="layerDefaultFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.default.fillColor, 1)}" />
+          </div>
         </label>
 
         <label>
           <span>Weight</span>
           <input id="layerDefaultWeight" type="number" min="1" max="12" value="${layer.style.default.weight}" />
-        </label>
-
-        <label>
-          <span>Transparency</span>
-          <input id="layerDefaultOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.default.opacity ?? 1}" />
         </label>
       </div>
     </div>
@@ -749,12 +755,10 @@ function openLayerStyleEditor(appState, layer) {
 
           <label>
             <span>Color</span>
-            <input id="pointColor" type="color" value="${layer.style.byType.Point.color}" />
-          </label>
-
-          <label>
-            <span>Transparency</span>
-            <input id="pointOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.byType.Point.opacity ?? 1}" />
+            <div class="color-alpha-control">
+            <input id="pointColor" type="color" value="${getColorHexPart(layer.style.byType.Point.color)}" />
+            <input id="pointColorAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.byType.Point.color, layer.style.byType.Point.opacity ?? 1)}" />
+          </div>
           </label>
 
           <label class="custom-icon-row">
@@ -786,17 +790,15 @@ function openLayerStyleEditor(appState, layer) {
 
           <label>
             <span>Color</span>
-            <input id="lineColor" type="color" value="${layer.style.byType.Line.color}" />
+            <div class="color-alpha-control">
+            <input id="lineColor" type="color" value="${getColorHexPart(layer.style.byType.Line.color)}" />
+            <input id="lineColorAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.byType.Line.color, layer.style.byType.Line.opacity ?? 1)}" />
+          </div>
           </label>
 
           <label>
             <span>Weight</span>
             <input id="lineWeight" type="number" min="1" max="12" value="${layer.style.byType.Line.weight}" />
-          </label>
-
-          <label>
-            <span>Transparency</span>
-            <input id="lineOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.byType.Line.opacity ?? 1}" />
           </label>
 
           <label>
@@ -811,12 +813,18 @@ function openLayerStyleEditor(appState, layer) {
         <div class="style-form-grid">
           <label>
             <span>Boundary Color</span>
-            <input id="polygonColor" type="color" value="${layer.style.byType.Polygon.color}" />
+            <div class="color-alpha-control">
+            <input id="polygonColor" type="color" value="${getColorHexPart(layer.style.byType.Polygon.color)}" />
+            <input id="polygonColorAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.byType.Polygon.color, layer.style.byType.Polygon.opacity ?? 1)}" />
+          </div>
           </label>
 
           <label>
             <span>Fill Color</span>
-            <input id="polygonFill" type="color" value="${layer.style.byType.Polygon.fillColor}" />
+            <div class="color-alpha-control">
+            <input id="polygonFill" type="color" value="${getColorHexPart(layer.style.byType.Polygon.fillColor)}" />
+            <input id="polygonFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.byType.Polygon.fillColor, 1)}" />
+          </div>
           </label>
 
           <label>
@@ -869,11 +877,6 @@ function openLayerStyleEditor(appState, layer) {
           </label>
 
           <label>
-            <span>Transparency</span>
-            <input id="polygonOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.byType.Polygon.opacity ?? 1}" />
-          </label>
-
-          <label>
             <span>Boundary Weight</span>
             <input id="polygonWeight" type="number" min="1" max="12" value="${layer.style.byType.Polygon.weight}" />
           </label>
@@ -903,35 +906,26 @@ function openLayerStyleEditor(appState, layer) {
   setSelectValue("polygonLineType", layer.style.byType.Polygon.lineType || "solid");
   setSelectValue("polygonHatch", layer.style.byType.Polygon.hatch || "solid-fill");
 
-  bindLayerStyleInput(appState, layer, "layerDefaultColor", (value) => {
-    layer.style.default.color = value;
+  bindColorAlphaPair(appState, layer, "layerDefaultColor", "layerDefaultColorAlpha", (value) => {
+    layer.style.default.color = normalizeAlphaColor(value, layer.style.default.color);
   });
 
-  bindLayerStyleInput(appState, layer, "layerDefaultFill", (value) => {
-    layer.style.default.fillColor = value;
+  bindColorAlphaPair(appState, layer, "layerDefaultFill", "layerDefaultFillAlpha", (value) => {
+    layer.style.default.fillColor = normalizeAlphaColor(value, layer.style.default.fillColor);
   });
 
   bindLayerStyleInput(appState, layer, "layerDefaultWeight", (value) => {
     layer.style.default.weight = Number(value);
   });
 
-  bindLayerStyleInput(appState, layer, "layerDefaultOpacity", (value) => {
-    layer.style.default.opacity = Number(value);
-    layer.style.default.fillOpacity = Math.max(0, Math.min(Number(value), 1)) * 0.18;
-  });
-
   bindLayerStyleInput(appState, layer, "pointSymbol", (value) => {
     layer.style.byType.Point.symbol = value;
   });
 
-  bindLayerStyleInput(appState, layer, "pointColor", (value) => {
-    layer.style.byType.Point.color = value;
-    layer.style.byType.Point.fillColor = value;
-  });
-
-  bindLayerStyleInput(appState, layer, "pointOpacity", (value) => {
-    layer.style.byType.Point.opacity = Number(value);
-    layer.style.byType.Point.fillOpacity = Number(value);
+  bindColorAlphaPair(appState, layer, "pointColor", "pointColorAlpha", (value) => {
+    const color = normalizeAlphaColor(value, layer.style.byType.Point.color);
+    layer.style.byType.Point.color = color;
+    layer.style.byType.Point.fillColor = color;
   });
 
   bindLayerStyleInput(appState, layer, "pointIconUrl", (value) => {
@@ -957,16 +951,12 @@ function openLayerStyleEditor(appState, layer) {
     layer.style.byType.Line.dashArray = getDashArrayForLineType(value);
   });
 
-  bindLayerStyleInput(appState, layer, "lineColor", (value) => {
-    layer.style.byType.Line.color = value;
+  bindColorAlphaPair(appState, layer, "lineColor", "lineColorAlpha", (value) => {
+    layer.style.byType.Line.color = normalizeAlphaColor(value, layer.style.byType.Line.color);
   });
 
   bindLayerStyleInput(appState, layer, "lineWeight", (value) => {
     layer.style.byType.Line.weight = Number(value);
-  });
-
-  bindLayerStyleInput(appState, layer, "lineOpacity", (value) => {
-    layer.style.byType.Line.opacity = Number(value);
   });
 
   bindFileUploadToStyle(appState, layer, "lineTypeUpload", (objectUrl, file) => {
@@ -977,12 +967,12 @@ function openLayerStyleEditor(appState, layer) {
     setSelectValue("lineType", "custom");
   });
 
-  bindLayerStyleInput(appState, layer, "polygonColor", (value) => {
-    layer.style.byType.Polygon.color = value;
+  bindColorAlphaPair(appState, layer, "polygonColor", "polygonColorAlpha", (value) => {
+    layer.style.byType.Polygon.color = normalizeAlphaColor(value, layer.style.byType.Polygon.color);
   });
 
-  bindLayerStyleInput(appState, layer, "polygonFill", (value) => {
-    layer.style.byType.Polygon.fillColor = value;
+  bindColorAlphaPair(appState, layer, "polygonFill", "polygonFillAlpha", (value) => {
+    layer.style.byType.Polygon.fillColor = normalizeAlphaColor(value, layer.style.byType.Polygon.fillColor);
   });
 
   bindLayerStyleInput(appState, layer, "polygonLineType", (value) => {
@@ -1005,11 +995,6 @@ function openLayerStyleEditor(appState, layer) {
 
   bindLayerStyleInput(appState, layer, "polygonHatchRotation", (value) => {
     layer.style.byType.Polygon.hatchRotation = Number(value);
-  });
-
-  bindLayerStyleInput(appState, layer, "polygonOpacity", (value) => {
-    layer.style.byType.Polygon.opacity = Number(value);
-    layer.style.byType.Polygon.fillOpacity = getFillOpacityForHatch(layer.style.byType.Polygon.hatch) * Number(value);
   });
 
   bindLayerStyleInput(appState, layer, "polygonWeight", (value) => {
@@ -1171,24 +1156,25 @@ function renderSingleObjectRuleSection(appState, layer, selectedEntity) {
 
       <label>
         <span>Stroke</span>
-        <input id="selectedEntityColor" type="color" value="${selectedEntity.style.color}" />
+        <div class="color-alpha-control">
+          <input id="selectedEntityColor" type="color" value="${getColorHexPart(selectedEntity.style.color)}" />
+          <input id="selectedEntityColorAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(selectedEntity.style.color, selectedEntity.style.opacity ?? 1)}" />
+        </div>
       </label>
 
       ${category !== "Line" ? `
         <label>
           <span>Fill</span>
-          <input id="selectedEntityFill" type="color" value="${selectedEntity.style.fillColor}" />
+          <div class="color-alpha-control">
+          <input id="selectedEntityFill" type="color" value="${getColorHexPart(selectedEntity.style.fillColor)}" />
+          <input id="selectedEntityFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(selectedEntity.style.fillColor, 1)}" />
+        </div>
         </label>
       ` : ""}
 
       <label>
         <span>Weight</span>
         <input id="selectedEntityWeight" type="number" min="1" max="12" value="${selectedEntity.style.weight}" />
-      </label>
-
-      <label>
-        <span>Transparency</span>
-        <input id="selectedEntityOpacity" type="range" min="0" max="1" step="0.05" value="${selectedEntity.style.opacity ?? 1}" />
       </label>
     </div>
   `;
@@ -1305,24 +1291,25 @@ function renderMultiObjectRuleSection(appState, layer, selectedContexts) {
 
       <label>
         <span>Stroke</span>
-        <input id="multiEntityColor" type="color" value="${commonStroke || "#1f66d1"}" />
+        <div class="color-alpha-control">
+          <input id="multiEntityColor" type="color" value="${getColorHexPart(commonStroke || "#1f66d1")}" />
+          <input id="multiEntityColorAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(commonStroke || "#1f66d1", 1)}" />
+        </div>
       </label>
 
       ${categories.has("Point") || categories.has("Polygon") ? `
         <label>
           <span>Fill</span>
-          <input id="multiEntityFill" type="color" value="${commonFill || "#1f66d1"}" />
+          <div class="color-alpha-control">
+          <input id="multiEntityFill" type="color" value="${getColorHexPart(commonFill || "#1f66d1")}" />
+          <input id="multiEntityFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(commonFill || "#1f66d1", 1)}" />
+        </div>
         </label>
       ` : ""}
 
       <label>
         <span>Weight</span>
         <input id="multiEntityWeight" type="number" min="1" max="12" value="${commonWeight || 3}" />
-      </label>
-
-      <label>
-        <span>Transparency</span>
-        <input id="multiEntityOpacity" type="range" min="0" max="1" step="0.05" value="1" />
       </label>
     </div>
 
@@ -1418,21 +1405,16 @@ function bindSingleObjectRuleControls(appState, layer, selectedEntity, category)
     setSelectValue("selectedEntityHatch", "custom");
   });
 
-  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityColor", (value) => {
-    selectedEntity.style.color = value;
+  bindObjectColorAlphaPair(appState, layer, selectedEntity, "selectedEntityColor", "selectedEntityColorAlpha", (value) => {
+    selectedEntity.style.color = normalizeAlphaColor(value, selectedEntity.style.color);
   });
 
-  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityFill", (value) => {
-    selectedEntity.style.fillColor = value;
+  bindObjectColorAlphaPair(appState, layer, selectedEntity, "selectedEntityFill", "selectedEntityFillAlpha", (value) => {
+    selectedEntity.style.fillColor = normalizeAlphaColor(value, selectedEntity.style.fillColor);
   });
 
   bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityWeight", (value) => {
     selectedEntity.style.weight = Number(value);
-  });
-
-  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityOpacity", (value) => {
-    selectedEntity.style.opacity = Number(value);
-    selectedEntity.style.fillOpacity = getFillOpacityForHatch(selectedEntity.style.hatch || "solid-fill") * Number(value);
   });
 }
 
@@ -1505,28 +1487,20 @@ function bindMultiObjectRuleControls(appState, layer, selectedContexts) {
     }
   }, appState, layer, selectedContexts);
 
-  bindMultiInputControl("multiEntityColor", (entity, value) => {
-    entity.styleMode = "ByObject";
-    entity.style.color = value;
-  }, appState, layer, selectedContexts);
+  bindMultiColorAlphaPair(appState, layer, selectedContexts, "multiEntityColor", "multiEntityColorAlpha", (entity, value) => {
+    entity.style.color = normalizeAlphaColor(value, entity.style.color);
+  });
 
-  bindMultiInputControl("multiEntityFill", (entity, value) => {
+  bindMultiColorAlphaPair(appState, layer, selectedContexts, "multiEntityFill", "multiEntityFillAlpha", (entity, value) => {
     const category = getVectorEntityCategory(entity);
     if (category === "Point" || category === "Polygon") {
-      entity.styleMode = "ByObject";
-      entity.style.fillColor = value;
+      entity.style.fillColor = normalizeAlphaColor(value, entity.style.fillColor);
     }
-  }, appState, layer, selectedContexts);
+  });
 
   bindMultiInputControl("multiEntityWeight", (entity, value) => {
     entity.styleMode = "ByObject";
     entity.style.weight = Number(value);
-  }, appState, layer, selectedContexts);
-
-  bindMultiInputControl("multiEntityOpacity", (entity, value) => {
-    entity.styleMode = "ByObject";
-    entity.style.opacity = Number(value);
-    entity.style.fillOpacity = getFillOpacityForHatch(entity.style.hatch || "solid-fill") * Number(value);
   }, appState, layer, selectedContexts);
 }
 
@@ -1726,9 +1700,165 @@ function createDefaultObjectStyle() {
     fillColor: "#1f66d1",
     weight: 3,
     radius: 6,
-    fillOpacity: 0.18
+    opacity: 1,
+    fillOpacity: 1,
+    symbol: "circle",
+    lineType: "solid",
+    dashArray: null,
+    hatch: "solid-fill",
+    hatchScale: 12,
+    hatchLineScale: 1,
+    hatchRotation: 0,
+    customIconUrl: ""
   };
 }
+
+
+function setAlphaColorInput(colorInputId, alphaInputId, colorValue, defaultAlpha = 1) {
+  const colorInput = document.getElementById(colorInputId);
+  const alphaInput = document.getElementById(alphaInputId);
+
+  if (!colorInput || !alphaInput) {
+    return;
+  }
+
+  colorInput.value = getColorHexPart(colorValue);
+  alphaInput.value = String(defaultAlpha);
+}
+
+function getColorHexPart(value) {
+  const clean = String(value || "").trim();
+
+  if (/^#[0-9a-fA-F]{6}$/.test(clean)) {
+    return clean;
+  }
+
+  if (/^#[0-9a-fA-F]{8}$/.test(clean)) {
+    return clean.slice(0, 7);
+  }
+
+  return "#1f66d1";
+}
+
+function getColorAlphaPart(value, fallback = 1) {
+  const clean = String(value || "").trim();
+
+  if (/^#[0-9a-fA-F]{8}$/.test(clean)) {
+    return Math.round((parseInt(clean.slice(7, 9), 16) / 255) * 100) / 100;
+  }
+
+  return fallback;
+}
+
+function alphaToHex(alphaValue) {
+  const alpha = Math.max(0, Math.min(Number(alphaValue), 1));
+  const value = Math.round(alpha * 255);
+  return value.toString(16).padStart(2, "0").toUpperCase();
+}
+
+function composeAlphaColor(colorValue, alphaValue) {
+  const color = getColorHexPart(colorValue);
+  const alpha = Number(alphaValue);
+
+  if (alpha >= 0.995) {
+    return color;
+  }
+
+  return `${color}${alphaToHex(alpha)}`;
+}
+
+function bindColorAlphaPair(appState, layer, colorInputId, alphaInputId, updateFunction) {
+  const colorInput = document.getElementById(colorInputId);
+  const alphaInput = document.getElementById(alphaInputId);
+
+  if (!colorInput || !alphaInput) {
+    return;
+  }
+
+  const update = () => {
+    updateFunction(composeAlphaColor(colorInput.value, alphaInput.value));
+    layer.metadata.updatedAt = createGeoWorksTimestamp();
+
+    if (typeof redrawVectorLayer === "function") {
+      redrawVectorLayer(appState, layer);
+    }
+  };
+
+  colorInput.addEventListener("input", update);
+  alphaInput.addEventListener("input", update);
+}
+
+function bindObjectColorAlphaPair(appState, layer, entity, colorInputId, alphaInputId, updateFunction) {
+  const colorInput = document.getElementById(colorInputId);
+  const alphaInput = document.getElementById(alphaInputId);
+
+  if (!colorInput || !alphaInput) {
+    return;
+  }
+
+  const update = () => {
+    entity.styleMode = "ByObject";
+
+    const modeSelect = document.getElementById("selectedEntityStyleMode");
+    const controls = document.getElementById("selectedObjectControls");
+
+    if (modeSelect) {
+      modeSelect.value = "ByObject";
+    }
+
+    if (controls) {
+      controls.classList.remove("disabled-controls");
+    }
+
+    updateFunction(composeAlphaColor(colorInput.value, alphaInput.value));
+    entity.properties.updatedAt = createGeoWorksTimestamp();
+
+    if (typeof redrawVectorLayer === "function") {
+      redrawVectorLayer(appState, layer);
+    }
+  };
+
+  colorInput.addEventListener("input", update);
+  alphaInput.addEventListener("input", update);
+}
+
+function bindMultiColorAlphaPair(appState, layer, selectedContexts, colorInputId, alphaInputId, updateFunction) {
+  const colorInput = document.getElementById(colorInputId);
+  const alphaInput = document.getElementById(alphaInputId);
+
+  if (!colorInput || !alphaInput) {
+    return;
+  }
+
+  const update = () => {
+    selectedContexts.forEach((context) => {
+      context.entity.styleMode = "ByObject";
+      updateFunction(context.entity, composeAlphaColor(colorInput.value, alphaInput.value));
+      context.entity.properties.updatedAt = createGeoWorksTimestamp();
+    });
+
+    redrawVectorLayer(appState, layer);
+  };
+
+  colorInput.addEventListener("input", update);
+  alphaInput.addEventListener("input", update);
+}
+
+
+function normalizeAlphaColor(value, fallback = "#1f66d1") {
+  const clean = String(value || "").trim();
+
+  if (/^#[0-9a-fA-F]{6}$/.test(clean)) {
+    return clean;
+  }
+
+  if (/^#[0-9a-fA-F]{8}$/.test(clean)) {
+    return clean;
+  }
+
+  return fallback;
+}
+
 
 function setSelectValue(id, value) {
   const select = document.getElementById(id);
@@ -1757,12 +1887,9 @@ function getFillOpacityForHatch(hatch) {
     return 0;
   }
 
-  if (hatch === "solid-fill") {
-    return 0.18;
-  }
-
   return 1;
 }
+
 
 
 function bindFileUploadToStyle(appState, layer, inputId, updateFunction) {
@@ -2347,11 +2474,14 @@ function createInitialLayerStyle(dataType) {
       fillColor: "#1f66d1",
       weight: 3,
       radius: 6,
-      fillOpacity: 0.18,
       opacity: 1,
+      fillOpacity: 1,
       lineType: "solid",
       dashArray: null,
       hatch: "solid-fill",
+      hatchScale: 12,
+      hatchLineScale: 1,
+      hatchRotation: 0,
       symbol: "circle"
     },
     byType: {
@@ -2360,16 +2490,16 @@ function createInitialLayerStyle(dataType) {
         fillColor: "#1f66d1",
         radius: 6,
         weight: 2,
-        fillOpacity: 0.85,
         opacity: 1,
+        fillOpacity: 1,
         symbol: "circle",
         customIconUrl: ""
       },
       Line: {
         color: "#1f66d1",
         weight: 3,
-        fillOpacity: 0,
         opacity: 1,
+        fillOpacity: 0,
         lineType: "solid",
         dashArray: null,
         customLineTypeUrl: ""
@@ -2378,16 +2508,20 @@ function createInitialLayerStyle(dataType) {
         color: "#1f66d1",
         fillColor: "#1f66d1",
         weight: 3,
-        fillOpacity: 0.18,
         opacity: 1,
+        fillOpacity: 1,
         lineType: "solid",
         dashArray: null,
         hatch: "solid-fill",
+        hatchScale: 12,
+        hatchLineScale: 1,
+        hatchRotation: 0,
         customHatchUrl: ""
       }
     }
   };
 }
+
 
 
 function createInitialLayerData(dataType) {

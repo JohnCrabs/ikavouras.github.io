@@ -3,7 +3,8 @@ function setupVectorTools(appState) {
     tool: null,
     points: [],
     tempLayer: L.layerGroup().addTo(appState.map),
-    suppressNextClick: false
+    suppressNextClick: false,
+    regularPolygonSides: 6
   };
 
   appState.boxSelect = {
@@ -17,6 +18,11 @@ function setupVectorTools(appState) {
     active: false,
     lastClientX: null,
     lastClientY: null
+  };
+
+  appState.wheelZoomLock = {
+    locked: false,
+    reason: null
   };
 
   appState.selectedEntity = null;
@@ -41,6 +47,10 @@ function setupVectorTools(appState) {
   });
 
   const mapContainer = appState.map.getContainer();
+
+  mapContainer.addEventListener("wheel", (event) => {
+    handleRegularPolygonWheel(appState, event);
+  }, { passive: false });
 
   mapContainer.addEventListener("contextmenu", (event) => {
     event.preventDefault();
@@ -89,6 +99,7 @@ function setupVectorTools(appState) {
       cancelVectorDraft(appState);
       cancelBoxSelect(appState);
       setMapDraggingForTool(appState);
+      setMapWheelZoomLock(appState, false, "regular-polygon");
     }
 
     if (event.key === "Enter") {
@@ -102,12 +113,15 @@ function setupVectorTools(appState) {
 
   appState.map.doubleClickZoom.disable();
   setMapDraggingForTool(appState);
+  setMapWheelZoomLock(appState, false, "regular-polygon");
 }
+
 
 function onVectorToolChanged(appState, toolId) {
   cancelVectorDraft(appState);
   cancelBoxSelect(appState);
   clearVectorSelection(appState);
+  setMapWheelZoomLock(appState, false, "regular-polygon");
 
   if (!isVectorDrawingTool(toolId)) {
     appState.vectorDraft.tool = null;
@@ -117,8 +131,15 @@ function onVectorToolChanged(appState, toolId) {
 
   appState.vectorDraft.tool = toolId;
   appState.vectorDraft.points = [];
+
+  if (toolId === "draw-regular-polygon") {
+    appState.vectorDraft.regularPolygonSides = appState.vectorDraft.regularPolygonSides || 6;
+  }
+
   setMapDraggingForTool(appState);
 }
+
+
 
 function handleVectorMapClick(appState, latlng) {
   const activeLayer = getActiveLayer(appState);
@@ -149,9 +170,15 @@ function handleVectorMapClick(appState, latlng) {
   }
 
   appState.vectorDraft.points.push(latlng);
+  updateRegularPolygonWheelZoomState(appState);
 
   if (appState.activeTool === "draw-line" && appState.vectorDraft.points.length === 2) {
     createLineFromDraft(appState, activeLayer);
+    return;
+  }
+
+  if (appState.activeTool === "draw-arc" && appState.vectorDraft.points.length === 3) {
+    createArcFromDraft(appState, activeLayer);
     return;
   }
 
@@ -179,8 +206,43 @@ function handleVectorMapClick(appState, latlng) {
     return;
   }
 
+  if (
+    appState.activeTool === "draw-ellipse" &&
+    appState.vectorDraft.points.length === 2
+  ) {
+    createEllipseFromDraft(appState, activeLayer);
+    return;
+  }
+
+  if (
+    appState.activeTool === "draw-triangle" &&
+    appState.vectorDraft.points.length === 2
+  ) {
+    createTriangleFromDraft(appState, activeLayer);
+    return;
+  }
+
+  if (
+    appState.activeTool === "draw-rhombus" &&
+    appState.vectorDraft.points.length === 2
+  ) {
+    createRhombusFromDraft(appState, activeLayer);
+    return;
+  }
+
+  if (
+    appState.activeTool === "draw-regular-polygon" &&
+    appState.vectorDraft.points.length === 2
+  ) {
+    createRegularPolygonFromDraft(appState, activeLayer);
+    return;
+  }
+
   updateVectorPreview(appState, latlng);
 }
+
+
+
 
 function startMiddleMousePan(appState, event) {
   event.preventDefault();
@@ -382,6 +444,15 @@ function updateVectorPreview(appState, cursorLatLng) {
     L.polyline(points, getDraftStyle()).addTo(draft.tempLayer);
   }
 
+  if (appState.activeTool === "draw-arc" && points.length === 2) {
+    L.polyline(points, getDraftStyle()).addTo(draft.tempLayer);
+  }
+
+  if (appState.activeTool === "draw-arc" && points.length >= 3) {
+    const coordinates = createArcCoordinates(points[0], points[1], points[2]);
+    L.polyline(coordinates.map(coordinateToLatLng), getDraftStyle()).addTo(draft.tempLayer);
+  }
+
   if (appState.activeTool === "draw-polygon" && points.length >= 2) {
     L.polygon(points, getDraftStyle()).addTo(draft.tempLayer);
   }
@@ -401,7 +472,34 @@ function updateVectorPreview(appState, cursorLatLng) {
     const coordinates = createCirclePolygonCoordinates(points[0], points[1]);
     L.polygon(coordinates.map(coordinateToLatLng), getDraftStyle()).addTo(draft.tempLayer);
   }
+
+  if (appState.activeTool === "draw-ellipse" && points.length >= 2) {
+    const coordinates = createEllipseCoordinates(points[0], points[1]);
+    L.polygon(coordinates.map(coordinateToLatLng), getDraftStyle()).addTo(draft.tempLayer);
+  }
+
+  if (appState.activeTool === "draw-triangle" && points.length >= 2) {
+    const coordinates = createTriangleCoordinates(points[0], points[1]);
+    L.polygon(coordinates.map(coordinateToLatLng), getDraftStyle()).addTo(draft.tempLayer);
+  }
+
+  if (appState.activeTool === "draw-rhombus" && points.length >= 2) {
+    const coordinates = createRhombusCoordinates(points[0], points[1]);
+    L.polygon(coordinates.map(coordinateToLatLng), getDraftStyle()).addTo(draft.tempLayer);
+  }
+
+  if (appState.activeTool === "draw-regular-polygon" && points.length >= 2) {
+    const coordinates = createRegularPolygonCoordinates(
+      points[0],
+      points[1],
+      appState.vectorDraft.regularPolygonSides || 6
+    );
+
+    L.polygon(coordinates.map(coordinateToLatLng), getDraftStyle()).addTo(draft.tempLayer);
+  }
 }
+
+
 
 function finishCurrentVectorDraft(appState) {
   const activeLayer = getActiveLayer(appState);
@@ -419,6 +517,24 @@ function finishCurrentVectorDraft(appState) {
   if (appState.activeTool === "draw-polygon" && appState.vectorDraft.points.length >= 3) {
     createPolygonFromDraft(appState, activeLayer);
   }
+}
+
+function createArcFromDraft(appState, layer) {
+  const coordinates = createArcCoordinates(
+    appState.vectorDraft.points[0],
+    appState.vectorDraft.points[1],
+    appState.vectorDraft.points[2]
+  );
+
+  addVectorEntity(appState, layer, {
+    entityType: "Arc",
+    geometry: {
+      type: "LineString",
+      coordinates
+    }
+  });
+
+  resetDraftPoints(appState);
 }
 
 function createLineFromDraft(appState, layer) {
@@ -503,6 +619,79 @@ function createSquareFromDraft(appState, layer) {
   resetDraftPoints(appState);
 }
 
+function createEllipseFromDraft(appState, layer) {
+  const coordinates = createEllipseCoordinates(
+    appState.vectorDraft.points[0],
+    appState.vectorDraft.points[1]
+  );
+
+  addVectorEntity(appState, layer, {
+    entityType: "Ellipse",
+    geometry: {
+      type: "Polygon",
+      coordinates
+    }
+  });
+
+  resetDraftPoints(appState);
+}
+
+function createTriangleFromDraft(appState, layer) {
+  const coordinates = createTriangleCoordinates(
+    appState.vectorDraft.points[0],
+    appState.vectorDraft.points[1]
+  );
+
+  addVectorEntity(appState, layer, {
+    entityType: "Triangle",
+    geometry: {
+      type: "Polygon",
+      coordinates
+    }
+  });
+
+  resetDraftPoints(appState);
+}
+
+function createRhombusFromDraft(appState, layer) {
+  const coordinates = createRhombusCoordinates(
+    appState.vectorDraft.points[0],
+    appState.vectorDraft.points[1]
+  );
+
+  addVectorEntity(appState, layer, {
+    entityType: "Rhombus",
+    geometry: {
+      type: "Polygon",
+      coordinates
+    }
+  });
+
+  resetDraftPoints(appState);
+}
+
+function createRegularPolygonFromDraft(appState, layer) {
+  const sides = appState.vectorDraft.regularPolygonSides || 6;
+  const coordinates = createRegularPolygonCoordinates(
+    appState.vectorDraft.points[0],
+    appState.vectorDraft.points[1],
+    sides
+  );
+
+  addVectorEntity(appState, layer, {
+    entityType: "RegularPolygon",
+    properties: {
+      sides
+    },
+    geometry: {
+      type: "Polygon",
+      coordinates
+    }
+  });
+
+  resetDraftPoints(appState);
+}
+
 function createCircleFromDraft(appState, layer) {
   const coordinates = createCirclePolygonCoordinates(
     appState.vectorDraft.points[0],
@@ -530,12 +719,17 @@ function cancelVectorDraft(appState) {
   if (appState.vectorDraft.tempLayer) {
     appState.vectorDraft.tempLayer.clearLayers();
   }
+
+  updateRegularPolygonWheelZoomState(appState);
 }
+
 
 function resetDraftPoints(appState) {
   appState.vectorDraft.points = [];
   appState.vectorDraft.tempLayer.clearLayers();
+  updateRegularPolygonWheelZoomState(appState);
 }
+
 
 function getDraftStyle() {
   return {
@@ -570,6 +764,265 @@ function getSquareConstrainedPoint(firstCorner, cursorPoint) {
   return L.CRS.EPSG3857.unproject(projectedSquarePoint);
 }
 
+function handleRegularPolygonWheel(appState, event) {
+  const isRegularPolygonDraft =
+    appState.activeTool === "draw-regular-polygon" &&
+    appState.vectorDraft &&
+    appState.vectorDraft.points &&
+    appState.vectorDraft.points.length === 1;
+
+  if (!isRegularPolygonDraft) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const currentSides = appState.vectorDraft.regularPolygonSides || 6;
+  const direction = event.deltaY < 0 ? 1 : -1;
+  const nextSides = Math.max(3, Math.min(currentSides + direction, 64));
+
+  appState.vectorDraft.regularPolygonSides = nextSides;
+
+  const mapPoint = appState.map.mouseEventToContainerPoint(event);
+  const latlng = appState.map.containerPointToLatLng(mapPoint);
+  updateVectorPreview(appState, latlng);
+}
+
+
+function createArcCoordinates(startLatLng, throughLatLng, endLatLng, segments = 48) {
+  const start = L.CRS.EPSG3857.project(startLatLng);
+  const through = L.CRS.EPSG3857.project(throughLatLng);
+  const end = L.CRS.EPSG3857.project(endLatLng);
+
+  const circle = getCircleFromThreePoints(start, through, end);
+
+  if (!circle) {
+    return [
+      latLngToCoordinate(startLatLng),
+      latLngToCoordinate(throughLatLng),
+      latLngToCoordinate(endLatLng)
+    ];
+  }
+
+  const startAngle = Math.atan2(start.y - circle.cy, start.x - circle.cx);
+  const throughAngle = Math.atan2(through.y - circle.cy, through.x - circle.cx);
+  const endAngle = Math.atan2(end.y - circle.cy, end.x - circle.cx);
+
+  const counterClockwise = isAngleBetweenCounterClockwise(
+    throughAngle,
+    startAngle,
+    endAngle
+  );
+
+  let sweep = counterClockwise
+    ? normalizePositiveAngle(endAngle - startAngle)
+    : -normalizePositiveAngle(startAngle - endAngle);
+
+  const coordinates = [];
+
+  for (let index = 0; index <= segments; index += 1) {
+    const fraction = index / segments;
+    const angle = startAngle + sweep * fraction;
+
+    const point = L.point(
+      circle.cx + Math.cos(angle) * circle.radius,
+      circle.cy + Math.sin(angle) * circle.radius
+    );
+
+    const latlng = L.CRS.EPSG3857.unproject(point);
+    coordinates.push([latlng.lat, latlng.lng]);
+  }
+
+  return coordinates;
+}
+
+function getCircleFromThreePoints(a, b, c) {
+  const denominator = 2 * (
+    a.x * (b.y - c.y) +
+    b.x * (c.y - a.y) +
+    c.x * (a.y - b.y)
+  );
+
+  if (Math.abs(denominator) < 1e-9) {
+    return null;
+  }
+
+  const aSq = a.x * a.x + a.y * a.y;
+  const bSq = b.x * b.x + b.y * b.y;
+  const cSq = c.x * c.x + c.y * c.y;
+
+  const cx = (
+    aSq * (b.y - c.y) +
+    bSq * (c.y - a.y) +
+    cSq * (a.y - b.y)
+  ) / denominator;
+
+  const cy = (
+    aSq * (c.x - b.x) +
+    bSq * (a.x - c.x) +
+    cSq * (b.x - a.x)
+  ) / denominator;
+
+  const radius = Math.hypot(a.x - cx, a.y - cy);
+
+  return {
+    cx,
+    cy,
+    radius
+  };
+}
+
+function normalizePositiveAngle(angle) {
+  let normalized = angle;
+
+  while (normalized < 0) {
+    normalized += Math.PI * 2;
+  }
+
+  while (normalized >= Math.PI * 2) {
+    normalized -= Math.PI * 2;
+  }
+
+  return normalized;
+}
+
+function isAngleBetweenCounterClockwise(testAngle, startAngle, endAngle) {
+  const test = normalizePositiveAngle(testAngle - startAngle);
+  const end = normalizePositiveAngle(endAngle - startAngle);
+
+  return test <= end;
+}
+
+function createEllipseCoordinates(center, radiusPoint, segments = 72) {
+  const projectedCenter = L.CRS.EPSG3857.project(center);
+  const projectedRadius = L.CRS.EPSG3857.project(radiusPoint);
+
+  const radiusX = Math.abs(projectedRadius.x - projectedCenter.x);
+  const radiusY = Math.abs(projectedRadius.y - projectedCenter.y);
+  const coordinates = [];
+
+  for (let index = 0; index <= segments; index += 1) {
+    const angle = (index / segments) * Math.PI * 2;
+
+    const point = L.point(
+      projectedCenter.x + Math.cos(angle) * radiusX,
+      projectedCenter.y + Math.sin(angle) * radiusY
+    );
+
+    const latlng = L.CRS.EPSG3857.unproject(point);
+    coordinates.push([latlng.lat, latlng.lng]);
+  }
+
+  return coordinates;
+}
+
+function createTriangleCoordinates(firstCorner, secondCorner) {
+  const projectedFirst = L.CRS.EPSG3857.project(firstCorner);
+  const projectedSecond = L.CRS.EPSG3857.project(secondCorner);
+
+  const left = Math.min(projectedFirst.x, projectedSecond.x);
+  const right = Math.max(projectedFirst.x, projectedSecond.x);
+  const top = Math.min(projectedFirst.y, projectedSecond.y);
+  const bottom = Math.max(projectedFirst.y, projectedSecond.y);
+  const middleX = (left + right) / 2;
+
+  const points = [
+    L.point(middleX, top),
+    L.point(right, bottom),
+    L.point(left, bottom),
+    L.point(middleX, top)
+  ];
+
+  return points.map((point) => {
+    const latlng = L.CRS.EPSG3857.unproject(point);
+    return [latlng.lat, latlng.lng];
+  });
+}
+
+function createRhombusCoordinates(center, radiusPoint) {
+  const projectedCenter = L.CRS.EPSG3857.project(center);
+  const projectedRadius = L.CRS.EPSG3857.project(radiusPoint);
+
+  const radiusX = Math.abs(projectedRadius.x - projectedCenter.x);
+  const radiusY = Math.abs(projectedRadius.y - projectedCenter.y);
+
+  const points = [
+    L.point(projectedCenter.x, projectedCenter.y - radiusY),
+    L.point(projectedCenter.x + radiusX, projectedCenter.y),
+    L.point(projectedCenter.x, projectedCenter.y + radiusY),
+    L.point(projectedCenter.x - radiusX, projectedCenter.y),
+    L.point(projectedCenter.x, projectedCenter.y - radiusY)
+  ];
+
+  return points.map((point) => {
+    const latlng = L.CRS.EPSG3857.unproject(point);
+    return [latlng.lat, latlng.lng];
+  });
+}
+
+function createRegularPolygonCoordinates(center, radiusPoint, sides = 6) {
+  const safeSides = Math.max(3, Math.min(Number(sides) || 6, 64));
+  const projectedCenter = L.CRS.EPSG3857.project(center);
+  const projectedRadius = L.CRS.EPSG3857.project(radiusPoint);
+  const radius = projectedCenter.distanceTo(projectedRadius);
+  const coordinates = [];
+  const startAngle = -Math.PI / 2;
+
+  for (let index = 0; index <= safeSides; index += 1) {
+    const angle = startAngle + (index / safeSides) * Math.PI * 2;
+
+    const point = L.point(
+      projectedCenter.x + Math.cos(angle) * radius,
+      projectedCenter.y + Math.sin(angle) * radius
+    );
+
+    const latlng = L.CRS.EPSG3857.unproject(point);
+    coordinates.push([latlng.lat, latlng.lng]);
+  }
+
+  return coordinates;
+}
+
+function updateRegularPolygonWheelZoomState(appState) {
+  const shouldLock =
+    appState.activeTool === "draw-regular-polygon" &&
+    appState.vectorDraft &&
+    appState.vectorDraft.points &&
+    appState.vectorDraft.points.length === 1;
+
+  setMapWheelZoomLock(appState, shouldLock, "regular-polygon");
+}
+
+function setMapWheelZoomLock(appState, shouldLock, reason) {
+  if (!appState.map || !appState.map.scrollWheelZoom) {
+    return;
+  }
+
+  if (!appState.wheelZoomLock) {
+    appState.wheelZoomLock = {
+      locked: false,
+      reason: null
+    };
+  }
+
+  if (shouldLock) {
+    if (!appState.wheelZoomLock.locked) {
+      appState.map.scrollWheelZoom.disable();
+    }
+
+    appState.wheelZoomLock.locked = true;
+    appState.wheelZoomLock.reason = reason;
+    return;
+  }
+
+  if (appState.wheelZoomLock.locked && appState.wheelZoomLock.reason === reason) {
+    appState.map.scrollWheelZoom.enable();
+    appState.wheelZoomLock.locked = false;
+    appState.wheelZoomLock.reason = null;
+  }
+}
+
 function setMapDraggingForTool(appState) {
   if (!appState.map || !appState.map.dragging) {
     return;
@@ -593,9 +1046,16 @@ function isVectorDrawingTool(toolId) {
     "draw-point",
     "draw-line",
     "draw-polyline",
+    "draw-arc",
     "draw-polygon",
     "draw-rectangle",
     "draw-square",
-    "draw-circle"
+    "draw-circle",
+    "draw-ellipse",
+    "draw-triangle",
+    "draw-rhombus",
+    "draw-regular-polygon"
   ].includes(toolId);
 }
+
+

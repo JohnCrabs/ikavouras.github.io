@@ -67,7 +67,7 @@ function addVectorEntity(appState, layer, entity) {
     fillColor: "#1f66d1",
     weight: 3,
     radius: 6,
-    fillOpacity: 0.18,
+    fillOpacity: 1,
     opacity: 1,
     symbol: "circle",
     lineType: "solid",
@@ -149,7 +149,11 @@ function createLeafletObjectForEntity(layer, entity) {
     });
   }
 
-  if (entity.entityType === "Line" || entity.entityType === "Polyline") {
+  if (
+    entity.entityType === "Line" ||
+    entity.entityType === "Polyline" ||
+    entity.entityType === "Arc"
+  ) {
     return L.polyline(
       entity.geometry.coordinates.map(coordinateToLatLng),
       style
@@ -160,7 +164,11 @@ function createLeafletObjectForEntity(layer, entity) {
     entity.entityType === "Polygon" ||
     entity.entityType === "Rectangle" ||
     entity.entityType === "Square" ||
-    entity.entityType === "Circle"
+    entity.entityType === "Circle" ||
+    entity.entityType === "Ellipse" ||
+    entity.entityType === "Triangle" ||
+    entity.entityType === "Rhombus" ||
+    entity.entityType === "RegularPolygon"
   ) {
     return L.polygon(
       entity.geometry.coordinates.map(coordinateToLatLng),
@@ -172,24 +180,38 @@ function createLeafletObjectForEntity(layer, entity) {
 }
 
 
+
 function getVectorEntityStyle(layer, entity) {
   const category = typeof getVectorEntityCategory === "function"
     ? getVectorEntityCategory(entity)
     : getEntityCategoryLocal(entity);
 
   const base = getStyleRuleForEntity(layer, entity, category);
-  const opacity = Number(base.opacity ?? 1);
+
+  const stroke = parseRuntimeColor(
+    base.color || "#1f66d1",
+    1
+  );
+
+  const fill = parseRuntimeColor(
+    base.fillColor || base.color || "#1f66d1",
+    category === "Line" ? 0 : 1
+  );
 
   const style = {
-    color: base.color || "#1f66d1",
+    color: stroke.hex,
     weight: Number(base.weight || 3),
-    fillColor: base.fillColor || base.color || "#1f66d1",
-    opacity,
-    fillOpacity: Number(base.fillOpacity ?? (category === "Point" ? 0.85 : 0.18)) * opacity,
+    fillColor: fill.hex,
+    opacity: stroke.alpha,
+    fillOpacity: category === "Line" ? 0 : fill.alpha,
     radius: Number(base.radius || 6),
     symbol: base.symbol || "circle",
     lineType: base.lineType || "solid",
-    dashArray: base.dashArray || (typeof getDashArrayForLineType === "function" ? getDashArrayForLineType(base.lineType || "solid") : null),
+    dashArray: base.dashArray || (
+      typeof getDashArrayForLineType === "function"
+        ? getDashArrayForLineType(base.lineType || "solid")
+        : null
+    ),
     hatch: base.hatch || "solid-fill",
     hatchScale: Number(base.hatchScale || 12),
     hatchLineScale: Number(base.hatchLineScale || 1),
@@ -207,17 +229,20 @@ function getVectorEntityStyle(layer, entity) {
     style.hatch !== "solid-fill" &&
     style.hatch !== "none"
   ) {
-    style.fillOpacity = Math.max(style.fillOpacity || 1, 0.1);
+    style.fillOpacity = Math.max(style.fillOpacity, 0.1);
   }
 
   if (entity.state && entity.state.selected) {
     style.color = "#ff9800";
+    style.opacity = 1;
     style.weight = Math.max(style.weight + 1, 4);
     style.fillColor = category === "Line" ? style.fillColor : "#ffcc80";
+    style.fillOpacity = category === "Line" ? style.fillOpacity : Math.max(style.fillOpacity, 0.45);
   }
 
   return style;
 }
+
 
 
 
@@ -238,6 +263,29 @@ function createPointSymbolIcon(style) {
 }
 
 
+function parseRuntimeColor(value, fallbackAlpha = 1) {
+  const clean = String(value || "").trim();
+
+  if (/^#[0-9a-fA-F]{8}$/.test(clean)) {
+    return {
+      hex: clean.slice(0, 7),
+      alpha: parseInt(clean.slice(7, 9), 16) / 255
+    };
+  }
+
+  if (/^#[0-9a-fA-F]{6}$/.test(clean)) {
+    return {
+      hex: clean,
+      alpha: fallbackAlpha
+    };
+  }
+
+  return {
+    hex: "#1f66d1",
+    alpha: fallbackAlpha
+  };
+}
+
 function getStyleRuleForEntity(layer, entity, category) {
   if (!layer.style && typeof createInitialLayerStyle === "function") {
     layer.style = createInitialLayerStyle("Vector");
@@ -249,7 +297,7 @@ function getStyleRuleForEntity(layer, entity, category) {
     weight: 3,
     radius: 6,
     opacity: 1,
-    fillOpacity: 0.18,
+    fillOpacity: 1,
     opacity: 1,
     symbol: "circle",
     lineType: "solid",
@@ -304,6 +352,10 @@ function getEntityCategoryLocal(entity) {
     entity.entityType === "Rectangle" ||
     entity.entityType === "Square" ||
     entity.entityType === "Circle" ||
+    entity.entityType === "Ellipse" ||
+    entity.entityType === "Triangle" ||
+    entity.entityType === "Rhombus" ||
+    entity.entityType === "RegularPolygon" ||
     entity.entityType === "ClosedPolyline" ||
     entity.geometry?.type === "Polygon"
   ) {
@@ -312,6 +364,7 @@ function getEntityCategoryLocal(entity) {
 
   return "Line";
 }
+
 
 function selectVectorEntity(appState, layerId, entityId, subtractSelection = false) {
   const layer = findLayer(appState, layerId);
