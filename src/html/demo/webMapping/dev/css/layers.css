@@ -395,3 +395,465 @@
   background: #fee2e2;
   color: #b91c1c;
 }
+
+
+/* ------------------------------------------------------------
+   Version 037 — vector overview and drawing rules
+------------------------------------------------------------ */
+
+.layer-style-gear {
+  width: 22px;
+  height: 22px;
+  margin-left: 5px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #ffffff;
+  color: #36506d;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  vertical-align: middle;
+}
+
+.layer-style-gear:hover {
+  background: #f3f7fc;
+  color: var(--blue);
+}
+
+.layer-counts {
+  display: inline-flex;
+  gap: 5px;
+  margin-left: 6px;
+  flex-wrap: wrap;
+}
+
+.layer-counts span {
+  border-radius: 999px;
+  padding: 1px 6px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.layer-style-editor {
+  position: fixed;
+  top: 118px;
+  right: 24px;
+  width: 310px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 16px 38px rgba(16, 32, 51, 0.26);
+  z-index: 3000;
+}
+
+.style-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.style-editor-header button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  cursor: pointer;
+}
+
+.style-editor-layer-name {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.style-editor-section {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.style-editor-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.style-editor-section label,
+.style-type-row {
+  display: grid;
+  grid-template-columns: 1fr 52px 52px 52px;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.style-editor-section label {
+  grid-template-columns: 1fr 72px;
+}
+
+.style-editor-section input {
+  min-width: 0;
+  height: 28px;
+}
+
+.style-editor-footer {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+
+/* ------------------------------------------------------------
+   Version 038 — cleaned drawing-rule editor
+------------------------------------------------------------ */
+
+.layer-style-editor {
+  width: 340px;
+}
+
+.style-editor-header {
+  gap: 10px;
+}
+
+.style-control-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.style-control-grid label,
+.style-rule-row {
+  display: grid;
+  grid-template-columns: 1fr 86px;
+  align-items: center;
+  gap: 10px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.style-control-grid input,
+.style-rule-row select {
+  width: 86px;
+  height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 2px 6px;
+  background: #ffffff;
+  font-weight: 800;
+}
+
+.style-type-grid {
+  display: grid;
+  grid-template-columns: 72px 58px 58px 58px;
+  gap: 8px;
+  align-items: center;
+}
+
+.style-type-name {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.style-type-grid input {
+  width: 58px;
+  height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 2px 5px;
+}
+
+.object-rule-section {
+  background: #fbfdff;
+}
+
+.selected-object-title {
+  margin-bottom: 8px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.style-empty-object {
+  padding: 9px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 9px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.object-controls {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.disabled-controls {
+  opacity: 0.42;
+}
+
+.disabled-controls input {
+  pointer-events: none;
+}
+
+
+/* ------------------------------------------------------------
+   Version 039 — symbology editor layout repair
+------------------------------------------------------------ */
+
+.layer-style-editor {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.style-editor-section {
+  overflow: hidden;
+}
+
+.style-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.style-form-grid label,
+.style-rule-row {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) minmax(0, 150px);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.style-form-grid label span,
+.style-rule-row span {
+  min-width: 0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.style-form-grid input,
+.style-form-grid select,
+.style-rule-row select {
+  width: 100%;
+  min-width: 0;
+  max-width: 150px;
+  height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 2px 6px;
+  background: #ffffff;
+  font-weight: 800;
+}
+
+.style-form-grid input[type="file"] {
+  height: auto;
+  padding: 5px;
+  font-size: 10px;
+}
+
+.style-type-card {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.style-type-card + .style-type-card {
+  margin-top: 9px;
+}
+
+.style-type-card-title {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.object-controls {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.disabled-controls {
+  opacity: 0.44;
+}
+
+.disabled-controls input,
+.disabled-controls select {
+  pointer-events: none;
+}
+
+
+/* ------------------------------------------------------------
+   Version 040 — selected object alignment + inheritance controls
+------------------------------------------------------------ */
+
+.layer-style-editor {
+  width: 380px;
+  box-sizing: border-box;
+}
+
+.style-editor-section {
+  box-sizing: border-box;
+}
+
+.style-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  width: 100%;
+}
+
+.style-form-grid label,
+.style-rule-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.style-form-grid label span,
+.style-rule-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.style-form-grid input,
+.style-form-grid select,
+.style-rule-row select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.style-rule-row select {
+  justify-self: stretch;
+}
+
+.combined-file-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
+
+.combined-file-control input[type="text"] {
+  width: 100%;
+}
+
+.combined-file-control input[type="file"] {
+  width: 100%;
+  min-width: 0;
+  font-size: 10px;
+  padding: 5px;
+}
+
+.object-controls.disabled-controls {
+  opacity: 0.45;
+}
+
+.object-controls.disabled-controls input,
+.object-controls.disabled-controls select,
+.object-controls.disabled-controls .combined-file-control {
+  pointer-events: none;
+}
+
+.selected-object-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ------------------------------------------------------------
+   Version 041 — multi-object rule editing and wider rule dropdown
+------------------------------------------------------------ */
+
+.style-rule-row.draw-rule-row {
+  grid-template-columns: 92px minmax(150px, 1fr);
+}
+
+.style-rule-row.draw-rule-row select {
+  min-width: 150px;
+  width: 100%;
+}
+
+.object-rule-section .style-form-grid label {
+  grid-template-columns: 92px minmax(150px, 1fr);
+}
+
+.object-rule-section .style-form-grid input,
+.object-rule-section .style-form-grid select {
+  min-width: 0;
+  width: 100%;
+}
+
+.multi-style-hint {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.selected-object-title {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+
+/* ------------------------------------------------------------
+   Version 042 — hatch scale field
+------------------------------------------------------------ */
+
+.style-form-grid input[type="number"] {
+  text-align: left;
+}
+
+
+/* ------------------------------------------------------------
+   Version 043 — transparency and advanced hatch controls
+------------------------------------------------------------ */
+
+.style-form-grid input[type="range"] {
+  padding: 0;
+  height: 28px;
+}
+
+.style-form-grid input[type="number"] {
+  text-align: left;
+}

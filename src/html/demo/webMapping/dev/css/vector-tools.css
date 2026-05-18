@@ -12,3 +12,161 @@
 .vector-box-selection-note {
   font-size: 11px;
 }
+
+
+/* ------------------------------------------------------------
+   Version 037 — object drawing rules
+------------------------------------------------------------ */
+
+.vector-popup-label {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.vector-popup-label select {
+  height: 30px;
+  border: 1px solid #d7dee8;
+  border-radius: 7px;
+  padding: 0 7px;
+  font-weight: 800;
+}
+
+.object-style-controls {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.object-style-controls label {
+  display: grid;
+  grid-template-columns: 1fr 70px;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.object-style-controls input {
+  min-width: 0;
+  height: 28px;
+}
+
+
+/* ------------------------------------------------------------
+   Version 038 — compact object popup
+------------------------------------------------------------ */
+
+.compact-popup {
+  min-width: 180px;
+}
+
+.compact-popup .vector-popup-delete {
+  margin-top: 10px;
+}
+
+.object-style-controls,
+.vector-popup-label {
+  display: none !important;
+}
+
+
+/* ------------------------------------------------------------
+   Version 039 — point symbols
+------------------------------------------------------------ */
+
+.gw-point-symbol-icon {
+  background: transparent;
+  border: none;
+}
+
+.gw-point-symbol {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+}
+
+.gw-symbol-circle {
+  border: 3px solid var(--gw-symbol-color);
+  background: var(--gw-symbol-fill);
+  border-radius: 50%;
+}
+
+.gw-symbol-square {
+  border: 3px solid var(--gw-symbol-color);
+  background: var(--gw-symbol-fill);
+  border-radius: 3px;
+}
+
+.gw-symbol-triangle {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid var(--gw-symbol-color);
+  background: transparent;
+}
+
+.gw-symbol-diamond {
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--gw-symbol-color);
+  background: var(--gw-symbol-fill);
+  transform: rotate(45deg);
+  margin: 2px;
+}
+
+.gw-symbol-cross::before,
+.gw-symbol-cross::after {
+  content: "";
+  position: absolute;
+  background: var(--gw-symbol-color);
+  left: 8px;
+  top: 0;
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+}
+
+.gw-symbol-cross::after {
+  transform: rotate(90deg);
+}
+
+.gw-symbol-star::before {
+  content: "★";
+  position: absolute;
+  left: -1px;
+  top: -5px;
+  color: var(--gw-symbol-color);
+  font-size: 24px;
+  line-height: 24px;
+}
+
+.gw-symbol-pin::before {
+  content: "●";
+  position: absolute;
+  left: 1px;
+  top: -5px;
+  color: var(--gw-symbol-color);
+  font-size: 22px;
+}
+
+.gw-symbol-pin::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 12px;
+  width: 3px;
+  height: 10px;
+  background: var(--gw-symbol-color);
+  transform: rotate(25deg);
+  border-radius: 2px;
+}

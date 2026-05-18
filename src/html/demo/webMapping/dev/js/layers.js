@@ -131,6 +131,7 @@ function createLayer(appState, options) {
     parentId: options.parentId || null,
     children: [],
     data: createInitialLayerData(options.dataType || "None"),
+    style: createInitialLayerStyle(options.dataType || "None"),
     runtime: { leafletLayer: null },
     state: {
       visible: true,
@@ -479,6 +480,11 @@ function createLayerMain(appState, layer) {
     meta.appendChild(createLayerTypeSelect(appState, layer));
     meta.appendChild(document.createTextNode(` ${layer.sensorType}`));
 
+    if (layer.dataType === "Vector") {
+      meta.appendChild(createLayerStyleButton(appState, layer));
+      meta.appendChild(createVectorCountsElement(layer));
+    }
+
     if (layer.state.active) {
       meta.appendChild(document.createTextNode(" "));
       meta.appendChild(createSmallBadge("ACTIVE", "active-badge"));
@@ -495,6 +501,7 @@ function createLayerMain(appState, layer) {
 
   return main;
 }
+
 
 function createSmallBadge(label, className) {
   const badge = document.createElement("span");
@@ -575,6 +582,7 @@ function createLayerTypeSelect(appState, layer) {
     layer.dataType = select.value;
     layer.sensorType = getDefaultSensorType(layer.dataType);
     layer.data = createInitialLayerData(layer.dataType);
+    layer.style = createInitialLayerStyle(layer.dataType);
     layer.runtime = { leafletLayer: null };
     layer.metadata.updatedAt = createGeoWorksTimestamp();
 
@@ -588,6 +596,1257 @@ function createLayerTypeSelect(appState, layer) {
 
   return select;
 }
+
+function createLayerStyleButton(appState, layer) {
+  const button = document.createElement("button");
+  button.className = "layer-style-gear";
+  button.type = "button";
+  button.title = "Edit vector drawing rules";
+  button.innerHTML = `<i class="fa-solid fa-gear"></i>`;
+
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openLayerStyleEditor(appState, layer);
+  });
+
+  return button;
+}
+
+function createVectorCountsElement(layer) {
+  const counts = getVectorEntityCounts(layer);
+  const container = document.createElement("span");
+  container.className = "layer-counts";
+  container.innerHTML = `
+    <span title="Points">P: ${counts.points}</span>
+    <span title="Lines">L: ${counts.lines}</span>
+    <span title="Polygons">PG: ${counts.polygons}</span>
+  `;
+
+  return container;
+}
+
+function getVectorEntityCounts(layer) {
+  const counts = {
+    points: 0,
+    lines: 0,
+    polygons: 0
+  };
+
+  if (!layer || !layer.data || !layer.data.entities) {
+    return counts;
+  }
+
+  layer.data.entities.forEach((entity) => {
+    const category = getVectorEntityCategory(entity);
+
+    if (category === "Point") {
+      counts.points += 1;
+    } else if (category === "Line") {
+      counts.lines += 1;
+    } else if (category === "Polygon") {
+      counts.polygons += 1;
+    }
+  });
+
+  return counts;
+}
+
+function getVectorEntityCategory(entity) {
+  if (!entity) {
+    return "Line";
+  }
+
+  if (entity.entityType === "Point" || entity.geometry?.type === "Point") {
+    return "Point";
+  }
+
+  if (
+    entity.entityType === "Polygon" ||
+    entity.entityType === "Rectangle" ||
+    entity.entityType === "Square" ||
+    entity.entityType === "Circle" ||
+    entity.entityType === "ClosedPolyline" ||
+    entity.geometry?.type === "Polygon"
+  ) {
+    return "Polygon";
+  }
+
+  return "Line";
+}
+
+function openLayerStyleEditor(appState, layer) {
+  closeLayerStyleEditor();
+
+  if (!layer.style) {
+    layer.style = createInitialLayerStyle(layer.dataType);
+  }
+
+  appState.activeStyleLayerId = layer.internalId;
+
+  const selectedContext = getSingleSelectedEntityContext(appState, layer);
+  const selectedEntity = selectedContext ? selectedContext.entity : null;
+
+  const panel = document.createElement("div");
+  panel.id = "layerStyleEditor";
+  panel.className = "layer-style-editor";
+  panel.innerHTML = `
+    <div class="style-editor-header">
+      <div>
+        <strong>Drawing Rules</strong>
+        <div class="style-editor-layer-name">${layer.name}</div>
+      </div>
+
+      <button id="closeStyleEditorBtn" type="button">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="style-editor-section">
+      <div class="style-editor-title">By Layer Default</div>
+
+      <div class="style-form-grid">
+        <label>
+          <span>Stroke</span>
+          <input id="layerDefaultColor" type="color" value="${layer.style.default.color}" />
+        </label>
+
+        <label>
+          <span>Fill</span>
+          <input id="layerDefaultFill" type="color" value="${layer.style.default.fillColor}" />
+        </label>
+
+        <label>
+          <span>Weight</span>
+          <input id="layerDefaultWeight" type="number" min="1" max="12" value="${layer.style.default.weight}" />
+        </label>
+
+        <label>
+          <span>Transparency</span>
+          <input id="layerDefaultOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.default.opacity ?? 1}" />
+        </label>
+      </div>
+    </div>
+
+    <div class="style-editor-section">
+      <div class="style-editor-title">By Type Overrides</div>
+
+      <div class="style-type-card">
+        <div class="style-type-card-title">Point</div>
+        <div class="style-form-grid">
+          <label>
+            <span>Symbol</span>
+            <select id="pointSymbol">
+              <option value="circle">Circle</option>
+              <option value="square">Square</option>
+              <option value="triangle">Triangle</option>
+              <option value="diamond">Diamond</option>
+              <option value="cross">Cross</option>
+              <option value="star">Star</option>
+              <option value="pin">Pin</option>
+              <option value="custom-icon">Custom Icon</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Color</span>
+            <input id="pointColor" type="color" value="${layer.style.byType.Point.color}" />
+          </label>
+
+          <label>
+            <span>Transparency</span>
+            <input id="pointOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.byType.Point.opacity ?? 1}" />
+          </label>
+
+          <label class="custom-icon-row">
+            <span>Custom Icon</span>
+            <div class="combined-file-control">
+              <input id="pointIconUrl" type="text" value="${layer.style.byType.Point.customIconUrl || ""}" placeholder="URL or upload file" />
+              <input id="pointIconUpload" type="file" accept=".png,.jpg,.jpeg,.svg,.webp" />
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="style-type-card">
+        <div class="style-type-card-title">Line / Boundary</div>
+        <div class="style-form-grid">
+          <label>
+            <span>Line Type</span>
+            <select id="lineType">
+              <option value="solid">Solid</option>
+              <option value="dash">Dash</option>
+              <option value="dot">Dot</option>
+              <option value="dash-dot">Dash Dot</option>
+              <option value="center">Center</option>
+              <option value="hidden">Hidden</option>
+              <option value="phantom">Phantom</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Color</span>
+            <input id="lineColor" type="color" value="${layer.style.byType.Line.color}" />
+          </label>
+
+          <label>
+            <span>Weight</span>
+            <input id="lineWeight" type="number" min="1" max="12" value="${layer.style.byType.Line.weight}" />
+          </label>
+
+          <label>
+            <span>Transparency</span>
+            <input id="lineOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.byType.Line.opacity ?? 1}" />
+          </label>
+
+          <label>
+            <span>Upload LineType</span>
+            <input id="lineTypeUpload" type="file" accept=".json,.txt,.lin" />
+          </label>
+        </div>
+      </div>
+
+      <div class="style-type-card">
+        <div class="style-type-card-title">Polygon Fill</div>
+        <div class="style-form-grid">
+          <label>
+            <span>Boundary Color</span>
+            <input id="polygonColor" type="color" value="${layer.style.byType.Polygon.color}" />
+          </label>
+
+          <label>
+            <span>Fill Color</span>
+            <input id="polygonFill" type="color" value="${layer.style.byType.Polygon.fillColor}" />
+          </label>
+
+          <label>
+            <span>Boundary Type</span>
+            <select id="polygonLineType">
+              <option value="solid">Solid</option>
+              <option value="dash">Dash</option>
+              <option value="dot">Dot</option>
+              <option value="dash-dot">Dash Dot</option>
+              <option value="center">Center</option>
+              <option value="hidden">Hidden</option>
+              <option value="phantom">Phantom</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Hatch</span>
+            <select id="polygonHatch">
+              <option value="solid-fill">Solid Fill</option>
+              <option value="none">No Fill</option>
+              <option value="ansi31">ANSI31 Diagonal</option>
+              <option value="cross">Cross Hatch</option>
+              <option value="grid">Grid</option>
+              <option value="dots">Dots</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical">Vertical</option>
+              <option value="diagonal-back">Diagonal Back</option>
+              <option value="double-diagonal">Double Diagonal</option>
+              <option value="brick">Brick</option>
+              <option value="zigzag">Zigzag</option>
+              <option value="triangles">Triangles</option>
+              <option value="custom">Custom Hatch</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Hatch Spacing</span>
+            <input id="polygonHatchScale" type="number" min="4" max="64" value="${layer.style.byType.Polygon.hatchScale || 12}" />
+          </label>
+
+          <label>
+            <span>Hatch Line Scale</span>
+            <input id="polygonHatchLineScale" type="number" min="0.5" max="6" step="0.25" value="${layer.style.byType.Polygon.hatchLineScale || 1}" />
+          </label>
+
+          <label>
+            <span>Hatch Rotate</span>
+            <input id="polygonHatchRotation" type="number" min="0" max="180" step="5" value="${layer.style.byType.Polygon.hatchRotation || 0}" />
+          </label>
+
+          <label>
+            <span>Transparency</span>
+            <input id="polygonOpacity" type="range" min="0" max="1" step="0.05" value="${layer.style.byType.Polygon.opacity ?? 1}" />
+          </label>
+
+          <label>
+            <span>Boundary Weight</span>
+            <input id="polygonWeight" type="number" min="1" max="12" value="${layer.style.byType.Polygon.weight}" />
+          </label>
+
+          <label>
+            <span>Upload Hatch</span>
+            <input id="polygonHatchUpload" type="file" accept=".json,.txt,.pat,.svg,.png" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="style-editor-section object-rule-section">
+      <div class="style-editor-title">Selected Object Rule</div>
+      <div id="objectRuleContent"></div>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  document.getElementById("closeStyleEditorBtn").addEventListener("click", () => {
+    closeLayerStyleEditor();
+  });
+
+  setSelectValue("pointSymbol", layer.style.byType.Point.symbol || "circle");
+  setSelectValue("lineType", layer.style.byType.Line.lineType || "solid");
+  setSelectValue("polygonLineType", layer.style.byType.Polygon.lineType || "solid");
+  setSelectValue("polygonHatch", layer.style.byType.Polygon.hatch || "solid-fill");
+
+  bindLayerStyleInput(appState, layer, "layerDefaultColor", (value) => {
+    layer.style.default.color = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "layerDefaultFill", (value) => {
+    layer.style.default.fillColor = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "layerDefaultWeight", (value) => {
+    layer.style.default.weight = Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "layerDefaultOpacity", (value) => {
+    layer.style.default.opacity = Number(value);
+    layer.style.default.fillOpacity = Math.max(0, Math.min(Number(value), 1)) * 0.18;
+  });
+
+  bindLayerStyleInput(appState, layer, "pointSymbol", (value) => {
+    layer.style.byType.Point.symbol = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "pointColor", (value) => {
+    layer.style.byType.Point.color = value;
+    layer.style.byType.Point.fillColor = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "pointOpacity", (value) => {
+    layer.style.byType.Point.opacity = Number(value);
+    layer.style.byType.Point.fillOpacity = Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "pointIconUrl", (value) => {
+    layer.style.byType.Point.customIconUrl = value.trim();
+    layer.style.byType.Point.symbol = value.trim() ? "custom-icon" : layer.style.byType.Point.symbol;
+    setSelectValue("pointSymbol", layer.style.byType.Point.symbol);
+  });
+
+  bindFileUploadToStyle(appState, layer, "pointIconUpload", (objectUrl, file) => {
+    layer.style.byType.Point.customIconUrl = objectUrl;
+    layer.style.byType.Point.customIconName = file.name;
+    layer.style.byType.Point.symbol = "custom-icon";
+    setSelectValue("pointSymbol", "custom-icon");
+
+    const urlInput = document.getElementById("pointIconUrl");
+    if (urlInput) {
+      urlInput.value = file.name;
+    }
+  });
+
+  bindLayerStyleInput(appState, layer, "lineType", (value) => {
+    layer.style.byType.Line.lineType = value;
+    layer.style.byType.Line.dashArray = getDashArrayForLineType(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "lineColor", (value) => {
+    layer.style.byType.Line.color = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "lineWeight", (value) => {
+    layer.style.byType.Line.weight = Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "lineOpacity", (value) => {
+    layer.style.byType.Line.opacity = Number(value);
+  });
+
+  bindFileUploadToStyle(appState, layer, "lineTypeUpload", (objectUrl, file) => {
+    layer.style.byType.Line.customLineTypeUrl = objectUrl;
+    layer.style.byType.Line.customLineTypeName = file.name;
+    layer.style.byType.Line.lineType = "custom";
+    layer.style.byType.Line.dashArray = "10 4 2 4";
+    setSelectValue("lineType", "custom");
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonColor", (value) => {
+    layer.style.byType.Polygon.color = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonFill", (value) => {
+    layer.style.byType.Polygon.fillColor = value;
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonLineType", (value) => {
+    layer.style.byType.Polygon.lineType = value;
+    layer.style.byType.Polygon.dashArray = getDashArrayForLineType(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonHatch", (value) => {
+    layer.style.byType.Polygon.hatch = value;
+    layer.style.byType.Polygon.fillOpacity = getFillOpacityForHatch(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonHatchScale", (value) => {
+    layer.style.byType.Polygon.hatchScale = Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonHatchLineScale", (value) => {
+    layer.style.byType.Polygon.hatchLineScale = Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonHatchRotation", (value) => {
+    layer.style.byType.Polygon.hatchRotation = Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonOpacity", (value) => {
+    layer.style.byType.Polygon.opacity = Number(value);
+    layer.style.byType.Polygon.fillOpacity = getFillOpacityForHatch(layer.style.byType.Polygon.hatch) * Number(value);
+  });
+
+  bindLayerStyleInput(appState, layer, "polygonWeight", (value) => {
+    layer.style.byType.Polygon.weight = Number(value);
+  });
+
+  bindFileUploadToStyle(appState, layer, "polygonHatchUpload", (objectUrl, file) => {
+    layer.style.byType.Polygon.customHatchUrl = objectUrl;
+    layer.style.byType.Polygon.customHatchName = file.name;
+    layer.style.byType.Polygon.hatch = "custom";
+    setSelectValue("polygonHatch", "custom");
+  });
+
+  renderObjectRuleSection(appState, layer, selectedEntity);
+}
+
+
+
+function renderObjectRuleSection(appState, layer, selectedEntity = null) {
+  const container = document.getElementById("objectRuleContent");
+
+  if (!container) {
+    return;
+  }
+
+  const selectedContexts = getSelectedEntityContextsForLayer(appState, layer);
+
+  if (selectedContexts.length === 0) {
+    container.innerHTML = `
+      <div class="style-empty-object">
+        Select one or more objects from this layer to edit object-level drawing rules.
+      </div>
+    `;
+    return;
+  }
+
+  if (selectedContexts.length === 1) {
+    renderSingleObjectRuleSection(appState, layer, selectedContexts[0].entity);
+    return;
+  }
+
+  renderMultiObjectRuleSection(appState, layer, selectedContexts);
+}
+
+function renderSingleObjectRuleSection(appState, layer, selectedEntity) {
+  const container = document.getElementById("objectRuleContent");
+
+  if (!container) {
+    return;
+  }
+
+  if (!selectedEntity.style) {
+    selectedEntity.style = createDefaultObjectStyle();
+  }
+
+  const category = getVectorEntityCategory(selectedEntity);
+
+  container.innerHTML = `
+    <div class="selected-object-title">
+      ${selectedEntity.entityType} · ${selectedEntity.id}
+    </div>
+
+    <label class="style-rule-row draw-rule-row">
+      <span>Draw Rule</span>
+      <select id="selectedEntityStyleMode">
+        <option value="ByLayer">By Layer</option>
+        <option value="ByType">By Type</option>
+        <option value="ByObject">By Object</option>
+      </select>
+    </label>
+
+    <div id="selectedObjectControls" class="style-form-grid object-controls">
+      ${category === "Point" ? `
+        <label>
+          <span>Symbol</span>
+          <select id="selectedEntitySymbol">
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+            <option value="diamond">Diamond</option>
+            <option value="cross">Cross</option>
+            <option value="star">Star</option>
+            <option value="pin">Pin</option>
+            <option value="custom-icon">Custom Icon</option>
+          </select>
+        </label>
+
+        <label class="custom-icon-row">
+          <span>Custom Icon</span>
+          <div class="combined-file-control">
+            <input id="selectedEntityIconUrl" type="text" value="${selectedEntity.style.customIconUrl || ""}" placeholder="URL or upload file" />
+            <input id="selectedEntityIconUpload" type="file" accept=".png,.jpg,.jpeg,.svg,.webp" />
+          </div>
+        </label>
+      ` : ""}
+
+      ${(category === "Line" || category === "Polygon") ? `
+        <label>
+          <span>Line Type</span>
+          <select id="selectedEntityLineType">
+            <option value="solid">Solid</option>
+            <option value="dash">Dash</option>
+            <option value="dot">Dot</option>
+            <option value="dash-dot">Dash Dot</option>
+            <option value="center">Center</option>
+            <option value="hidden">Hidden</option>
+            <option value="phantom">Phantom</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Custom LineType</span>
+          <input id="selectedEntityLineTypeUpload" type="file" accept=".json,.txt,.lin" />
+        </label>
+      ` : ""}
+
+      ${category === "Polygon" ? `
+        <label>
+          <span>Hatch</span>
+          <select id="selectedEntityHatch">
+            <option value="solid-fill">Solid Fill</option>
+            <option value="none">No Fill</option>
+            <option value="ansi31">ANSI31 Diagonal</option>
+            <option value="cross">Cross Hatch</option>
+            <option value="grid">Grid</option>
+            <option value="dots">Dots</option>
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+            <option value="diagonal-back">Diagonal Back</option>
+            <option value="double-diagonal">Double Diagonal</option>
+            <option value="brick">Brick</option>
+            <option value="zigzag">Zigzag</option>
+            <option value="triangles">Triangles</option>
+            <option value="custom">Custom Hatch</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Hatch Spacing</span>
+          <input id="selectedEntityHatchScale" type="number" min="4" max="64" value="${selectedEntity.style.hatchScale || 12}" />
+        </label>
+
+        <label>
+          <span>Hatch Line Scale</span>
+          <input id="selectedEntityHatchLineScale" type="number" min="0.5" max="6" step="0.25" value="${selectedEntity.style.hatchLineScale || 1}" />
+        </label>
+
+        <label>
+          <span>Hatch Rotate</span>
+          <input id="selectedEntityHatchRotation" type="number" min="0" max="180" step="5" value="${selectedEntity.style.hatchRotation || 0}" />
+        </label>
+
+        <label>
+          <span>Custom Hatch</span>
+          <input id="selectedEntityHatchUpload" type="file" accept=".json,.txt,.pat,.svg,.png" />
+        </label>
+      ` : ""}
+
+      <label>
+        <span>Stroke</span>
+        <input id="selectedEntityColor" type="color" value="${selectedEntity.style.color}" />
+      </label>
+
+      ${category !== "Line" ? `
+        <label>
+          <span>Fill</span>
+          <input id="selectedEntityFill" type="color" value="${selectedEntity.style.fillColor}" />
+        </label>
+      ` : ""}
+
+      <label>
+        <span>Weight</span>
+        <input id="selectedEntityWeight" type="number" min="1" max="12" value="${selectedEntity.style.weight}" />
+      </label>
+
+      <label>
+        <span>Transparency</span>
+        <input id="selectedEntityOpacity" type="range" min="0" max="1" step="0.05" value="${selectedEntity.style.opacity ?? 1}" />
+      </label>
+    </div>
+  `;
+
+  bindSingleObjectRuleControls(appState, layer, selectedEntity, category);
+}
+
+function renderMultiObjectRuleSection(appState, layer, selectedContexts) {
+  const container = document.getElementById("objectRuleContent");
+  const categories = new Set(selectedContexts.map((context) => getVectorEntityCategory(context.entity)));
+  const commonMode = getCommonValue(selectedContexts, (context) => context.entity.styleMode || "ByLayer");
+  const commonStroke = getCommonValue(selectedContexts, (context) => context.entity.style?.color || "#1f66d1");
+  const commonFill = getCommonValue(selectedContexts, (context) => context.entity.style?.fillColor || "#1f66d1");
+  const commonWeight = getCommonValue(selectedContexts, (context) => context.entity.style?.weight || 3);
+  const commonSymbol = getCommonValue(selectedContexts, (context) => context.entity.style?.symbol || "circle");
+  const commonLineType = getCommonValue(selectedContexts, (context) => context.entity.style?.lineType || "solid");
+  const commonHatch = getCommonValue(selectedContexts, (context) => context.entity.style?.hatch || "solid-fill");
+
+  container.innerHTML = `
+    <div class="selected-object-title">
+      ${selectedContexts.length} selected objects
+    </div>
+
+    <label class="style-rule-row draw-rule-row">
+      <span>Draw Rule</span>
+      <select id="multiEntityStyleMode">
+        <option value="">Keep mixed</option>
+        <option value="ByLayer">By Layer</option>
+        <option value="ByType">By Type</option>
+        <option value="ByObject">By Object</option>
+      </select>
+    </label>
+
+    <div id="multiObjectControls" class="style-form-grid object-controls">
+      ${categories.has("Point") ? `
+        <label>
+          <span>Point Symbol</span>
+          <select id="multiEntitySymbol">
+            <option value="">Keep mixed</option>
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+            <option value="diamond">Diamond</option>
+            <option value="cross">Cross</option>
+            <option value="star">Star</option>
+            <option value="pin">Pin</option>
+            <option value="custom-icon">Custom Icon</option>
+          </select>
+        </label>
+
+        <label class="custom-icon-row">
+          <span>Custom Icon</span>
+          <div class="combined-file-control">
+            <input id="multiEntityIconUrl" type="text" placeholder="URL or upload file" />
+            <input id="multiEntityIconUpload" type="file" accept=".png,.jpg,.jpeg,.svg,.webp" />
+          </div>
+        </label>
+      ` : ""}
+
+      ${(categories.has("Line") || categories.has("Polygon")) ? `
+        <label>
+          <span>Line Type</span>
+          <select id="multiEntityLineType">
+            <option value="">Keep mixed</option>
+            <option value="solid">Solid</option>
+            <option value="dash">Dash</option>
+            <option value="dot">Dot</option>
+            <option value="dash-dot">Dash Dot</option>
+            <option value="center">Center</option>
+            <option value="hidden">Hidden</option>
+            <option value="phantom">Phantom</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+      ` : ""}
+
+      ${categories.has("Polygon") ? `
+        <label>
+          <span>Hatch</span>
+          <select id="multiEntityHatch">
+            <option value="">Keep mixed</option>
+            <option value="solid-fill">Solid Fill</option>
+            <option value="none">No Fill</option>
+            <option value="ansi31">ANSI31 Diagonal</option>
+            <option value="cross">Cross Hatch</option>
+            <option value="grid">Grid</option>
+            <option value="dots">Dots</option>
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+            <option value="diagonal-back">Diagonal Back</option>
+            <option value="double-diagonal">Double Diagonal</option>
+            <option value="brick">Brick</option>
+            <option value="zigzag">Zigzag</option>
+            <option value="triangles">Triangles</option>
+            <option value="custom">Custom Hatch</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Hatch Spacing</span>
+          <input id="multiEntityHatchScale" type="number" min="4" max="64" value="12" />
+        </label>
+
+        <label>
+          <span>Hatch Line Scale</span>
+          <input id="multiEntityHatchLineScale" type="number" min="0.5" max="6" step="0.25" value="1" />
+        </label>
+
+        <label>
+          <span>Hatch Rotate</span>
+          <input id="multiEntityHatchRotation" type="number" min="0" max="180" step="5" value="0" />
+        </label>
+      ` : ""}
+
+      <label>
+        <span>Stroke</span>
+        <input id="multiEntityColor" type="color" value="${commonStroke || "#1f66d1"}" />
+      </label>
+
+      ${categories.has("Point") || categories.has("Polygon") ? `
+        <label>
+          <span>Fill</span>
+          <input id="multiEntityFill" type="color" value="${commonFill || "#1f66d1"}" />
+        </label>
+      ` : ""}
+
+      <label>
+        <span>Weight</span>
+        <input id="multiEntityWeight" type="number" min="1" max="12" value="${commonWeight || 3}" />
+      </label>
+
+      <label>
+        <span>Transparency</span>
+        <input id="multiEntityOpacity" type="range" min="0" max="1" step="0.05" value="1" />
+      </label>
+    </div>
+
+    <div class="multi-style-hint">
+      Changes apply only to selected objects where the parameter is valid.
+    </div>
+  `;
+
+  setSelectValue("multiEntityStyleMode", commonMode || "");
+  setSelectValue("multiEntitySymbol", commonSymbol || "");
+  setSelectValue("multiEntityLineType", commonLineType || "");
+  setSelectValue("multiEntityHatch", commonHatch || "");
+
+  bindMultiObjectRuleControls(appState, layer, selectedContexts);
+}
+
+function bindSingleObjectRuleControls(appState, layer, selectedEntity, category) {
+  const modeSelect = document.getElementById("selectedEntityStyleMode");
+  const controls = document.getElementById("selectedObjectControls");
+
+  modeSelect.value = selectedEntity.styleMode || "ByLayer";
+  controls.classList.toggle("disabled-controls", modeSelect.value !== "ByObject");
+
+  setSelectValue("selectedEntitySymbol", selectedEntity.style.symbol || "circle");
+  setSelectValue("selectedEntityLineType", selectedEntity.style.lineType || "solid");
+  setSelectValue("selectedEntityHatch", selectedEntity.style.hatch || "solid-fill");
+
+  modeSelect.addEventListener("change", () => {
+    selectedEntity.styleMode = modeSelect.value;
+    selectedEntity.properties.updatedAt = createGeoWorksTimestamp();
+    controls.classList.toggle("disabled-controls", selectedEntity.styleMode !== "ByObject");
+    redrawVectorLayer(appState, layer);
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntitySymbol", (value) => {
+    selectedEntity.style.symbol = value;
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityIconUrl", (value) => {
+    selectedEntity.style.customIconUrl = value.trim();
+    if (value.trim()) {
+      selectedEntity.style.symbol = "custom-icon";
+      setSelectValue("selectedEntitySymbol", "custom-icon");
+    }
+  });
+
+  bindObjectFileUpload(appState, layer, selectedEntity, "selectedEntityIconUpload", (objectUrl, file) => {
+    selectedEntity.style.customIconUrl = objectUrl;
+    selectedEntity.style.customIconName = file.name;
+    selectedEntity.style.symbol = "custom-icon";
+    setSelectValue("selectedEntitySymbol", "custom-icon");
+
+    const urlInput = document.getElementById("selectedEntityIconUrl");
+    if (urlInput) {
+      urlInput.value = file.name;
+    }
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityLineType", (value) => {
+    selectedEntity.style.lineType = value;
+    selectedEntity.style.dashArray = getDashArrayForLineType(value);
+  });
+
+  bindObjectFileUpload(appState, layer, selectedEntity, "selectedEntityLineTypeUpload", (objectUrl, file) => {
+    selectedEntity.style.customLineTypeUrl = objectUrl;
+    selectedEntity.style.customLineTypeName = file.name;
+    selectedEntity.style.lineType = "custom";
+    selectedEntity.style.dashArray = "10 4 2 4";
+    setSelectValue("selectedEntityLineType", "custom");
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityHatch", (value) => {
+    selectedEntity.style.hatch = value;
+    selectedEntity.style.fillOpacity = getFillOpacityForHatch(value);
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityHatchScale", (value) => {
+    selectedEntity.style.hatchScale = Number(value);
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityHatchLineScale", (value) => {
+    selectedEntity.style.hatchLineScale = Number(value);
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityHatchRotation", (value) => {
+    selectedEntity.style.hatchRotation = Number(value);
+  });
+
+  bindObjectFileUpload(appState, layer, selectedEntity, "selectedEntityHatchUpload", (objectUrl, file) => {
+    selectedEntity.style.customHatchUrl = objectUrl;
+    selectedEntity.style.customHatchName = file.name;
+    selectedEntity.style.hatch = "custom";
+    setSelectValue("selectedEntityHatch", "custom");
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityColor", (value) => {
+    selectedEntity.style.color = value;
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityFill", (value) => {
+    selectedEntity.style.fillColor = value;
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityWeight", (value) => {
+    selectedEntity.style.weight = Number(value);
+  });
+
+  bindObjectRuleInput(appState, layer, selectedEntity, "selectedEntityOpacity", (value) => {
+    selectedEntity.style.opacity = Number(value);
+    selectedEntity.style.fillOpacity = getFillOpacityForHatch(selectedEntity.style.hatch || "solid-fill") * Number(value);
+  });
+}
+
+function bindMultiObjectRuleControls(appState, layer, selectedContexts) {
+  bindMultiSelectControl("multiEntityStyleMode", (entity, value) => {
+    if (value) {
+      entity.styleMode = value;
+    }
+  }, appState, layer, selectedContexts, false);
+
+  bindMultiSelectControl("multiEntitySymbol", (entity, value) => {
+    if (value && getVectorEntityCategory(entity) === "Point") {
+      entity.styleMode = "ByObject";
+      entity.style.symbol = value;
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiTextControl("multiEntityIconUrl", (entity, value) => {
+    if (value && getVectorEntityCategory(entity) === "Point") {
+      entity.styleMode = "ByObject";
+      entity.style.customIconUrl = value.trim();
+      entity.style.symbol = "custom-icon";
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiFileUpload("multiEntityIconUpload", (entity, objectUrl, file) => {
+    if (getVectorEntityCategory(entity) === "Point") {
+      entity.styleMode = "ByObject";
+      entity.style.customIconUrl = objectUrl;
+      entity.style.customIconName = file.name;
+      entity.style.symbol = "custom-icon";
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiSelectControl("multiEntityLineType", (entity, value) => {
+    const category = getVectorEntityCategory(entity);
+    if (value && (category === "Line" || category === "Polygon")) {
+      entity.styleMode = "ByObject";
+      entity.style.lineType = value;
+      entity.style.dashArray = getDashArrayForLineType(value);
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiSelectControl("multiEntityHatch", (entity, value) => {
+    if (value && getVectorEntityCategory(entity) === "Polygon") {
+      entity.styleMode = "ByObject";
+      entity.style.hatch = value;
+      entity.style.fillOpacity = getFillOpacityForHatch(value);
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityHatchScale", (entity, value) => {
+    if (getVectorEntityCategory(entity) === "Polygon") {
+      entity.styleMode = "ByObject";
+      entity.style.hatchScale = Number(value);
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityHatchLineScale", (entity, value) => {
+    if (getVectorEntityCategory(entity) === "Polygon") {
+      entity.styleMode = "ByObject";
+      entity.style.hatchLineScale = Number(value);
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityHatchRotation", (entity, value) => {
+    if (getVectorEntityCategory(entity) === "Polygon") {
+      entity.styleMode = "ByObject";
+      entity.style.hatchRotation = Number(value);
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityColor", (entity, value) => {
+    entity.styleMode = "ByObject";
+    entity.style.color = value;
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityFill", (entity, value) => {
+    const category = getVectorEntityCategory(entity);
+    if (category === "Point" || category === "Polygon") {
+      entity.styleMode = "ByObject";
+      entity.style.fillColor = value;
+    }
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityWeight", (entity, value) => {
+    entity.styleMode = "ByObject";
+    entity.style.weight = Number(value);
+  }, appState, layer, selectedContexts);
+
+  bindMultiInputControl("multiEntityOpacity", (entity, value) => {
+    entity.styleMode = "ByObject";
+    entity.style.opacity = Number(value);
+    entity.style.fillOpacity = getFillOpacityForHatch(entity.style.hatch || "solid-fill") * Number(value);
+  }, appState, layer, selectedContexts);
+}
+
+function getSelectedEntityContextsForLayer(appState, layer) {
+  if (!appState.selectedEntities || appState.selectedEntities.length === 0) {
+    return [];
+  }
+
+  return appState.selectedEntities
+    .filter((selected) => selected.layerId === layer.internalId)
+    .map((selected) => {
+      return {
+        layer,
+        entity: typeof findVectorEntity === "function"
+          ? findVectorEntity(layer, selected.entityId)
+          : null
+      };
+    })
+    .filter((context) => Boolean(context.entity));
+}
+
+function getCommonValue(contexts, getter) {
+  if (!contexts.length) {
+    return "";
+  }
+
+  const firstValue = getter(contexts[0]);
+
+  const allSame = contexts.every((context) => {
+    return getter(context) === firstValue;
+  });
+
+  return allSame ? firstValue : "";
+}
+
+function bindMultiInputControl(inputId, updateFunction, appState, layer, selectedContexts) {
+  const input = document.getElementById(inputId);
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("input", () => {
+    selectedContexts.forEach((context) => {
+      updateFunction(context.entity, input.value);
+      context.entity.properties.updatedAt = createGeoWorksTimestamp();
+    });
+
+    redrawVectorLayer(appState, layer);
+  });
+}
+
+function bindMultiTextControl(inputId, updateFunction, appState, layer, selectedContexts) {
+  const input = document.getElementById(inputId);
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("change", () => {
+    selectedContexts.forEach((context) => {
+      updateFunction(context.entity, input.value);
+      context.entity.properties.updatedAt = createGeoWorksTimestamp();
+    });
+
+    redrawVectorLayer(appState, layer);
+  });
+}
+
+function bindMultiSelectControl(inputId, updateFunction, appState, layer, selectedContexts, forceObjectMode = true) {
+  const select = document.getElementById(inputId);
+  if (!select) {
+    return;
+  }
+
+  select.addEventListener("change", () => {
+    selectedContexts.forEach((context) => {
+      if (forceObjectMode && select.value) {
+        context.entity.styleMode = "ByObject";
+      }
+
+      updateFunction(context.entity, select.value);
+      context.entity.properties.updatedAt = createGeoWorksTimestamp();
+    });
+
+    redrawVectorLayer(appState, layer);
+    refreshOpenStyleEditorForSelection(appState);
+  });
+}
+
+function bindMultiFileUpload(inputId, updateFunction, appState, layer, selectedContexts) {
+  const input = document.getElementById(inputId);
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+
+    selectedContexts.forEach((context) => {
+      updateFunction(context.entity, objectUrl, file);
+      context.entity.properties.updatedAt = createGeoWorksTimestamp();
+    });
+
+    redrawVectorLayer(appState, layer);
+    refreshOpenStyleEditorForSelection(appState);
+  });
+}
+
+
+
+
+function bindObjectRuleInput(appState, layer, entity, inputId, updateFunction) {
+  const input = document.getElementById(inputId);
+
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("input", () => {
+    entity.styleMode = "ByObject";
+
+    const modeSelect = document.getElementById("selectedEntityStyleMode");
+    const controls = document.getElementById("selectedObjectControls");
+
+    if (modeSelect) {
+      modeSelect.value = "ByObject";
+    }
+
+    if (controls) {
+      controls.classList.remove("disabled-controls");
+    }
+
+    updateFunction(input.value);
+    entity.properties.updatedAt = createGeoWorksTimestamp();
+
+    if (typeof redrawVectorLayer === "function") {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function refreshOpenStyleEditorForSelection(appState) {
+  const panel = document.getElementById("layerStyleEditor");
+
+  if (!panel || !appState.activeStyleLayerId) {
+    return;
+  }
+
+  const layer = findLayer(appState, appState.activeStyleLayerId);
+
+  if (!layer) {
+    closeLayerStyleEditor();
+    return;
+  }
+
+  const selectedContext = getSingleSelectedEntityContext(appState, layer);
+  renderObjectRuleSection(
+    appState,
+    layer,
+    selectedContext ? selectedContext.entity : null
+  );
+}
+
+function getSingleSelectedEntityContext(appState, preferredLayer = null) {
+  if (!appState.selectedEntities || appState.selectedEntities.length !== 1) {
+    return null;
+  }
+
+  const selected = appState.selectedEntities[0];
+
+  if (preferredLayer && selected.layerId !== preferredLayer.internalId) {
+    return null;
+  }
+
+  const layer = findLayer(appState, selected.layerId);
+  const entity = typeof findVectorEntity === "function"
+    ? findVectorEntity(layer, selected.entityId)
+    : null;
+
+  if (!layer || !entity) {
+    return null;
+  }
+
+  return {
+    layer,
+    entity
+  };
+}
+
+function createDefaultObjectStyle() {
+  return {
+    color: "#1f66d1",
+    fillColor: "#1f66d1",
+    weight: 3,
+    radius: 6,
+    fillOpacity: 0.18
+  };
+}
+
+function setSelectValue(id, value) {
+  const select = document.getElementById(id);
+  if (select) {
+    select.value = value;
+  }
+}
+
+function getDashArrayForLineType(lineType) {
+  const patterns = {
+    "solid": null,
+    "dash": "10 6",
+    "dot": "2 6",
+    "dash-dot": "10 5 2 5",
+    "center": "16 5 4 5",
+    "hidden": "6 4",
+    "phantom": "18 5 4 5 4 5",
+    "custom": "10 4 2 4"
+  };
+
+  return patterns[lineType] || null;
+}
+
+function getFillOpacityForHatch(hatch) {
+  if (hatch === "none") {
+    return 0;
+  }
+
+  if (hatch === "solid-fill") {
+    return 0.18;
+  }
+
+  return 1;
+}
+
+
+function bindFileUploadToStyle(appState, layer, inputId, updateFunction) {
+  const input = document.getElementById(inputId);
+
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    updateFunction(objectUrl, file);
+    layer.metadata.updatedAt = createGeoWorksTimestamp();
+
+    if (typeof redrawVectorLayer === "function") {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function bindObjectFileUpload(appState, layer, entity, inputId, updateFunction) {
+  const input = document.getElementById(inputId);
+
+  if (!input) {
+    return;
+  }
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    entity.styleMode = "ByObject";
+    const modeSelect = document.getElementById("selectedEntityStyleMode");
+    const controls = document.getElementById("selectedObjectControls");
+
+    if (modeSelect) {
+      modeSelect.value = "ByObject";
+    }
+
+    if (controls) {
+      controls.classList.remove("disabled-controls");
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    updateFunction(objectUrl, file);
+    entity.properties.updatedAt = createGeoWorksTimestamp();
+
+    if (typeof redrawVectorLayer === "function") {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+
+function bindLayerStyleInput(appState, layer, inputId, updateFunction) {
+  const input = document.getElementById(inputId);
+
+  input.addEventListener("input", () => {
+    updateFunction(input.value);
+    layer.metadata.updatedAt = createGeoWorksTimestamp();
+
+    if (typeof redrawVectorLayer === "function") {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function closeLayerStyleEditor() {
+  const existing = document.getElementById("layerStyleEditor");
+
+  if (existing) {
+    existing.remove();
+  }
+}
+
 
 function createLayerActions(appState, layer) {
   const actions = document.createElement("div");
@@ -1076,6 +2335,60 @@ function removeLayerRuntime(appState, layer) {
     appState.map.removeLayer(layer.runtime.leafletLayer);
   }
 }
+
+function createInitialLayerStyle(dataType) {
+  if (dataType !== "Vector") {
+    return {};
+  }
+
+  return {
+    default: {
+      color: "#1f66d1",
+      fillColor: "#1f66d1",
+      weight: 3,
+      radius: 6,
+      fillOpacity: 0.18,
+      opacity: 1,
+      lineType: "solid",
+      dashArray: null,
+      hatch: "solid-fill",
+      symbol: "circle"
+    },
+    byType: {
+      Point: {
+        color: "#1f66d1",
+        fillColor: "#1f66d1",
+        radius: 6,
+        weight: 2,
+        fillOpacity: 0.85,
+        opacity: 1,
+        symbol: "circle",
+        customIconUrl: ""
+      },
+      Line: {
+        color: "#1f66d1",
+        weight: 3,
+        fillOpacity: 0,
+        opacity: 1,
+        lineType: "solid",
+        dashArray: null,
+        customLineTypeUrl: ""
+      },
+      Polygon: {
+        color: "#1f66d1",
+        fillColor: "#1f66d1",
+        weight: 3,
+        fillOpacity: 0.18,
+        opacity: 1,
+        lineType: "solid",
+        dashArray: null,
+        hatch: "solid-fill",
+        customHatchUrl: ""
+      }
+    }
+  };
+}
+
 
 function createInitialLayerData(dataType) {
   if (dataType === "Vector") return { entities: [] };

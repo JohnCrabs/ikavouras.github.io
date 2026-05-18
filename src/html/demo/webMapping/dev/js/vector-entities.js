@@ -17,6 +17,10 @@ function initializeLayerRuntime(appState, layer) {
     layer.runtime.leafletLayer = L.layerGroup();
   }
 
+  if (!layer.style && typeof createInitialLayerStyle === "function") {
+    layer.style = createInitialLayerStyle("Vector");
+  }
+
   if (layer.state.visible && !appState.map.hasLayer(layer.runtime.leafletLayer)) {
     layer.runtime.leafletLayer.addTo(appState.map);
   }
@@ -57,6 +61,23 @@ function addVectorEntity(appState, layer, entity) {
   entity.properties.name = entity.properties.name || entity.entityType;
   entity.properties.createdAt = createGeoWorksTimestamp();
   entity.properties.updatedAt = createGeoWorksTimestamp();
+  entity.styleMode = "ByLayer";
+  entity.style = {
+    color: "#1f66d1",
+    fillColor: "#1f66d1",
+    weight: 3,
+    radius: 6,
+    fillOpacity: 0.18,
+    opacity: 1,
+    symbol: "circle",
+    lineType: "solid",
+    dashArray: null,
+    hatch: "solid-fill",
+    hatchScale: 12,
+    hatchLineScale: 1,
+    hatchRotation: 0,
+    customIconUrl: ""
+  };
   entity.state = {
     selected: false
   };
@@ -65,15 +86,21 @@ function addVectorEntity(appState, layer, entity) {
   layer.metadata.updatedAt = createGeoWorksTimestamp();
 
   renderVectorEntity(appState, layer, entity);
+
+  if (typeof renderLayerTree === "function") {
+    renderLayerTree(appState);
+  }
+
   return entity;
 }
+
 
 function renderVectorEntity(appState, layer, entity) {
   if (!layer.runtime || !layer.runtime.leafletLayer) {
     return;
   }
 
-  const leafletObject = createLeafletObjectForEntity(entity);
+  const leafletObject = createLeafletObjectForEntity(layer, entity);
 
   if (!leafletObject) {
     return;
@@ -99,15 +126,26 @@ function renderVectorEntity(appState, layer, entity) {
   });
 
   layer.runtime.leafletLayer.addLayer(leafletObject);
+  applyHatchToPolygon(appState, layer, entity);
 }
 
-function createLeafletObjectForEntity(entity) {
-  const style = getDefaultVectorStyle(entity);
+
+function createLeafletObjectForEntity(layer, entity) {
+  const style = getVectorEntityStyle(layer, entity);
 
   if (entity.entityType === "Point") {
-    return L.circleMarker(coordinateToLatLng(entity.geometry.coordinates), {
-      radius: 6,
-      ...style
+    if (style.symbol === "custom-icon" && style.customIconUrl) {
+      return L.marker(coordinateToLatLng(entity.geometry.coordinates), {
+        icon: L.icon({
+          iconUrl: style.customIconUrl,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      });
+    }
+
+    return L.marker(coordinateToLatLng(entity.geometry.coordinates), {
+      icon: createPointSymbolIcon(style)
     });
   }
 
@@ -133,15 +171,146 @@ function createLeafletObjectForEntity(entity) {
   return null;
 }
 
-function getDefaultVectorStyle(entity) {
-  const selected = entity.state && entity.state.selected;
+
+function getVectorEntityStyle(layer, entity) {
+  const category = typeof getVectorEntityCategory === "function"
+    ? getVectorEntityCategory(entity)
+    : getEntityCategoryLocal(entity);
+
+  const base = getStyleRuleForEntity(layer, entity, category);
+  const opacity = Number(base.opacity ?? 1);
+
+  const style = {
+    color: base.color || "#1f66d1",
+    weight: Number(base.weight || 3),
+    fillColor: base.fillColor || base.color || "#1f66d1",
+    opacity,
+    fillOpacity: Number(base.fillOpacity ?? (category === "Point" ? 0.85 : 0.18)) * opacity,
+    radius: Number(base.radius || 6),
+    symbol: base.symbol || "circle",
+    lineType: base.lineType || "solid",
+    dashArray: base.dashArray || (typeof getDashArrayForLineType === "function" ? getDashArrayForLineType(base.lineType || "solid") : null),
+    hatch: base.hatch || "solid-fill",
+    hatchScale: Number(base.hatchScale || 12),
+    hatchLineScale: Number(base.hatchLineScale || 1),
+    hatchRotation: Number(base.hatchRotation || 0),
+    customIconUrl: base.customIconUrl || ""
+  };
+
+  if (style.hatch === "none") {
+    style.fillOpacity = 0;
+  }
+
+  if (
+    category === "Polygon" &&
+    style.hatch &&
+    style.hatch !== "solid-fill" &&
+    style.hatch !== "none"
+  ) {
+    style.fillOpacity = Math.max(style.fillOpacity || 1, 0.1);
+  }
+
+  if (entity.state && entity.state.selected) {
+    style.color = "#ff9800";
+    style.weight = Math.max(style.weight + 1, 4);
+    style.fillColor = category === "Line" ? style.fillColor : "#ffcc80";
+  }
+
+  return style;
+}
+
+
+
+
+function createPointSymbolIcon(style) {
+  const color = style.color || "#1f66d1";
+  const fill = style.fillColor || color;
+  const symbol = style.symbol || "circle";
+  const opacity = Number(style.opacity ?? 1);
+  const html = `<span class="gw-point-symbol gw-symbol-${symbol}" style="--gw-symbol-color:${color}; --gw-symbol-fill:${fill}; opacity:${opacity};"></span>`;
+
+  return L.divIcon({
+    html,
+    className: "gw-point-symbol-icon",
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+}
+
+
+function getStyleRuleForEntity(layer, entity, category) {
+  if (!layer.style && typeof createInitialLayerStyle === "function") {
+    layer.style = createInitialLayerStyle("Vector");
+  }
+
+  const layerDefault = layer.style?.default || {
+    color: "#1f66d1",
+    fillColor: "#1f66d1",
+    weight: 3,
+    radius: 6,
+    opacity: 1,
+    fillOpacity: 0.18,
+    opacity: 1,
+    symbol: "circle",
+    lineType: "solid",
+    dashArray: null,
+    hatch: "solid-fill",
+    hatchScale: 12,
+    hatchLineScale: 1,
+    hatchRotation: 0
+  };
+
+  const typeRule = layer.style?.byType?.[category] || {};
+
+  if (entity.styleMode === "ByObject") {
+    return {
+      ...layerDefault,
+      ...typeRule,
+      ...(entity.style || {})
+    };
+  }
+
+  if (entity.styleMode === "ByType") {
+    return {
+      ...layerDefault,
+      ...typeRule
+    };
+  }
 
   return {
-    color: selected ? "#ff9800" : "#1f66d1",
-    weight: selected ? 4 : 3,
-    fillColor: selected ? "#ffcc80" : "#1f66d1",
-    fillOpacity: entity.entityType === "Point" ? 0.85 : 0.18
+    ...layerDefault,
+    symbol: typeRule.symbol || layerDefault.symbol,
+    customIconUrl: typeRule.customIconUrl || layerDefault.customIconUrl || "",
+    lineType: typeRule.lineType || layerDefault.lineType,
+    dashArray: typeRule.dashArray || layerDefault.dashArray || null,
+    hatch: typeRule.hatch || layerDefault.hatch,
+    hatchScale: typeRule.hatchScale || layerDefault.hatchScale || 12,
+    hatchLineScale: typeRule.hatchLineScale || layerDefault.hatchLineScale || 1,
+    hatchRotation: typeRule.hatchRotation || layerDefault.hatchRotation || 0,
+    customHatchUrl: typeRule.customHatchUrl || layerDefault.customHatchUrl || ""
   };
+}
+
+
+
+
+function getEntityCategoryLocal(entity) {
+  if (entity.entityType === "Point" || entity.geometry?.type === "Point") {
+    return "Point";
+  }
+
+  if (
+    entity.entityType === "Polygon" ||
+    entity.entityType === "Rectangle" ||
+    entity.entityType === "Square" ||
+    entity.entityType === "Circle" ||
+    entity.entityType === "ClosedPolyline" ||
+    entity.geometry?.type === "Polygon"
+  ) {
+    return "Polygon";
+  }
+
+  return "Line";
 }
 
 function selectVectorEntity(appState, layerId, entityId, subtractSelection = false) {
@@ -163,6 +332,10 @@ function selectVectorEntity(appState, layerId, entityId, subtractSelection = fal
 
   if (entity.state.selected && appState.selectedEntities.length === 1) {
     openVectorEntityPopup(appState, layer, entity);
+  }
+
+  if (typeof refreshOpenStyleEditorForSelection === "function") {
+    refreshOpenStyleEditorForSelection(appState);
   }
 }
 
@@ -218,9 +391,9 @@ function selectVectorEntitiesByBox(appState, selectionBounds, mode, subtractSele
     openVectorEntityPopup(appState, layer, entity);
   }
 
-  console.log(
-    `${subtractSelection ? "Box unselected" : "Box added"} ${matchedCount} object(s). Total selected: ${appState.selectedEntities.length}. Mode: ${mode}`
-  );
+  if (typeof refreshOpenStyleEditorForSelection === "function") {
+    refreshOpenStyleEditorForSelection(appState);
+  }
 }
 
 function rebuildSelectedEntityState(appState) {
@@ -328,6 +501,10 @@ function clearVectorSelection(appState) {
 
   appState.selectedEntity = null;
   appState.selectedEntities = [];
+
+  if (typeof refreshOpenStyleEditorForSelection === "function") {
+    refreshOpenStyleEditorForSelection(appState);
+  }
 }
 
 function deleteSelectedVectorEntity(appState) {
@@ -362,6 +539,14 @@ function deleteSelectedVectorEntity(appState) {
 
   appState.selectedEntity = null;
   appState.selectedEntities = [];
+
+  if (typeof refreshOpenStyleEditorForSelection === "function") {
+    refreshOpenStyleEditorForSelection(appState);
+  }
+
+  if (typeof renderLayerTree === "function") {
+    renderLayerTree(appState);
+  }
 }
 
 function redrawVectorLayer(appState, layer) {
@@ -386,13 +571,14 @@ function openVectorEntityPopup(appState, layer, entity) {
   }
 
   const content = document.createElement("div");
-  content.className = "vector-selected-popup";
+  content.className = "vector-selected-popup compact-popup";
 
   content.innerHTML = `
     <div class="vector-popup-title">${entity.properties.name}</div>
     <div class="vector-popup-row"><strong>Type:</strong> ${entity.entityType}</div>
     <div class="vector-popup-row"><strong>Layer:</strong> ${layer.name}</div>
     <div class="vector-popup-row"><strong>ID:</strong> ${entity.id}</div>
+    <div class="vector-popup-row"><strong>Rule:</strong> ${entity.styleMode || "ByLayer"}</div>
   `;
 
   const deleteButton = document.createElement("button");
@@ -408,6 +594,215 @@ function openVectorEntityPopup(appState, layer, entity) {
 
   entity.runtime.leafletObject.bindPopup(content).openPopup();
 }
+
+function applyHatchToPolygon(appState, layer, entity) {
+  const category = typeof getVectorEntityCategory === "function"
+    ? getVectorEntityCategory(entity)
+    : getEntityCategoryLocal(entity);
+
+  if (category !== "Polygon") {
+    return;
+  }
+
+  const leafletObject = entity.runtime && entity.runtime.leafletObject;
+  const path = leafletObject && leafletObject._path;
+
+  if (!path) {
+    return;
+  }
+
+  const style = getVectorEntityStyle(layer, entity);
+  const hatch = style.hatch || "solid-fill";
+
+  if (hatch === "solid-fill") {
+    path.setAttribute("fill", style.fillColor || style.color || "#1f66d1");
+    path.setAttribute("fill-opacity", String(style.fillOpacity ?? 0.18));
+    return;
+  }
+
+  if (hatch === "none") {
+    path.setAttribute("fill", style.fillColor || style.color || "#1f66d1");
+    path.setAttribute("fill-opacity", "0");
+    return;
+  }
+
+  try {
+    const patternId = ensureHatchPattern(appState, hatch, style);
+    path.setAttribute("fill", `url(#${patternId})`);
+    path.setAttribute("fill-opacity", "1");
+  } catch (error) {
+    console.warn("Could not apply hatch pattern.", error);
+    path.setAttribute("fill", style.fillColor || style.color || "#1f66d1");
+    path.setAttribute("fill-opacity", String(style.fillOpacity ?? 0.18));
+  }
+}
+
+function ensureHatchPattern(appState, hatch, style) {
+  const svg = appState.map.getPanes().overlayPane.querySelector("svg");
+
+  if (!svg) {
+    throw new Error("Leaflet SVG overlay is not ready.");
+  }
+
+  let defs = svg.querySelector("defs");
+
+  if (!defs) {
+    defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    svg.insertBefore(defs, svg.firstChild);
+  }
+
+  const scale = Math.max(4, Math.min(Number(style.hatchScale || 12), 64));
+  const lineScale = Math.max(0.5, Math.min(Number(style.hatchLineScale || 1), 6));
+  const rotation = Number(style.hatchRotation || 0);
+  const stroke = style.fillColor || style.color || "#1f66d1";
+  const opacity = Number(style.opacity ?? 1);
+  const safeStroke = stroke.replace("#", "");
+  const patternId = `gw-hatch-${hatch}-${safeStroke}-${scale}-${lineScale}-${rotation}-${Math.round(opacity * 100)}`;
+
+  let pattern = defs.querySelector(`#${CSS.escape(patternId)}`);
+
+  if (pattern) {
+    return patternId;
+  }
+
+  pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+  pattern.setAttribute("id", patternId);
+  pattern.setAttribute("patternUnits", "userSpaceOnUse");
+  pattern.setAttribute("width", String(scale));
+  pattern.setAttribute("height", String(scale));
+  pattern.setAttribute("patternTransform", `rotate(${rotation})`);
+
+  buildHatchPattern(pattern, hatch, scale, stroke, lineScale, opacity);
+  defs.appendChild(pattern);
+
+  return patternId;
+}
+
+
+function buildHatchPattern(pattern, hatch, scale, stroke, lineScale = 1, opacity = 1) {
+  const background = createSvgNode("rect", {
+    x: 0,
+    y: 0,
+    width: scale,
+    height: scale,
+    fill: "transparent"
+  });
+  pattern.appendChild(background);
+
+  const strokeWidth = Math.max(0.6, lineScale);
+
+  if (hatch === "dots") {
+    pattern.appendChild(createSvgNode("circle", {
+      cx: scale / 2,
+      cy: scale / 2,
+      r: Math.max(1.2, strokeWidth * 1.5),
+      fill: stroke,
+      opacity
+    }));
+    return;
+  }
+
+  const addLine = (x1, y1, x2, y2, extra = {}) => {
+    pattern.appendChild(createSvgNode("line", {
+      x1,
+      y1,
+      x2,
+      y2,
+      stroke,
+      opacity,
+      "stroke-width": strokeWidth,
+      "stroke-linecap": "square",
+      ...extra
+    }));
+  };
+
+  const addPolyline = (points) => {
+    pattern.appendChild(createSvgNode("polyline", {
+      points,
+      fill: "none",
+      stroke,
+      opacity,
+      "stroke-width": strokeWidth,
+      "stroke-linecap": "square",
+      "stroke-linejoin": "miter"
+    }));
+  };
+
+  if (hatch === "horizontal") {
+    addLine(0, scale / 2, scale, scale / 2);
+    return;
+  }
+
+  if (hatch === "vertical") {
+    addLine(scale / 2, 0, scale / 2, scale);
+    return;
+  }
+
+  if (hatch === "cross") {
+    addLine(0, scale / 2, scale, scale / 2);
+    addLine(scale / 2, 0, scale / 2, scale);
+    return;
+  }
+
+  if (hatch === "grid") {
+    addLine(0, 0, scale, 0);
+    addLine(0, 0, 0, scale);
+    addLine(0, scale / 2, scale, scale / 2);
+    addLine(scale / 2, 0, scale / 2, scale);
+    return;
+  }
+
+  if (hatch === "diagonal-back") {
+    addLine(0, 0, scale, scale);
+    return;
+  }
+
+  if (hatch === "double-diagonal") {
+    addLine(0, scale, scale, 0);
+    addLine(0, 0, scale, scale);
+    return;
+  }
+
+  if (hatch === "brick") {
+    addLine(0, 0, scale, 0);
+    addLine(0, scale / 2, scale, scale / 2);
+    addLine(0, 0, 0, scale / 2);
+    addLine(scale / 2, scale / 2, scale / 2, scale);
+    return;
+  }
+
+  if (hatch === "zigzag") {
+    addPolyline(`0,${scale} ${scale / 2},0 ${scale},${scale}`);
+    return;
+  }
+
+  if (hatch === "triangles") {
+    addPolyline(`0,${scale} ${scale / 2},0 ${scale},${scale} 0,${scale}`);
+    return;
+  }
+
+  if (hatch === "custom") {
+    addLine(0, scale, scale, 0);
+    addLine(0, 0, scale, scale);
+    addLine(0, scale / 2, scale, scale / 2);
+    return;
+  }
+
+  // ANSI31 diagonal fallback.
+  addLine(0, scale, scale, 0);
+}
+
+
+function createSvgNode(tagName, attributes) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tagName);
+
+  Object.entries(attributes).forEach(([key, value]) => {
+    node.setAttribute(key, String(value));
+  });
+
+  return node;
+}
+
 
 function findVectorEntity(layer, entityId) {
   if (!layer || !layer.data || !layer.data.entities) {
