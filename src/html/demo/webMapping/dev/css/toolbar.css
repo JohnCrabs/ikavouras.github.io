@@ -1,0 +1,344 @@
+.tool-sidebar {
+  grid-column: 1;
+  grid-row: 1;
+  background: #08295a;
+  color: var(--white);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  z-index: 5;
+}
+
+.toolbar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toolbar-header {
+  padding: 6px 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  margin-bottom: 2px;
+}
+
+.toolbar-title {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.toolbar-layer-label {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.toolbar-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tool-btn {
+  min-height: 62px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 28px auto;
+  justify-items: center;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.tool-btn:hover,
+.tool-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tool-btn:active {
+  transform: scale(0.98);
+}
+
+.tool-btn.disabled,
+.tool-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.tool-btn i {
+  font-size: 21px;
+}
+
+.tool-btn span {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.tool-separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 6px 8px;
+}
+
+.danger-tool i {
+  color: #ff8f8f;
+}
+
+.toolbar-hint,
+.toolbar-loading-state {
+  margin-top: 6px;
+  padding: 8px 6px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+@media (max-width: 680px) {
+  .tool-btn { min-height: 54px; }
+  .tool-btn span { font-size: 10px; }
+}
+
+
+/* ------------------------------------------------------------
+   Version 025 — Shapes menu
+------------------------------------------------------------ */
+
+.tool-menu-wrapper {
+  position: relative;
+}
+
+.tool-menu-main {
+  position: relative;
+}
+
+.tool-menu-caret {
+  margin-top: -4px;
+  font-size: 11px;
+  opacity: 0.78;
+}
+
+.tool-submenu {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  width: 184px;
+  padding: 8px;
+  border: 1px solid rgba(215, 222, 232, 0.85);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--text);
+  box-shadow: 0 12px 28px rgba(16, 32, 51, 0.26);
+  display: none;
+  z-index: 1200;
+}
+
+.tool-menu-wrapper.open .tool-submenu {
+  display: grid;
+  gap: 6px;
+}
+
+.tool-submenu-item {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tool-submenu-item:hover {
+  background: #f3f7fc;
+  border-color: var(--border);
+}
+
+.tool-submenu-item.active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.tool-submenu-item i {
+  text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   Version 026 — right-side Shapes menu over map
+------------------------------------------------------------ */
+
+.tool-menu-wrapper {
+  position: relative;
+  overflow: visible;
+}
+
+.tool-menu-main {
+  position: relative;
+}
+
+.tool-menu-main .tool-menu-caret {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  margin: 0;
+  transform: translateY(-50%);
+  font-size: 12px;
+  opacity: 0.86;
+}
+
+.tool-submenu {
+  position: fixed;
+  left: calc(var(--tool-sidebar-width, 96px) + 10px);
+  top: var(--tool-menu-top, 160px);
+  width: 190px;
+  padding: 8px;
+  border: 1px solid rgba(215, 222, 232, 0.90);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--text);
+  box-shadow: 0 12px 28px rgba(16, 32, 51, 0.26);
+  display: none;
+  z-index: 2500;
+}
+
+.tool-menu-wrapper.open .tool-submenu {
+  display: grid;
+  gap: 6px;
+}
+
+.tool-submenu-item {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tool-submenu-item:hover {
+  background: #f3f7fc;
+  border-color: var(--border);
+}
+
+.tool-submenu-item.active {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.tool-submenu-item i {
+  text-align: center;
+}
+
+
+/* ------------------------------------------------------------
+   Version 027 — Shapes arrow spacing refinement
+------------------------------------------------------------ */
+
+.tool-menu-main {
+  padding-right: 18px;
+}
+
+.tool-menu-main .tool-menu-caret {
+  right: 4px;
+}
+
+.tool-menu-main span {
+  padding-right: 8px;
+}
+
+
+/* ------------------------------------------------------------
+   Version 028 — equal toolbar button sizing
+------------------------------------------------------------ */
+
+.toolbar-tools > .tool-menu-wrapper {
+  width: 100%;
+}
+
+.tool-btn,
+.tool-menu-main {
+  width: 100%;
+}
+
+.tool-menu-main {
+  min-height: 62px;
+  padding-right: 20px;
+}
+
+.tool-menu-main .tool-menu-caret {
+  right: 7px;
+}
+
+.tool-menu-main span {
+  padding-right: 10px;
+}
+
+.tool-menu-wrapper .tool-btn {
+  box-sizing: border-box;
+}
+
+
+/* ------------------------------------------------------------
+   Version 029 — final Shapes button sizing repair
+------------------------------------------------------------ */
+
+.toolbar-tools > .tool-menu-wrapper {
+  width: 100%;
+}
+
+.toolbar-tools > .tool-menu-wrapper > .tool-btn,
+.toolbar-tools > .tool-menu-wrapper > .tool-menu-main {
+  width: 100%;
+  min-height: 62px;
+  box-sizing: border-box;
+}
+
+.tool-menu-main {
+  grid-template-columns: 1fr;
+  padding-left: 4px;
+  padding-right: 22px;
+}
+
+.tool-menu-main .tool-menu-caret {
+  right: 7px;
+}
+
+
+/* ------------------------------------------------------------
+   Version 031 — Pan tool
+------------------------------------------------------------ */
+
+.tool-btn[data-tool="pan"] i {
+  font-size: 20px;
+}

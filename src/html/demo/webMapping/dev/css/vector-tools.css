@@ -1,0 +1,14 @@
+.vector-selected-popup{min-width:190px}.vector-popup-title{font-weight:900;margin-bottom:6px}.vector-popup-row{font-size:12px;line-height:1.45}.vector-popup-delete{width:100%;height:30px;margin-top:8px;border:1px solid #fecaca;border-radius:7px;background:#fff1f2;color:#b91c1c;cursor:pointer;font-weight:900}.vector-popup-delete:hover{background:#ffe4e6}
+
+
+/* ------------------------------------------------------------
+   Version 030 — vector box selection
+------------------------------------------------------------ */
+
+.vector-selected-popup {
+  min-width: 190px;
+}
+
+.vector-box-selection-note {
+  font-size: 11px;
+}

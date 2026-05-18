@@ -22,6 +22,9 @@
   <link rel="stylesheet" href="css/basemap.css" />
   <link rel="stylesheet" href="css/scale.css" />
   <link rel="stylesheet" href="css/epsg.css" />
+  <link rel="stylesheet" href="css/layers.css" />
+  <link rel="stylesheet" href="css/toolbar.css" />
+  <link rel="stylesheet" href="css/vector-tools.css" />
 </head>
 
 <body>
@@ -74,59 +77,9 @@
 
     <main class="workspace">
       <aside class="tool-sidebar" aria-label="Editing tools">
-        <button class="tool-btn active" type="button" data-tool="select">
-          <i class="fa-solid fa-arrow-pointer"></i>
-          <span>Select</span>
-        </button>
-
-        <button class="tool-btn" type="button" data-tool="draw-point">
-          <i class="fa-solid fa-location-dot"></i>
-          <span>Point</span>
-        </button>
-
-        <button class="tool-btn" type="button" data-tool="draw-line">
-          <i class="fa-solid fa-route"></i>
-          <span>Line</span>
-        </button>
-
-        <button class="tool-btn" type="button" data-tool="draw-polygon">
-          <i class="fa-solid fa-draw-polygon"></i>
-          <span>Polygon</span>
-        </button>
-
-        <button class="tool-btn" type="button" data-tool="edit">
-          <i class="fa-solid fa-pen-to-square"></i>
-          <span>Edit</span>
-        </button>
-
-        <button class="tool-btn danger-tool" type="button" data-tool="delete">
-          <i class="fa-solid fa-trash-can"></i>
-          <span>Delete</span>
-        </button>
-
-        <div class="tool-separator"></div>
-
-        <button class="tool-btn" type="button" data-tool="measure-distance">
-          <i class="fa-solid fa-ruler-horizontal"></i>
-          <span>Distance</span>
-        </button>
-
-        <button class="tool-btn" type="button" data-tool="measure-area">
-          <i class="fa-regular fa-square"></i>
-          <span>Area</span>
-        </button>
-
-        <button class="tool-btn" type="button" data-tool="measure-volume">
-          <i class="fa-solid fa-cube"></i>
-          <span>Volume</span>
-        </button>
-
-        <div class="tool-separator"></div>
-
-        <button class="tool-btn simulation-tool" type="button" data-tool="simulation">
-          <i class="fa-solid fa-flask"></i>
-          <span>Scenario</span>
-        </button>
+        <div id="toolbarContainer" class="toolbar-container">
+          <div class="toolbar-loading-state">Loading tools...</div>
+        </div>
       </aside>
 
       <section class="map-workspace" aria-label="Map workspace">
@@ -210,13 +163,14 @@
         <section class="panel-content active" id="layersPanel">
           <div class="panel-section-title">Layers</div>
 
-          <div id="layerList" class="empty-panel-state">
-            <i class="fa-solid fa-layer-group"></i>
-            <h2>No layers yet</h2>
-            <p>
-              Layers will be inserted here later through reusable layer
-              components.
-            </p>
+          <div id="layerTree" class="layer-tree-panel" aria-label="Layer hierarchy">
+            <div class="empty-panel-state">
+              <i class="fa-solid fa-layer-group"></i>
+              <h2>No layers yet</h2>
+              <p>
+                Add layers or groups to start building a parent-child hierarchy.
+              </p>
+            </div>
           </div>
 
           <div class="panel-bottom-actions">
@@ -260,6 +214,10 @@
   <script src="js/basemap.js"></script>
   <script src="js/scale.js"></script>
   <script src="js/epsg.js"></script>
+  <script src="js/layers.js"></script>
+  <script src="js/toolbar.js"></script>
+  <script src="js/vector-entities.js"></script>
+  <script src="js/vector-tools.js"></script>
   <script src="js/map.js"></script>
 </body>
 </html>

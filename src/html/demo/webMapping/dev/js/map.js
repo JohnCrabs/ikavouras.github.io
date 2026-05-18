@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     activeBasemapKey: "osmStandard",
     activeBasemapLayer: null,
     activeEpsg: "EPSG:4326",
+    layers: [],
+    selectedLayerId: null,
+    activeLayerId: null,
     isScaleLocked: false,
     lockedZoom: null,
     requestedScale: null
@@ -13,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadBasemapMenu();
   await loadScaleMenu();
   await loadEpsgMenu();
+  await loadToolbar();
 
   setupHeaderActions();
   setupToolButtons(appState);
@@ -20,7 +24,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupBasemapSelector(appState);
   setupScaleMenu(appState);
   setupEpsgMenu(appState);
+  setupToolbar(appState);
+  setupLayerSystem(appState);
   initializeMap(appState);
+  setupVectorTools(appState);
 });
 
 function setupHeaderActions() {
