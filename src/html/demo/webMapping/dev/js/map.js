@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupToolbar(appState);
   setupLayerSystem(appState);
   initializeMap(appState);
+  setupSnapSystem(appState);
   setupVectorTools(appState);
 });
 

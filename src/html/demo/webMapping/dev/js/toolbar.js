@@ -98,6 +98,44 @@ const TOOL_SETS = {
       ]
     },
     {
+      id: "modify-menu",
+      label: "Modify",
+      icon: "fa-solid fa-screwdriver-wrench",
+      enabled: true,
+      menu: [
+        {
+          id: "modify-join",
+          label: "Join",
+          icon: "fa-solid fa-link",
+          action: "join-selected"
+        },
+        {
+          id: "modify-move",
+          label: "Move",
+          icon: "fa-solid fa-up-down-left-right",
+          enabled: false
+        },
+        {
+          id: "modify-copy",
+          label: "Copy",
+          icon: "fa-regular fa-copy",
+          enabled: false
+        },
+        {
+          id: "modify-trim",
+          label: "Trim",
+          icon: "fa-solid fa-scissors",
+          enabled: false
+        },
+        {
+          id: "modify-extend",
+          label: "Extend",
+          icon: "fa-solid fa-arrow-right-long",
+          enabled: false
+        }
+      ]
+    },
+    {
       separator: true
     },
     {
@@ -259,11 +297,22 @@ function createToolbarMenuButton(appState, tool, activeLayer) {
   const menu = document.createElement("div");
   menu.className = "tool-submenu";
 
+  if (tool.id === "modify-menu") {
+    wrapper.classList.add("modify-menu-wrapper");
+    menu.classList.add("modify-submenu");
+  }
+
   tool.menu.forEach((item) => {
     const itemButton = document.createElement("button");
     itemButton.className = "tool-submenu-item";
     itemButton.type = "button";
     itemButton.dataset.tool = item.id;
+
+    if (item.enabled === false) {
+      itemButton.disabled = true;
+      itemButton.classList.add("disabled");
+    }
+
     itemButton.innerHTML = `
       <i class="${item.icon}"></i>
       <span>${item.label}</span>
@@ -276,6 +325,20 @@ function createToolbarMenuButton(appState, tool, activeLayer) {
 
     itemButton.addEventListener("click", (event) => {
       event.stopPropagation();
+
+      if (itemButton.disabled) {
+        return;
+      }
+
+      if (item.action === "join-selected") {
+        if (typeof joinCurrentlySelectedEntities === "function") {
+          joinCurrentlySelectedEntities(appState);
+        }
+
+        closeToolbarMenus();
+        return;
+      }
+
       setToolbarTool(appState, item.id, itemButton, activeLayer);
       closeToolbarMenus();
     });
@@ -305,6 +368,7 @@ function createToolbarMenuButton(appState, tool, activeLayer) {
 
   return wrapper;
 }
+
 
 function setToolbarTool(appState, toolId, sourceButton, activeLayer) {
   appState.activeTool = toolId;
@@ -375,3 +439,5 @@ function getActiveLayer(appState) {
 
   return layer;
 }
+
+

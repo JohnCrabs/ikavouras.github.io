@@ -95,6 +95,130 @@ function addVectorEntity(appState, layer, entity) {
 }
 
 
+
+/* ------------------------------------------------------------
+   Version 055 — healed selection core
+   One source of truth: appState.selectedEntities[]
+------------------------------------------------------------ */
+
+function getSelectedEntityIdsForLayer(appState, layerId) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+
+  return appState.selectedEntities
+    .filter((selection) => selection.layerId === layerId)
+    .map((selection) => selection.entityId);
+}
+
+function isEntitySelected(appState, layerId, entityId) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncEntitySelectionStates(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isEntitySelected(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawLayersWithSelection(appState) {
+  const touchedLayerIds = new Set(
+    (appState.selectedEntities || []).map((selection) => selection.layerId)
+  );
+
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function refreshSelectionUi(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function selectOnlyVectorEntity(appState, layerId, entityId) {
+  appState.selectedEntities = [{ layerId, entityId }];
+  syncEntitySelectionStates(appState);
+  redrawLayersWithSelection(appState);
+  refreshSelectionUi(appState);
+}
+
+function addVectorEntityToSelection(appState, layerId, entityId) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+
+  if (!isEntitySelected(appState, layerId, entityId)) {
+    appState.selectedEntities.push({ layerId, entityId });
+  }
+
+  syncEntitySelectionStates(appState);
+  redrawLayersWithSelection(appState);
+  refreshSelectionUi(appState);
+}
+
+function removeVectorEntityFromSelection(appState, layerId, entityId) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  syncEntitySelectionStates(appState);
+  redrawLayersWithSelection(appState);
+  refreshSelectionUi(appState);
+}
+
+function toggleVectorEntityInSelection(appState, layerId, entityId) {
+  if (isEntitySelected(appState, layerId, entityId)) {
+    removeVectorEntityFromSelection(appState, layerId, entityId);
+  } else {
+    addVectorEntityToSelection(appState, layerId, entityId);
+  }
+}
+
+function clearAllVectorSelection(appState) {
+  appState.selectedEntities = [];
+  syncEntitySelectionStates(appState);
+  redrawLayersWithSelection(appState);
+  refreshSelectionUi(appState);
+}
+
 function renderVectorEntity(appState, layer, entity) {
   if (!layer.runtime || !layer.runtime.leafletLayer) {
     return;
@@ -111,23 +235,42 @@ function renderVectorEntity(appState, layer, entity) {
   };
 
   leafletObject.on("click", (event) => {
-    L.DomEvent.stopPropagation(event);
+    if (
+      typeof isVectorDrawingTool === "function" &&
+      isVectorDrawingTool(appState.activeTool)
+    ) {
+      if (event.originalEvent) {
+        event.originalEvent.preventDefault();
+        event.originalEvent.stopPropagation();
+      }
 
-    if (!canSelectVectorEntity(layer)) {
-      return;
+      L.DomEvent.stop(event);
+
+      const drawLatLng = typeof getSnappedLatLng === "function"
+        ? getSnappedLatLng(appState, event.latlng)
+        : event.latlng;
+
+      handleVectorMapClick(appState, drawLatLng);
     }
-
-    selectVectorEntity(
-      appState,
-      layer.internalId,
-      entity.id,
-      event.originalEvent && event.originalEvent.shiftKey
-    );
   });
 
   layer.runtime.leafletLayer.addLayer(leafletObject);
   applyHatchToPolygon(appState, layer, entity);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function createLeafletObjectForEntity(layer, entity) {
@@ -154,6 +297,13 @@ function createLeafletObjectForEntity(layer, entity) {
     entity.entityType === "Polyline" ||
     entity.entityType === "Arc"
   ) {
+    if (isEntityClosedShape(entity)) {
+      return L.polygon(
+        entity.geometry.coordinates.map(coordinateToLatLng),
+        style
+      );
+    }
+
     return L.polyline(
       entity.geometry.coordinates.map(coordinateToLatLng),
       style
@@ -162,6 +312,8 @@ function createLeafletObjectForEntity(layer, entity) {
 
   if (
     entity.entityType === "Polygon" ||
+    entity.entityType === "ClosedPolyline" ||
+    entity.entityType === "JoinedPolygon" ||
     entity.entityType === "Rectangle" ||
     entity.entityType === "Square" ||
     entity.entityType === "Circle" ||
@@ -180,6 +332,34 @@ function createLeafletObjectForEntity(layer, entity) {
 }
 
 
+
+
+
+function isEntityClosedShape(entity) {
+  if (!entity || !entity.geometry || !Array.isArray(entity.geometry.coordinates)) {
+    return false;
+  }
+
+  if (entity.geometry.type === "Polygon" || entity.entityType === "ClosedPolyline") {
+    return true;
+  }
+
+  const coordinates = entity.geometry.coordinates;
+
+  if (coordinates.length < 3) {
+    return false;
+  }
+
+  const first = coordinates[0];
+  const last = coordinates[coordinates.length - 1];
+
+  return Array.isArray(first) &&
+    Array.isArray(last) &&
+    first.length >= 2 &&
+    last.length >= 2 &&
+    Math.abs(first[0] - last[0]) < 1e-12 &&
+    Math.abs(first[1] - last[1]) < 1e-12;
+}
 
 function getVectorEntityStyle(layer, entity) {
   const category = typeof getVectorEntityCategory === "function"
@@ -349,6 +529,8 @@ function getEntityCategoryLocal(entity) {
 
   if (
     entity.entityType === "Polygon" ||
+    entity.entityType === "ClosedPolyline" ||
+    entity.entityType === "JoinedPolygon" ||
     entity.entityType === "Rectangle" ||
     entity.entityType === "Square" ||
     entity.entityType === "Circle" ||
@@ -356,8 +538,8 @@ function getEntityCategoryLocal(entity) {
     entity.entityType === "Triangle" ||
     entity.entityType === "Rhombus" ||
     entity.entityType === "RegularPolygon" ||
-    entity.entityType === "ClosedPolyline" ||
-    entity.geometry?.type === "Polygon"
+    entity.geometry?.type === "Polygon" ||
+    isEntityClosedShape(entity)
   ) {
     return "Polygon";
   }
@@ -366,31 +548,30 @@ function getEntityCategoryLocal(entity) {
 }
 
 
-function selectVectorEntity(appState, layerId, entityId, subtractSelection = false) {
-  const layer = findLayer(appState, layerId);
-  const entity = findVectorEntity(layer, entityId);
 
-  if (!layer || !entity) {
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
     return;
   }
 
-  if (subtractSelection) {
-    entity.state.selected = false;
-  } else {
-    entity.state.selected = true;
+  if (!append) {
+    appState.selectedEntities = [];
   }
 
-  rebuildSelectedEntityState(appState);
-  redrawVectorLayer(appState, layer);
-
-  if (entity.state.selected && appState.selectedEntities.length === 1) {
-    openVectorEntityPopup(appState, layer, entity);
-  }
-
-  if (typeof refreshOpenStyleEditorForSelection === "function") {
-    refreshOpenStyleEditorForSelection(appState);
-  }
+  addEntityToSelection(appState, layerId, entityId);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 function selectVectorEntitiesByBox(appState, selectionBounds, mode, subtractSelection = false) {
   const affectedLayers = new Set();
@@ -520,45 +701,17 @@ function getEntityBounds(entity) {
 }
 
 function clearVectorSelection(appState) {
-  const affectedLayers = new Set();
-
-  if (appState.selectedEntities && appState.selectedEntities.length > 0) {
-    appState.selectedEntities.forEach((item) => {
-      const layer = findLayer(appState, item.layerId);
-      const entity = findVectorEntity(layer, item.entityId);
-
-      if (entity && entity.state) {
-        entity.state.selected = false;
-      }
-
-      if (layer) {
-        affectedLayers.add(layer);
-      }
-    });
-  } else if (appState.selectedEntity) {
-    const layer = findLayer(appState, appState.selectedEntity.layerId);
-    const entity = findVectorEntity(layer, appState.selectedEntity.entityId);
-
-    if (entity && entity.state) {
-      entity.state.selected = false;
-    }
-
-    if (layer) {
-      affectedLayers.add(layer);
-    }
-  }
-
-  affectedLayers.forEach((layer) => {
-    redrawVectorLayer(appState, layer);
-  });
-
-  appState.selectedEntity = null;
   appState.selectedEntities = [];
-
-  if (typeof refreshOpenStyleEditorForSelection === "function") {
-    refreshOpenStyleEditorForSelection(appState);
-  }
+  commitSelection(appState);
 }
+
+
+
+
+
+
+
+
 
 function deleteSelectedVectorEntity(appState) {
   if (!appState.selectedEntities || appState.selectedEntities.length === 0) {
@@ -912,4 +1065,757 @@ function createCirclePolygonCoordinates(center, radiusPoint, segments = 64) {
   }
 
   return coordinates;
+}
+
+
+/* ------------------------------------------------------------
+   Version 054 — restored simple selection core
+------------------------------------------------------------ */
+
+function ensureSelectionState(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function entitySelectionExists(appState, layerId, entityId) {
+  ensureSelectionState(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncSelectionFlags(appState) {
+  ensureSelectionState(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = entitySelectionExists(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function refreshSelectionDrawing(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function addEntitySelection(appState, layerId, entityId) {
+  ensureSelectionState(appState);
+
+  if (!entitySelectionExists(appState, layerId, entityId)) {
+    appState.selectedEntities.push({
+      layerId,
+      entityId
+    });
+  }
+
+  syncSelectionFlags(appState);
+  refreshSelectionDrawing(appState);
+}
+
+function removeEntitySelection(appState, layerId, entityId) {
+  ensureSelectionState(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  syncSelectionFlags(appState);
+  refreshSelectionDrawing(appState);
+}
+
+function replaceEntitySelection(appState, layerId, entityId) {
+  appState.selectedEntities = [{
+    layerId,
+    entityId
+  }];
+
+  syncSelectionFlags(appState);
+  refreshSelectionDrawing(appState);
+}
+
+
+
+
+/* ------------------------------------------------------------
+   Version 054 — rewritten selection core
+------------------------------------------------------------ */
+
+function ensureSelectionArray(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function isSelectionEntry(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function setSelectionFlagForAllEntities(appState) {
+  ensureSelectionArray(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isSelectionEntry(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawAllVectorLayersForSelection(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function updateSelectionInterface(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function commitSelectionChange(appState) {
+  setSelectionFlagForAllEntities(appState);
+  redrawAllVectorLayersForSelection(appState);
+  updateSelectionInterface(appState);
+}
+
+function addEntityToSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  if (!isSelectionEntry(appState, layerId, entityId)) {
+    appState.selectedEntities.push({
+      layerId,
+      entityId
+    });
+  }
+
+  commitSelectionChange(appState);
+}
+
+function removeEntityFromSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  commitSelectionChange(appState);
+}
+
+function replaceSelectionWithEntity(appState, layerId, entityId) {
+  appState.selectedEntities = [{
+    layerId,
+    entityId
+  }];
+
+  commitSelectionChange(appState);
+}
+
+function clearVectorSelection(appState) {
+  appState.selectedEntities = [];
+  commitSelectionChange(appState);
+}
+
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
+    return;
+  }
+
+  if (append) {
+    addEntityToSelection(appState, layerId, entityId);
+    return;
+  }
+
+  replaceSelectionWithEntity(appState, layerId, entityId);
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 — map-hit selection state
+------------------------------------------------------------ */
+
+function ensureSelectionArray(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function isSelectionEntry(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncSelectionFlags(appState) {
+  ensureSelectionArray(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isSelectionEntry(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawSelectionLayers(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function updateSelectionUi(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function commitSelection(appState) {
+  syncSelectionFlags(appState);
+  redrawSelectionLayers(appState);
+  updateSelectionUi(appState);
+}
+
+function addEntityToSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  if (!isSelectionEntry(appState, layerId, entityId)) {
+    appState.selectedEntities.push({ layerId, entityId });
+  }
+
+  commitSelection(appState);
+}
+
+function removeEntityFromSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  commitSelection(appState);
+}
+
+function clearVectorSelection(appState) {
+  appState.selectedEntities = [];
+  commitSelection(appState);
+}
+
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
+    return;
+  }
+
+  if (!append) {
+    appState.selectedEntities = [];
+  }
+
+  addEntityToSelection(appState, layerId, entityId);
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 — left-click selection state
+------------------------------------------------------------ */
+
+function ensureSelectionArray(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function isSelectionEntry(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncSelectionFlags(appState) {
+  ensureSelectionArray(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isSelectionEntry(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawSelectionLayers(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function updateSelectionUi(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function commitSelection(appState) {
+  syncSelectionFlags(appState);
+  redrawSelectionLayers(appState);
+  updateSelectionUi(appState);
+}
+
+function addEntityToSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  if (!isSelectionEntry(appState, layerId, entityId)) {
+    appState.selectedEntities.push({
+      layerId,
+      entityId
+    });
+  }
+
+  commitSelection(appState);
+}
+
+function removeEntityFromSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  commitSelection(appState);
+}
+
+function clearVectorSelection(appState) {
+  appState.selectedEntities = [];
+  commitSelection(appState);
+}
+
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
+    return;
+  }
+
+  if (!append) {
+    appState.selectedEntities = [];
+  }
+
+  addEntityToSelection(appState, layerId, entityId);
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 — right-click-only selection state
+------------------------------------------------------------ */
+
+function ensureSelectionArray(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function isSelectionEntry(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncSelectionFlags(appState) {
+  ensureSelectionArray(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isSelectionEntry(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawSelectionLayers(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function updateSelectionUi(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function commitSelection(appState) {
+  syncSelectionFlags(appState);
+  redrawSelectionLayers(appState);
+  updateSelectionUi(appState);
+}
+
+function addEntityToSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  if (!isSelectionEntry(appState, layerId, entityId)) {
+    appState.selectedEntities.push({
+      layerId,
+      entityId
+    });
+  }
+
+  commitSelection(appState);
+}
+
+function removeEntityFromSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  commitSelection(appState);
+}
+
+function clearVectorSelection(appState) {
+  appState.selectedEntities = [];
+  commitSelection(appState);
+}
+
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
+    return;
+  }
+
+  if (!append) {
+    appState.selectedEntities = [];
+  }
+
+  addEntityToSelection(appState, layerId, entityId);
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 — selection state, right-button controlled only
+------------------------------------------------------------ */
+
+function ensureSelectionArray(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function isSelectionEntry(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncSelectionFlags(appState) {
+  ensureSelectionArray(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isSelectionEntry(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawSelectionLayers(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function updateSelectionUi(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function commitSelection(appState) {
+  syncSelectionFlags(appState);
+  redrawSelectionLayers(appState);
+  updateSelectionUi(appState);
+}
+
+function addEntityToSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  if (!isSelectionEntry(appState, layerId, entityId)) {
+    appState.selectedEntities.push({ layerId, entityId });
+  }
+
+  commitSelection(appState);
+}
+
+function removeEntityFromSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  commitSelection(appState);
+}
+
+function clearVectorSelection(appState) {
+  appState.selectedEntities = [];
+  commitSelection(appState);
+}
+
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
+    return;
+  }
+
+  if (!append) {
+    appState.selectedEntities = [];
+  }
+
+  addEntityToSelection(appState, layerId, entityId);
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 — right-pointer selection state
+------------------------------------------------------------ */
+
+function ensureSelectionArray(appState) {
+  if (!Array.isArray(appState.selectedEntities)) {
+    appState.selectedEntities = [];
+  }
+}
+
+function isSelectionEntry(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  return appState.selectedEntities.some((selection) => {
+    return selection.layerId === layerId && selection.entityId === entityId;
+  });
+}
+
+function syncSelectionFlags(appState) {
+  ensureSelectionArray(appState);
+
+  appState.layers.forEach((layer) => {
+    if (!layer.data || !Array.isArray(layer.data.entities)) {
+      return;
+    }
+
+    layer.data.entities.forEach((entity) => {
+      entity.state = entity.state || {};
+      entity.state.selected = isSelectionEntry(appState, layer.internalId, entity.id);
+    });
+  });
+
+  appState.selectedEntity = appState.selectedEntities.length === 1
+    ? appState.selectedEntities[0]
+    : null;
+}
+
+function redrawSelectionLayers(appState) {
+  appState.layers.forEach((layer) => {
+    if (
+      layer.layerKind === "AtomicLayer" &&
+      layer.dataType === "Vector" &&
+      layer.runtime &&
+      layer.runtime.leafletLayer
+    ) {
+      redrawVectorLayer(appState, layer);
+    }
+  });
+}
+
+function updateSelectionUi(appState) {
+  if (typeof updateSelectedFeaturesCount === "function") {
+    updateSelectedFeaturesCount(appState);
+  }
+
+  if (typeof renderObjectStyleEditor === "function") {
+    renderObjectStyleEditor(appState);
+  }
+}
+
+function commitSelection(appState) {
+  syncSelectionFlags(appState);
+  redrawSelectionLayers(appState);
+  updateSelectionUi(appState);
+}
+
+function addEntityToSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  if (!isSelectionEntry(appState, layerId, entityId)) {
+    appState.selectedEntities.push({
+      layerId,
+      entityId
+    });
+  }
+
+  commitSelection(appState);
+}
+
+function removeEntityFromSelection(appState, layerId, entityId) {
+  ensureSelectionArray(appState);
+
+  appState.selectedEntities = appState.selectedEntities.filter((selection) => {
+    return !(selection.layerId === layerId && selection.entityId === entityId);
+  });
+
+  commitSelection(appState);
+}
+
+function clearVectorSelection(appState) {
+  appState.selectedEntities = [];
+  commitSelection(appState);
+}
+
+function selectVectorEntity(appState, layerId, entityId, append = true, toggleOff = false) {
+  if (toggleOff) {
+    removeEntityFromSelection(appState, layerId, entityId);
+    return;
+  }
+
+  if (!append) {
+    appState.selectedEntities = [];
+  }
+
+  addEntityToSelection(appState, layerId, entityId);
 }

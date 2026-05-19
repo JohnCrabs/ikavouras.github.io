@@ -342,3 +342,78 @@
 .tool-btn[data-tool="pan"] i {
   font-size: 20px;
 }
+
+
+/* Version 054 — Join tool */
+.tool-button[data-tool="join"] i,
+#joinToolFallbackButton i {
+  color: #ffffff;
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 fixed — Modify menu
+------------------------------------------------------------ */
+
+#modifyToolButton {
+  position: relative;
+}
+
+#modifyToolButton .modify-menu-arrow {
+  margin-left: 6px;
+  font-size: 0.9em;
+}
+
+.modify-flyout-menu {
+  position: fixed;
+  z-index: 4200;
+  min-width: 260px;
+}
+
+.modify-option.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.modify-option i {
+  width: 22px;
+  text-align: center;
+}
+
+
+
+/* ------------------------------------------------------------
+   Version 054 recreated — real Modify toolbar menu
+------------------------------------------------------------ */
+
+.modify-menu-wrapper .tool-menu-main i {
+  color: #ffffff;
+}
+
+.modify-submenu .tool-submenu-item.disabled,
+.modify-submenu .tool-submenu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.modify-submenu .tool-submenu-item:disabled:hover {
+  background: transparent;
+}
+
+
+
+/* Version 055 — healed modify/selection UI */
+.modify-menu-wrapper .tool-menu-main i {
+  color: #ffffff;
+}
+
+.modify-submenu .tool-submenu-item.disabled,
+.modify-submenu .tool-submenu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.modify-submenu .tool-submenu-item:disabled:hover {
+  background: transparent;
+}

@@ -662,6 +662,8 @@ function getVectorEntityCategory(entity) {
 
   if (
     entity.entityType === "Polygon" ||
+    entity.entityType === "ClosedPolyline" ||
+    entity.entityType === "JoinedPolygon" ||
     entity.entityType === "Rectangle" ||
     entity.entityType === "Square" ||
     entity.entityType === "Circle" ||
@@ -669,14 +671,35 @@ function getVectorEntityCategory(entity) {
     entity.entityType === "Triangle" ||
     entity.entityType === "Rhombus" ||
     entity.entityType === "RegularPolygon" ||
-    entity.entityType === "ClosedPolyline" ||
-    entity.geometry?.type === "Polygon"
+    entity.geometry?.type === "Polygon" ||
+    isClosedLineLikeEntity(entity)
   ) {
     return "Polygon";
   }
 
   return "Line";
 }
+
+function isClosedLineLikeEntity(entity) {
+  if (!entity || !entity.geometry || !Array.isArray(entity.geometry.coordinates)) {
+    return false;
+  }
+
+  const coordinates = entity.geometry.coordinates;
+
+  if (coordinates.length < 3) {
+    return false;
+  }
+
+  const first = coordinates[0];
+  const last = coordinates[coordinates.length - 1];
+
+  return Array.isArray(first) &&
+    Array.isArray(last) &&
+    Math.abs(first[0] - last[0]) < 1e-12 &&
+    Math.abs(first[1] - last[1]) < 1e-12;
+}
+
 
 
 function openLayerStyleEditor(appState, layer) {
@@ -722,7 +745,7 @@ function openLayerStyleEditor(appState, layer) {
           <span>Fill</span>
           <div class="color-alpha-control">
             <input id="layerDefaultFill" type="color" value="${getColorHexPart(layer.style.default.fillColor)}" />
-            <input id="layerDefaultFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.default.fillColor, 1)}" />
+            <input id="layerDefaultFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.default.fillColor, 0)}" />
           </div>
         </label>
 
@@ -823,7 +846,7 @@ function openLayerStyleEditor(appState, layer) {
             <span>Fill Color</span>
             <div class="color-alpha-control">
             <input id="polygonFill" type="color" value="${getColorHexPart(layer.style.byType.Polygon.fillColor)}" />
-            <input id="polygonFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.byType.Polygon.fillColor, 1)}" />
+            <input id="polygonFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(layer.style.byType.Polygon.fillColor, 0)}" />
           </div>
           </label>
 
@@ -1167,7 +1190,7 @@ function renderSingleObjectRuleSection(appState, layer, selectedEntity) {
           <span>Fill</span>
           <div class="color-alpha-control">
           <input id="selectedEntityFill" type="color" value="${getColorHexPart(selectedEntity.style.fillColor)}" />
-          <input id="selectedEntityFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(selectedEntity.style.fillColor, 1)}" />
+          <input id="selectedEntityFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(selectedEntity.style.fillColor, 0)}" />
         </div>
         </label>
       ` : ""}
@@ -1302,7 +1325,7 @@ function renderMultiObjectRuleSection(appState, layer, selectedContexts) {
           <span>Fill</span>
           <div class="color-alpha-control">
           <input id="multiEntityFill" type="color" value="${getColorHexPart(commonFill || "#1f66d1")}" />
-          <input id="multiEntityFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(commonFill || "#1f66d1", 1)}" />
+          <input id="multiEntityFillAlpha" type="number" min="0" max="1" step="0.05" value="${getColorAlphaPart(commonFill || "#1f66d1", 0)}" />
         </div>
         </label>
       ` : ""}
@@ -1701,17 +1724,18 @@ function createDefaultObjectStyle() {
     weight: 3,
     radius: 6,
     opacity: 1,
-    fillOpacity: 1,
+    fillOpacity: 0,
     symbol: "circle",
     lineType: "solid",
     dashArray: null,
-    hatch: "solid-fill",
+    hatch: "none",
     hatchScale: 12,
     hatchLineScale: 1,
     hatchRotation: 0,
     customIconUrl: ""
   };
 }
+
 
 
 function setAlphaColorInput(colorInputId, alphaInputId, colorValue, defaultAlpha = 1) {
@@ -2475,10 +2499,10 @@ function createInitialLayerStyle(dataType) {
       weight: 3,
       radius: 6,
       opacity: 1,
-      fillOpacity: 1,
+      fillOpacity: 0,
       lineType: "solid",
       dashArray: null,
-      hatch: "solid-fill",
+      hatch: "none",
       hatchScale: 12,
       hatchLineScale: 1,
       hatchRotation: 0,
@@ -2509,10 +2533,10 @@ function createInitialLayerStyle(dataType) {
         fillColor: "#1f66d1",
         weight: 3,
         opacity: 1,
-        fillOpacity: 1,
+        fillOpacity: 0,
         lineType: "solid",
         dashArray: null,
-        hatch: "solid-fill",
+        hatch: "none",
         hatchScale: 12,
         hatchLineScale: 1,
         hatchRotation: 0,
@@ -2521,6 +2545,7 @@ function createInitialLayerStyle(dataType) {
     }
   };
 }
+
 
 
 

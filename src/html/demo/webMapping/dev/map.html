@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/layers.css" />
   <link rel="stylesheet" href="css/toolbar.css" />
   <link rel="stylesheet" href="css/vector-tools.css" />
+  <link rel="stylesheet" href="css/snap.css" />
 </head>
 
 <body>
@@ -142,10 +143,15 @@
             </div>
           </div>
 
-          <button class="map-chip toggle-chip active" type="button">
-            <span class="toggle-dot"></span>
-            <span>Snapping</span>
-          </button>
+          <div id="existingSnapControl" class="snap-chip-group snap-style-050" aria-label="Snapping controls">
+            <button id="snapToggleBtn" class="snap-main-btn active snap-chip-toggle" type="button" title="Snap is ON">
+              <i class="fa-solid fa-magnet"></i>
+              <span>Snap</span>
+            </button>
+            <button id="snapSettingsBtn" class="snap-settings-btn snap-chip-settings" type="button" title="Snap settings" aria-label="Snap settings">
+              <i class="fa-solid fa-gear"></i>
+            </button>
+          </div>
         </div>
 
         <div id="map" aria-label="Interactive map"></div>
@@ -217,6 +223,7 @@
   <script src="js/layers.js"></script>
   <script src="js/toolbar.js"></script>
   <script src="js/vector-entities.js"></script>
+  <script src="js/snap.js"></script>
   <script src="js/vector-tools.js"></script>
   <script src="js/map.js"></script>
 </body>
