@@ -18,5 +18,15 @@
         "links": [
             { "label": "Demo Map Tool", "url": "src/html/demo/webMapping/demo_map_tool.html" }
         ]
+  },
+  "euCOVID": {
+        "title": "EU Error Map",
+        "description": {
+          "en": "COVID-19 spatio-temporal evolution using deep learning at a European level.",
+          "gr": "Χωροχρονική εξέλιξη της COVID-19 με χρήση βαθιάς μάθησης σε ευρωπαϊκό επίπεδο."
+        },
+        "links": [
+            { "label": "EU Error Map", "url": "src/html/demo/euErrorMap/european_error_map_interactive.html" }
+        ]
   }
 }
