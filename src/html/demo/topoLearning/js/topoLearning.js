@@ -1,6 +1,8 @@
 const menuContainer = document.getElementById("menuContainer");
 const mainContent = document.getElementById("mainContent");
 
+let menuData = null;
+
 document.addEventListener("DOMContentLoaded", function () {
   loadMenu("data/menu.json");
 });
@@ -15,39 +17,51 @@ function loadMenu(menuPath) {
       return response.json();
     })
     .then(function (data) {
+      menuData = data;
       menuContainer.innerHTML = "";
 
       data.menu.forEach(function (item) {
-        menuContainer.appendChild(createMenuItem(item));
+        menuContainer.appendChild(createMenuItem(item, true));
       });
 
-      loadFirstAvailableContent(data.menu);
+      const firstItem = findFirstContentItem(data.menu);
+
+      if (firstItem) {
+        loadContent(firstItem);
+      }
     })
     .catch(function (error) {
       console.error(error);
-      showError("Το αρχείο του menu δεν μπόρεσε να φορτωθεί.");
+      showError("Το αρχείο menu δεν μπόρεσε να φορτωθεί.", menuPath);
     });
 }
 
-function createMenuItem(item) {
+function createMenuItem(item, isTopLevel) {
   const li = document.createElement("li");
 
-  if (item.children && item.children.length > 0) {
-    li.className = "nav-item dropdown";
+  const hasChildren = item.children && item.children.length > 0;
+
+  if (hasChildren) {
+    li.className = isTopLevel ? "nav-item dropdown" : "dropdown-submenu";
 
     const link = document.createElement("a");
-    link.className = "nav-link dropdown-toggle";
     link.href = "#";
-    link.setAttribute("role", "button");
-    link.setAttribute("data-bs-toggle", "dropdown");
-    link.setAttribute("aria-expanded", "false");
     link.textContent = item.title;
+
+    if (isTopLevel) {
+      link.className = "nav-link dropdown-toggle";
+      link.setAttribute("data-bs-toggle", "dropdown");
+      link.setAttribute("role", "button");
+      link.setAttribute("aria-expanded", "false");
+    } else {
+      link.className = "dropdown-item dropdown-toggle";
+    }
 
     const submenu = document.createElement("ul");
     submenu.className = "dropdown-menu";
 
     item.children.forEach(function (child) {
-      submenu.appendChild(createSubMenuItem(child));
+      submenu.appendChild(createMenuItem(child, false));
     });
 
     li.appendChild(link);
@@ -56,51 +70,12 @@ function createMenuItem(item) {
     return li;
   }
 
-  li.className = "nav-item";
+  li.className = isTopLevel ? "nav-item" : "";
 
   const link = document.createElement("a");
-  link.className = "nav-link";
   link.href = "#";
   link.textContent = item.title;
-
-  link.addEventListener("click", function (event) {
-    event.preventDefault();
-    loadContent(item);
-  });
-
-  li.appendChild(link);
-
-  return li;
-}
-
-function createSubMenuItem(item) {
-  const li = document.createElement("li");
-
-  if (item.children && item.children.length > 0) {
-    li.className = "dropend";
-
-    const link = document.createElement("a");
-    link.className = "dropdown-item dropdown-toggle";
-    link.href = "#";
-    link.textContent = item.title;
-
-    const submenu = document.createElement("ul");
-    submenu.className = "dropdown-menu";
-
-    item.children.forEach(function (child) {
-      submenu.appendChild(createSubMenuItem(child));
-    });
-
-    li.appendChild(link);
-    li.appendChild(submenu);
-
-    return li;
-  }
-
-  const link = document.createElement("a");
-  link.className = "dropdown-item";
-  link.href = "#";
-  link.textContent = item.title;
+  link.className = isTopLevel ? "nav-link" : "dropdown-item";
 
   link.addEventListener("click", function (event) {
     event.preventDefault();
@@ -114,7 +89,7 @@ function createSubMenuItem(item) {
 
 function loadContent(item) {
   if (!item.contentPath || !item.type) {
-    showError("Το επιλεγμένο menu item δεν έχει ορισμένο contentPath ή type.");
+    showError("Το επιλεγμένο item δεν έχει contentPath ή type.", "");
     return;
   }
 
@@ -128,7 +103,7 @@ function loadContent(item) {
     return;
   }
 
-  showError("Μη υποστηριζόμενος τύπος περιεχομένου: " + item.type);
+  showError("Μη υποστηριζόμενος τύπος περιεχομένου: " + item.type, item.contentPath);
 }
 
 function loadHtmlContent(path) {
@@ -142,10 +117,16 @@ function loadHtmlContent(path) {
     })
     .then(function (html) {
       mainContent.innerHTML = html;
+
+      const homeLessonsList = document.getElementById("homeLessonsList");
+
+      if (homeLessonsList && menuData) {
+        renderHomeLessonsList(homeLessonsList);
+      }
     })
     .catch(function (error) {
       console.error(error);
-      showError("Το HTML περιεχόμενο δεν μπόρεσε να φορτωθεί.");
+      showError("Το HTML περιεχόμενο δεν μπόρεσε να φορτωθεί.", path);
     });
 }
 
@@ -167,7 +148,7 @@ function loadJsonContent(path) {
     })
     .catch(function (error) {
       console.error(error);
-      showError("Το JSON περιεχόμενο δεν μπόρεσε να φορτωθεί.");
+      showError("Το JSON περιεχόμενο δεν μπόρεσε να φορτωθεί.", path);
     });
 }
 
@@ -177,14 +158,14 @@ function renderJsonContent(data) {
   html += '<article class="tl-content-wrapper">';
 
   if (data.title) {
-    html += '<h1 class="tl-content-title">' + escapeHtml(data.title) + "</h1>";
+    html += '<h1>' + escapeHtml(data.title) + "</h1>";
   }
 
   if (data.subtitle) {
-    html += '<p class="lead tl-content-subtitle">' + escapeHtml(data.subtitle) + "</p>";
+    html += '<p class="lead text-muted">' + escapeHtml(data.subtitle) + "</p>";
   }
 
-  if (data.sections && Array.isArray(data.sections)) {
+  if (Array.isArray(data.sections)) {
     data.sections.forEach(function (section) {
       html += renderSection(section);
     });
@@ -204,7 +185,7 @@ function renderSection(section) {
       return "<p>" + escapeHtml(section.text) + "</p>";
 
     case "html":
-      return section.html;
+      return section.html || "";
 
     case "equation":
       return '<div class="tl-equation">$$' + section.text + "$$</div>";
@@ -237,10 +218,8 @@ function renderHeading(section) {
 }
 
 function renderCode(section) {
-  const language = section.language ? escapeHtml(section.language) : "text";
-
   return `
-    <pre class="tl-code"><code data-language="${language}">${escapeHtml(section.text)}</code></pre>
+    <pre class="tl-code"><code>${escapeHtml(section.text || "")}</code></pre>
   `;
 }
 
@@ -248,10 +227,10 @@ function renderImage(section) {
   let html = "";
 
   html += '<figure class="my-4">';
-  html += '<img class="tl-image" src="' + escapeAttribute(section.src) + '" alt="' + escapeAttribute(section.alt || "") + '">';
+  html += '<img class="img-fluid rounded" src="' + escapeAttribute(section.src) + '" alt="' + escapeAttribute(section.alt || "") + '">';
 
   if (section.caption) {
-    html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
+    html += '<figcaption class="text-muted small mt-2">' + escapeHtml(section.caption) + "</figcaption>";
   }
 
   html += "</figure>";
@@ -268,7 +247,7 @@ function renderVideo(section) {
   html += "</div>";
 
   if (section.caption) {
-    html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
+    html += '<figcaption class="text-muted small mt-2">' + escapeHtml(section.caption) + "</figcaption>";
   }
 
   html += "</figure>";
@@ -277,6 +256,10 @@ function renderVideo(section) {
 }
 
 function renderList(section) {
+  if (!Array.isArray(section.items)) {
+    return "";
+  }
+
   let html = "<ul>";
 
   section.items.forEach(function (item) {
@@ -294,17 +277,67 @@ function renderAlert(section) {
 
   return `
     <div class="alert alert-${style}" role="alert">
-      ${escapeHtml(section.text)}
+      ${escapeHtml(section.text || "")}
     </div>
   `;
 }
 
-function loadFirstAvailableContent(menuItems) {
-  const firstItem = findFirstContentItem(menuItems);
+function renderHomeLessonsList(container) {
+  const lessons = collectContentItems(menuData.menu).filter(function (item) {
+    return item.type === "json";
+  });
 
-  if (firstItem) {
-    loadContent(firstItem);
+  if (lessons.length === 0) {
+    container.innerHTML = '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
+    return;
   }
+
+  let html = '<div class="list-group">';
+
+  lessons.forEach(function (lesson) {
+    html += `
+      <a href="#" class="list-group-item list-group-item-action" data-home-content="${escapeAttribute(lesson.contentPath)}">
+        ${escapeHtml(lesson.title)}
+      </a>
+    `;
+  });
+
+  html += "</div>";
+
+  container.innerHTML = html;
+
+  const links = container.querySelectorAll("[data-home-content]");
+
+  links.forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      const path = link.getAttribute("data-home-content");
+      const lesson = lessons.find(function (item) {
+        return item.contentPath === path;
+      });
+
+      if (lesson) {
+        loadContent(lesson);
+      }
+    });
+  });
+}
+
+function collectContentItems(items) {
+  let result = [];
+
+  items.forEach(function (item) {
+    if (item.contentPath && item.type) {
+      result.push(item);
+    }
+
+    if (item.children) {
+      result = result.concat(collectContentItems(item.children));
+    }
+  });
+
+  return result;
 }
 
 function findFirstContentItem(items) {
@@ -327,11 +360,12 @@ function findFirstContentItem(items) {
   return null;
 }
 
-function showError(message) {
+function showError(message, path) {
   mainContent.innerHTML = `
     <div class="container py-5">
       <div class="alert alert-danger" role="alert">
-        ${escapeHtml(message)}
+        <p class="mb-1">${escapeHtml(message)}</p>
+        ${path ? '<small>Path: <code>' + escapeHtml(path) + '</code></small>' : ""}
       </div>
     </div>
   `;
