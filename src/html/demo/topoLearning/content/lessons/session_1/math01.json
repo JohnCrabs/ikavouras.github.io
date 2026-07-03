@@ -22,7 +22,7 @@
     {
       "type": "code",
       "language": "js",
-      "text": "const dx = x2 - x1;\\nconst dy = y2 - y1;\\nconst distance = Math.sqrt(dx * dx + dy * dy);"
+      "text": "const dx = x2 - x1;\nconst dy = y2 - y1;\nconst distance = Math.sqrt(dx * dx + dy * dy);"
     },
     {
       "type": "image",

@@ -9,17 +9,42 @@
       "title": "Μαθήματα",
       "children": [
         {
-          "title": "Επίπεδο 1: Μαθηματικά",
+          "title": "Μάθημα 1: Βασικά Μαθηματικά Μηχανικών",
           "children": [
             {
-              "title": "Μάθημα 1: Γεωμετρία Χώρου",
+              "title": "Ενότητα 1: Η Γεωμετρία του Χώρου",
               "type": "json",
-              "contentPath": "content/lesson-01.json"
+              "contentPath": "content/lessons/session_1/math01.json"
             },
             {
-              "title": "Μάθημα 2: Συντεταγμένες",
+              "title": "Ενότητα 2: Σημεία",
               "type": "json",
-              "contentPath": "content/lesson-02.json"
+              "contentPath": "content/lessons/session_1/math02.json"
+            },
+            {
+              "title": "Ενότητα 3: Ευθείες",
+              "type": "json",
+              "contentPath": "content/lessons/session_1/math03.json"
+            },
+            {
+              "title": "Ενότητα 4: Επίπεδα",
+              "type": "json",
+              "contentPath": "content/lessons/session_1/math04.json"
+            },
+            {
+              "title": "Ενότητα 5: Αποστάσεις",
+              "type": "json",
+              "contentPath": "content/lessons/session_1/math05.json"
+            },
+            {
+              "title": "Ενότητα 6: Γωνίες",
+              "type": "json",
+              "contentPath": "content/lessons/session_1/math06.json"
+            },
+            {
+              "title": "Ενότητα 7: Τριγωνομετρικοί Αριθμοί",
+              "type": "json",
+              "contentPath": "content/lessons/session_1/math07.json"
             }
           ]
         }

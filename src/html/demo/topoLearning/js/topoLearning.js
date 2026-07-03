@@ -29,12 +29,12 @@ function loadMenu(menuPath) {
       return response.json();
     })
     .then(function (data) {
-      menuData = data;
-      menuContainer.innerHTML = "";
-
       if (!Array.isArray(data.menu)) {
         throw new Error("Invalid menu.json: missing 'menu' array.");
       }
+
+      menuData = data;
+      menuContainer.innerHTML = "";
 
       data.menu.forEach(function (item) {
         menuContainer.appendChild(createMenuItem(item, true));
@@ -114,7 +114,10 @@ function loadContent(item) {
     return;
   }
 
-  showError("Μη υποστηριζόμενος τύπος περιεχομένου: " + item.type, item.contentPath);
+  showError(
+    "Μη υποστηριζόμενος τύπος περιεχομένου: " + item.type,
+    item.contentPath
+  );
 }
 
 function loadHtmlContent(path) {
@@ -127,6 +130,7 @@ function loadHtmlContent(path) {
       return response.text();
     })
     .then(function (html) {
+      removeDynamicScripts();
       mainContent.innerHTML = html;
       renderHomeLessonsListIfAvailable();
     })
@@ -146,11 +150,15 @@ function loadJsonContent(path) {
       return response.json();
     })
     .then(function (data) {
+      removeDynamicScripts();
+
       mainContent.innerHTML = renderJsonContent(data);
 
-      if (window.MathJax && window.MathJax.typesetPromise) {
+      if (window.MathJax) {
         MathJax.typesetPromise();
       }
+
+      loadJsonScriptPaths(data);
     })
     .catch(function (error) {
       console.error(error);
@@ -168,7 +176,10 @@ function renderJsonContent(data) {
   }
 
   if (data.subtitle) {
-    html += '<p class="lead tl-content-subtitle">' + escapeHtml(data.subtitle) + "</p>";
+    html +=
+      '<p class="lead tl-content-subtitle">' +
+      escapeHtml(data.subtitle) +
+      "</p>";
   }
 
   if (Array.isArray(data.sections)) {
@@ -192,6 +203,9 @@ function renderSection(section) {
 
     case "html":
       return section.html || "";
+
+    case "interactive":
+      return renderInteractive(section);
 
     case "equation":
       return '<div class="tl-equation">$$' + (section.text || "") + "$$</div>";
@@ -220,18 +234,43 @@ function renderHeading(section) {
   const level = section.level || 2;
   const safeLevel = Math.min(Math.max(level, 2), 6);
 
-  return "<h" + safeLevel + ">" + escapeHtml(section.text || "") + "</h" + safeLevel + ">";
+  return (
+    "<h" +
+    safeLevel +
+    ">" +
+    escapeHtml(section.text || "") +
+    "</h" +
+    safeLevel +
+    ">"
+  );
 }
 
 function renderCode(section) {
-  return '<pre class="tl-code"><code>' + escapeHtml(section.text || "") + "</code></pre>";
+  return (
+    '<pre class="tl-code"><code>' +
+    escapeHtml(section.text || "") +
+    "</code></pre>"
+  );
+}
+
+function renderInteractive(section) {
+  if (!section.html) {
+    return "";
+  }
+
+  return section.html;
 }
 
 function renderImage(section) {
   let html = "";
 
   html += '<figure class="my-4">';
-  html += '<img class="img-fluid rounded tl-image" src="' + escapeAttribute(section.src || "") + '" alt="' + escapeAttribute(section.alt || "") + '">';
+  html +=
+    '<img class="img-fluid rounded tl-image" src="' +
+    escapeAttribute(section.src || "") +
+    '" alt="' +
+    escapeAttribute(section.alt || "") +
+    '">';
 
   if (section.caption) {
     html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
@@ -247,7 +286,10 @@ function renderVideo(section) {
 
   html += '<figure class="my-4">';
   html += '<div class="ratio ratio-16x9">';
-  html += '<iframe src="' + escapeAttribute(section.src || "") + '" allowfullscreen></iframe>';
+  html +=
+    '<iframe src="' +
+    escapeAttribute(section.src || "") +
+    '" allowfullscreen></iframe>';
   html += "</div>";
 
   if (section.caption) {
@@ -276,10 +318,115 @@ function renderList(section) {
 }
 
 function renderAlert(section) {
-  const allowedStyles = ["primary", "secondary", "success", "danger", "warning", "info"];
+  const allowedStyles = [
+    "primary",
+    "secondary",
+    "success",
+    "danger",
+    "warning",
+    "info"
+  ];
+
   const style = allowedStyles.includes(section.style) ? section.style : "info";
 
-  return '<div class="alert alert-' + style + '" role="alert">' + escapeHtml(section.text || "") + "</div>";
+  return (
+    '<div class="alert alert-' +
+    style +
+    '" role="alert">' +
+    escapeHtml(section.text || "") +
+    "</div>"
+  );
+}
+
+function loadJsonScriptPaths(data) {
+  if (!data.sections || !Array.isArray(data.sections)) {
+    return;
+  }
+
+  const scriptPaths = collectScriptPaths(data.sections);
+
+  if (scriptPaths.length === 0) {
+    return;
+  }
+
+  loadScriptsSequentially(scriptPaths).catch(function (error) {
+    console.error(error);
+  });
+}
+
+function collectScriptPaths(sections) {
+  const scriptPaths = [];
+
+  sections.forEach(function (section) {
+    if (section.scriptPath) {
+      scriptPaths.push(section.scriptPath);
+    }
+
+    if (Array.isArray(section.scriptPaths)) {
+      section.scriptPaths.forEach(function (scriptPath) {
+        scriptPaths.push(scriptPath);
+      });
+    }
+
+    if (Array.isArray(section.sections)) {
+      const nestedScriptPaths = collectScriptPaths(section.sections);
+
+      nestedScriptPaths.forEach(function (scriptPath) {
+        scriptPaths.push(scriptPath);
+      });
+    }
+  });
+
+  return scriptPaths;
+}
+
+function loadScriptsSequentially(scriptPaths) {
+  let chain = Promise.resolve();
+
+  scriptPaths.forEach(function (scriptPath) {
+    chain = chain.then(function () {
+      return loadExternalScript(scriptPath);
+    });
+  });
+
+  return chain;
+}
+
+function loadExternalScript(scriptPath) {
+  return new Promise(function (resolve, reject) {
+    const existingScript = document.querySelector(
+      'script[data-dynamic-script="' + cssEscape(scriptPath) + '"]'
+    );
+
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const script = document.createElement("script");
+    script.src = scriptPath;
+    script.setAttribute("data-dynamic-script", scriptPath);
+
+    script.onload = function () {
+      console.log("Loaded dynamic script:", scriptPath);
+      resolve();
+    };
+
+    script.onerror = function () {
+      const error = new Error("Could not load dynamic script: " + scriptPath);
+      showError("Το JavaScript αρχείο δεν μπόρεσε να φορτωθεί.", scriptPath);
+      reject(error);
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+function removeDynamicScripts() {
+  const scripts = document.querySelectorAll("script[data-dynamic-script]");
+
+  scripts.forEach(function (script) {
+    script.remove();
+  });
 }
 
 function renderHomeLessonsListIfAvailable() {
@@ -296,14 +443,16 @@ function renderHomeLessonsList(container) {
   });
 
   if (lessons.length === 0) {
-    container.innerHTML = '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
+    container.innerHTML =
+      '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
     return;
   }
 
   let html = '<div class="list-group">';
 
   lessons.forEach(function (lesson) {
-    html += '<a href="#" class="list-group-item list-group-item-action" data-home-content="' +
+    html +=
+      '<a href="#" class="list-group-item list-group-item-action" data-home-content="' +
       escapeAttribute(lesson.contentPath) +
       '">' +
       escapeHtml(lesson.title || "Untitled") +
@@ -321,6 +470,7 @@ function renderHomeLessonsList(container) {
       event.preventDefault();
 
       const path = link.getAttribute("data-home-content");
+
       const lesson = lessons.find(function (item) {
         return item.contentPath === path;
       });
@@ -356,11 +506,15 @@ function showError(message, path) {
 
   mainContent.innerHTML =
     '<div class="container py-5">' +
-      '<div class="alert alert-danger" role="alert">' +
-        '<p class="mb-1">' + escapeHtml(message) + '</p>' +
-        (path ? '<small>Path: <code>' + escapeHtml(path) + '</code></small>' : "") +
-      '</div>' +
-    '</div>';
+    '<div class="alert alert-danger" role="alert">' +
+    '<p class="mb-1">' +
+    escapeHtml(message) +
+    "</p>" +
+    (path
+      ? '<small>Path: <code>' + escapeHtml(path) + "</code></small>"
+      : "") +
+    "</div>" +
+    "</div>";
 }
 
 function escapeHtml(value) {
@@ -374,4 +528,12 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value);
+}
+
+function cssEscape(value) {
+  if (window.CSS && typeof window.CSS.escape === "function") {
+    return window.CSS.escape(value);
+  }
+
+  return String(value).replace(/"/g, '\\"');
 }
