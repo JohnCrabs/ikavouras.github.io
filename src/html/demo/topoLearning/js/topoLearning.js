@@ -1,9 +1,21 @@
-const menuContainer = document.getElementById("menuContainer");
-const mainContent = document.getElementById("mainContent");
-
+let menuContainer = null;
+let mainContent = null;
 let menuData = null;
 
 document.addEventListener("DOMContentLoaded", function () {
+  menuContainer = document.getElementById("menuContainer");
+  mainContent = document.getElementById("mainContent");
+
+  if (!menuContainer) {
+    console.error("Missing required element: #menuContainer");
+    return;
+  }
+
+  if (!mainContent) {
+    console.error("Missing required element: #mainContent");
+    return;
+  }
+
   loadMenu("data/menu.json");
 });
 
@@ -20,15 +32,15 @@ function loadMenu(menuPath) {
       menuData = data;
       menuContainer.innerHTML = "";
 
+      if (!Array.isArray(data.menu)) {
+        throw new Error("Invalid menu.json: missing 'menu' array.");
+      }
+
       data.menu.forEach(function (item) {
         menuContainer.appendChild(createMenuItem(item, true));
       });
 
-      const firstItem = findFirstContentItem(data.menu);
-
-      if (firstItem) {
-        loadContent(firstItem);
-      }
+      renderHomeLessonsListIfAvailable();
     })
     .catch(function (error) {
       console.error(error);
@@ -38,15 +50,14 @@ function loadMenu(menuPath) {
 
 function createMenuItem(item, isTopLevel) {
   const li = document.createElement("li");
-
-  const hasChildren = item.children && item.children.length > 0;
+  const hasChildren = Array.isArray(item.children) && item.children.length > 0;
 
   if (hasChildren) {
     li.className = isTopLevel ? "nav-item dropdown" : "dropdown-submenu";
 
     const link = document.createElement("a");
     link.href = "#";
-    link.textContent = item.title;
+    link.textContent = item.title || "Untitled";
 
     if (isTopLevel) {
       link.className = "nav-link dropdown-toggle";
@@ -74,7 +85,7 @@ function createMenuItem(item, isTopLevel) {
 
   const link = document.createElement("a");
   link.href = "#";
-  link.textContent = item.title;
+  link.textContent = item.title || "Untitled";
   link.className = isTopLevel ? "nav-link" : "dropdown-item";
 
   link.addEventListener("click", function (event) {
@@ -88,7 +99,7 @@ function createMenuItem(item, isTopLevel) {
 }
 
 function loadContent(item) {
-  if (!item.contentPath || !item.type) {
+  if (!item || !item.contentPath || !item.type) {
     showError("Το επιλεγμένο item δεν έχει contentPath ή type.", "");
     return;
   }
@@ -117,12 +128,7 @@ function loadHtmlContent(path) {
     })
     .then(function (html) {
       mainContent.innerHTML = html;
-
-      const homeLessonsList = document.getElementById("homeLessonsList");
-
-      if (homeLessonsList && menuData) {
-        renderHomeLessonsList(homeLessonsList);
-      }
+      renderHomeLessonsListIfAvailable();
     })
     .catch(function (error) {
       console.error(error);
@@ -142,7 +148,7 @@ function loadJsonContent(path) {
     .then(function (data) {
       mainContent.innerHTML = renderJsonContent(data);
 
-      if (window.MathJax) {
+      if (window.MathJax && window.MathJax.typesetPromise) {
         MathJax.typesetPromise();
       }
     })
@@ -158,11 +164,11 @@ function renderJsonContent(data) {
   html += '<article class="tl-content-wrapper">';
 
   if (data.title) {
-    html += '<h1>' + escapeHtml(data.title) + "</h1>";
+    html += '<h1 class="tl-content-title">' + escapeHtml(data.title) + "</h1>";
   }
 
   if (data.subtitle) {
-    html += '<p class="lead text-muted">' + escapeHtml(data.subtitle) + "</p>";
+    html += '<p class="lead tl-content-subtitle">' + escapeHtml(data.subtitle) + "</p>";
   }
 
   if (Array.isArray(data.sections)) {
@@ -182,13 +188,13 @@ function renderSection(section) {
       return renderHeading(section);
 
     case "paragraph":
-      return "<p>" + escapeHtml(section.text) + "</p>";
+      return "<p>" + escapeHtml(section.text || "") + "</p>";
 
     case "html":
       return section.html || "";
 
     case "equation":
-      return '<div class="tl-equation">$$' + section.text + "$$</div>";
+      return '<div class="tl-equation">$$' + (section.text || "") + "$$</div>";
 
     case "code":
       return renderCode(section);
@@ -214,23 +220,21 @@ function renderHeading(section) {
   const level = section.level || 2;
   const safeLevel = Math.min(Math.max(level, 2), 6);
 
-  return "<h" + safeLevel + ">" + escapeHtml(section.text) + "</h" + safeLevel + ">";
+  return "<h" + safeLevel + ">" + escapeHtml(section.text || "") + "</h" + safeLevel + ">";
 }
 
 function renderCode(section) {
-  return `
-    <pre class="tl-code"><code>${escapeHtml(section.text || "")}</code></pre>
-  `;
+  return '<pre class="tl-code"><code>' + escapeHtml(section.text || "") + "</code></pre>";
 }
 
 function renderImage(section) {
   let html = "";
 
   html += '<figure class="my-4">';
-  html += '<img class="img-fluid rounded" src="' + escapeAttribute(section.src) + '" alt="' + escapeAttribute(section.alt || "") + '">';
+  html += '<img class="img-fluid rounded tl-image" src="' + escapeAttribute(section.src || "") + '" alt="' + escapeAttribute(section.alt || "") + '">';
 
   if (section.caption) {
-    html += '<figcaption class="text-muted small mt-2">' + escapeHtml(section.caption) + "</figcaption>";
+    html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
   }
 
   html += "</figure>";
@@ -243,11 +247,11 @@ function renderVideo(section) {
 
   html += '<figure class="my-4">';
   html += '<div class="ratio ratio-16x9">';
-  html += '<iframe src="' + escapeAttribute(section.src) + '" allowfullscreen></iframe>';
+  html += '<iframe src="' + escapeAttribute(section.src || "") + '" allowfullscreen></iframe>';
   html += "</div>";
 
   if (section.caption) {
-    html += '<figcaption class="text-muted small mt-2">' + escapeHtml(section.caption) + "</figcaption>";
+    html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
   }
 
   html += "</figure>";
@@ -275,11 +279,15 @@ function renderAlert(section) {
   const allowedStyles = ["primary", "secondary", "success", "danger", "warning", "info"];
   const style = allowedStyles.includes(section.style) ? section.style : "info";
 
-  return `
-    <div class="alert alert-${style}" role="alert">
-      ${escapeHtml(section.text || "")}
-    </div>
-  `;
+  return '<div class="alert alert-' + style + '" role="alert">' + escapeHtml(section.text || "") + "</div>";
+}
+
+function renderHomeLessonsListIfAvailable() {
+  const homeLessonsList = document.getElementById("homeLessonsList");
+
+  if (homeLessonsList && menuData) {
+    renderHomeLessonsList(homeLessonsList);
+  }
 }
 
 function renderHomeLessonsList(container) {
@@ -295,11 +303,11 @@ function renderHomeLessonsList(container) {
   let html = '<div class="list-group">';
 
   lessons.forEach(function (lesson) {
-    html += `
-      <a href="#" class="list-group-item list-group-item-action" data-home-content="${escapeAttribute(lesson.contentPath)}">
-        ${escapeHtml(lesson.title)}
-      </a>
-    `;
+    html += '<a href="#" class="list-group-item list-group-item-action" data-home-content="' +
+      escapeAttribute(lesson.contentPath) +
+      '">' +
+      escapeHtml(lesson.title || "Untitled") +
+      "</a>";
   });
 
   html += "</div>";
@@ -332,7 +340,7 @@ function collectContentItems(items) {
       result.push(item);
     }
 
-    if (item.children) {
+    if (Array.isArray(item.children)) {
       result = result.concat(collectContentItems(item.children));
     }
   });
@@ -340,35 +348,19 @@ function collectContentItems(items) {
   return result;
 }
 
-function findFirstContentItem(items) {
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-
-    if (item.contentPath && item.type) {
-      return item;
-    }
-
-    if (item.children) {
-      const found = findFirstContentItem(item.children);
-
-      if (found) {
-        return found;
-      }
-    }
+function showError(message, path) {
+  if (!mainContent) {
+    console.error(message, path || "");
+    return;
   }
 
-  return null;
-}
-
-function showError(message, path) {
-  mainContent.innerHTML = `
-    <div class="container py-5">
-      <div class="alert alert-danger" role="alert">
-        <p class="mb-1">${escapeHtml(message)}</p>
-        ${path ? '<small>Path: <code>' + escapeHtml(path) + '</code></small>' : ""}
-      </div>
-    </div>
-  `;
+  mainContent.innerHTML =
+    '<div class="container py-5">' +
+      '<div class="alert alert-danger" role="alert">' +
+        '<p class="mb-1">' + escapeHtml(message) + '</p>' +
+        (path ? '<small>Path: <code>' + escapeHtml(path) + '</code></small>' : "") +
+      '</div>' +
+    '</div>';
 }
 
 function escapeHtml(value) {

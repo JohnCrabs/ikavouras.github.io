@@ -59,3 +59,20 @@ body {
   color: #6c757d;
   margin-top: 0.5rem;
 }
+
+/* Bootstrap 5 does not natively handle deeper nested dropdowns. */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-top: -0.5rem;
+  margin-left: 0.1rem;
+}
+
+.dropdown-submenu:hover > .dropdown-menu {
+  display: block;
+}

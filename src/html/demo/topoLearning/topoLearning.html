@@ -34,52 +34,63 @@
 
   <!-- HEADER CONTAINER -->
   <header id="headerContainer">
-  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
-    <div class="container-fluid px-4">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+      <div class="container-fluid px-4">
 
-      <a class="navbar-brand fw-bold" href="#">
-        TopoLearning
-      </a>
+        <a class="navbar-brand fw-bold" href="#">
+          TopoLearning
+        </a>
 
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarMenu"
-        aria-controls="navbarMenu"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarMenu"
+          aria-controls="navbarMenu"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-      <div class="collapse navbar-collapse" id="navbarMenu">
-        <ul class="navbar-nav ms-4" id="menuContainer">
-          <!-- Navbar is generated from data/menu.json -->
-        </ul>
+        <div class="collapse navbar-collapse" id="navbarMenu">
+          <ul class="navbar-nav ms-4" id="menuContainer">
+            <!-- Navbar is generated from data/menu.json -->
+          </ul>
+        </div>
+
       </div>
-
-    </div>
-  </nav>
-</header>
+    </nav>
+  </header>
 
   <!-- CONTENT CONTAINER -->
-  <section class="container py-5">
-  <h1>Καλώς ήρθες στο TopoLearning</h1>
+  <main id="mainContent">
+    <section class="container py-5">
+      <h1>Καλώς ήρθες στο TopoLearning</h1>
 
-  <p class="lead">
-    Η ενότητα αυτή εισάγει τους φοιτητές στη γεωμετρία του χώρου
-    ως βάση για τη Γεωδαισία, την Τοπογραφία και τη Γεωπληροφορική.
-  </p>
+      <p class="lead">
+        Η ενότητα αυτή εισάγει τους φοιτητές στη γεωμετρία του χώρου
+        ως βάση για τη Γεωδαισία, την Τοπογραφία και τη Γεωπληροφορική.
+      </p>
 
-  <hr class="my-4">
+      <hr class="my-4">
 
-  <h2 class="h4 mb-3">Διαθέσιμα μαθήματα</h2>
+      <h2 class="h4 mb-3">Διαθέσιμα μαθήματα</h2>
 
-  <div id="homeLessonsList">
-    <!-- Η λίστα μαθημάτων δημιουργείται από το menu.json -->
-  </div>
-</section>
+      <div id="homeLessonsList">
+        <!-- Η λίστα μαθημάτων δημιουργείται από το menu.json -->
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER CONTAINER -->
+  <footer id="footerContainer" class="border-top">
+    <div class="container-fluid px-4 py-3">
+      <p class="mb-0 text-center text-muted">
+        © 2026 TopoLearning. All rights reserved.
+      </p>
+    </div>
+  </footer>
 
   <!-- Bootstrap JS -->
   <script
