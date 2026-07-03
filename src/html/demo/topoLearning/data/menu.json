@@ -1,0 +1,39 @@
+{
+  "menu": [
+    {
+      "title": "Αρχική",
+      "type": "html",
+      "contentPath": "content/intro.html"
+    },
+    {
+      "title": "Μαθήματα",
+      "children": [
+        {
+          "title": "Επίπεδο 1: Μαθηματικά",
+          "children": [
+            {
+              "title": "Μάθημα 1: Γεωμετρία Χώρου",
+              "type": "json",
+              "contentPath": "content/lesson-01.json"
+            },
+            {
+              "title": "Μάθημα 2: Συντεταγμένες",
+              "type": "json",
+              "contentPath": "content/lesson-02.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ασκήσεις",
+      "children": [
+        {
+          "title": "Βασικές Ασκήσεις",
+          "type": "html",
+          "contentPath": "content/exercises.html"
+        }
+      ]
+    }
+  ]
+}
