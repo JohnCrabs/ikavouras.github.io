@@ -22,14 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
   loadMenu("data/menu.json");
 });
 
-function loadHomeContent() {
-  removeDynamicScripts();
-
-  mainContent.innerHTML = initialHomeContent;
-
-  renderHomeLessonsListIfAvailable();
-}
-
 function loadMenu(menuPath) {
   fetch(menuPath)
     .then(function (response) {
@@ -50,6 +42,24 @@ function loadMenu(menuPath) {
       data.menu.forEach(function (item) {
         menuContainer.appendChild(createMenuItem(item, true));
       });
+
+      const hashPath = getContentPathFromHash();
+
+      if (hashPath) {
+        const selectedItem = findContentItemByPath(menuData.menu, hashPath);
+
+        if (selectedItem) {
+          loadContent(selectedItem, false);
+          return;
+        }
+      }
+
+      const homeItem = findHomeItem(menuData.menu);
+
+      if (homeItem) {
+        loadContent(homeItem, false);
+        return;
+      }
 
       renderHomeLessonsListIfAvailable();
     })
@@ -109,10 +119,28 @@ function createMenuItem(item, isTopLevel) {
   return li;
 }
 
-function loadContent(item) {
-  if (!item || !item.contentPath || !item.type) {
-    showError("Το επιλεγμένο item δεν έχει contentPath ή type.", "");
+function loadContent(item, updateHash = true) {
+  if (!item || !item.type) {
+    showError("Το επιλεγμένο item δεν έχει type.", "");
     return;
+  }
+
+  if (item.type === "home") {
+    if (updateHash) {
+      clearContentHash();
+    }
+
+    loadHomeContent();
+    return;
+  }
+
+  if (!item.contentPath) {
+    showError("Το επιλεγμένο item δεν έχει contentPath.", "");
+    return;
+  }
+
+  if (updateHash) {
+    setContentHash(item.contentPath);
   }
 
   if (item.type === "html") {
@@ -129,6 +157,14 @@ function loadContent(item) {
     "Μη υποστηριζόμενος τύπος περιεχομένου: " + item.type,
     item.contentPath
   );
+}
+
+function loadHomeContent() {
+  removeDynamicScripts();
+
+  mainContent.innerHTML = initialHomeContent;
+
+  renderHomeLessonsListIfAvailable();
 }
 
 function loadHtmlContent(path) {
@@ -284,7 +320,10 @@ function renderImage(section) {
     '">';
 
   if (section.caption) {
-    html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
+    html +=
+      '<figcaption class="tl-caption">' +
+      escapeHtml(section.caption) +
+      "</figcaption>";
   }
 
   html += "</figure>";
@@ -304,7 +343,10 @@ function renderVideo(section) {
   html += "</div>";
 
   if (section.caption) {
-    html += '<figcaption class="tl-caption">' + escapeHtml(section.caption) + "</figcaption>";
+    html +=
+      '<figcaption class="tl-caption">' +
+      escapeHtml(section.caption) +
+      "</figcaption>";
   }
 
   html += "</figure>";
@@ -450,7 +492,8 @@ function renderHomeLessonsListIfAvailable() {
 
 function renderHomeLessonsList(container) {
   if (!menuData || !Array.isArray(menuData.menu)) {
-    container.innerHTML = '<p class="text-muted">Δεν βρέθηκε δομή μαθημάτων.</p>';
+    container.innerHTML =
+      '<p class="text-muted">Δεν βρέθηκε δομή μαθημάτων.</p>';
     return;
   }
 
@@ -459,11 +502,16 @@ function renderHomeLessonsList(container) {
   });
 
   if (visibleItems.length === 0) {
-    container.innerHTML = '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
+    container.innerHTML =
+      '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
     return;
   }
 
-  container.innerHTML = renderCollapsibleMenuHierarchy(visibleItems, "homeTree", 0);
+  container.innerHTML = renderCollapsibleMenuHierarchy(
+    visibleItems,
+    "homeTree",
+    0
+  );
 
   const contentLinks = container.querySelectorAll("[data-home-content]");
 
@@ -495,22 +543,32 @@ function renderCollapsibleMenuHierarchy(items, parentId, level) {
     if (hasChildren) {
       html +=
         '<button ' +
-          'class="list-group-item list-group-item-action tl-tree-toggle collapsed" ' +
-          'type="button" ' +
-          'data-bs-toggle="collapse" ' +
-          'data-bs-target="#' + escapeAttribute(itemId) + '" ' +
-          'aria-expanded="false" ' +
-          'aria-controls="' + escapeAttribute(itemId) + '" ' +
-          'style="padding-left: ' + paddingLeft + 'px;"' +
-        '>' +
-          '<span class="tl-tree-arrow"></span>' +
-          '<span class="fw-semibold">' + escapeHtml(item.title || "Untitled") + '</span>' +
-        '</button>';
+        'class="list-group-item list-group-item-action tl-tree-toggle collapsed" ' +
+        'type="button" ' +
+        'data-bs-toggle="collapse" ' +
+        'data-bs-target="#' +
+        escapeAttribute(itemId) +
+        '" ' +
+        'aria-expanded="false" ' +
+        'aria-controls="' +
+        escapeAttribute(itemId) +
+        '" ' +
+        'style="padding-left: ' +
+        paddingLeft +
+        'px;"' +
+        ">" +
+        '<span class="tl-tree-arrow"></span>' +
+        '<span class="fw-semibold">' +
+        escapeHtml(item.title || "Untitled") +
+        "</span>" +
+        "</button>";
 
       html +=
-        '<div class="collapse" id="' + escapeAttribute(itemId) + '">' +
-          renderCollapsibleMenuHierarchy(item.children, itemId, level + 1) +
-        '</div>';
+        '<div class="collapse" id="' +
+        escapeAttribute(itemId) +
+        '">' +
+        renderCollapsibleMenuHierarchy(item.children, itemId, level + 1) +
+        "</div>";
 
       return;
     }
@@ -518,13 +576,17 @@ function renderCollapsibleMenuHierarchy(items, parentId, level) {
     if (hasContent) {
       html +=
         '<a href="#" ' +
-          'class="list-group-item list-group-item-action tl-tree-leaf" ' +
-          'data-home-content="' + escapeAttribute(item.contentPath) + '" ' +
-          'style="padding-left: ' + paddingLeft + 'px;"' +
-        '>' +
-          '<span class="tl-tree-leaf-arrow">↳</span>' +
-          escapeHtml(item.title || "Untitled") +
-        '</a>';
+        'class="list-group-item list-group-item-action tl-tree-leaf" ' +
+        'data-home-content="' +
+        escapeAttribute(item.contentPath) +
+        '" ' +
+        'style="padding-left: ' +
+        paddingLeft +
+        'px;"' +
+        ">" +
+        '<span class="tl-tree-leaf-arrow">↳</span>' +
+        escapeHtml(item.title || "Untitled") +
+        "</a>";
     }
   });
 
@@ -533,16 +595,16 @@ function renderCollapsibleMenuHierarchy(items, parentId, level) {
   return html;
 }
 
-function findContentItemByPath(items, path) {
+function findHomeItem(items) {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
 
-    if (item.contentPath === path) {
+    if (item.type === "home" || item.title === "Αρχική") {
       return item;
     }
 
     if (Array.isArray(item.children)) {
-      const found = findContentItemByPath(item.children, path);
+      const found = findHomeItem(item.children);
 
       if (found) {
         return found;
@@ -551,57 +613,6 @@ function findContentItemByPath(items, path) {
   }
 
   return null;
-}
-
-function renderMenuHierarchy(items, level) {
-  let html = "";
-
-  const visibleItems = items.filter(function (item) {
-    return item.type !== "home" && item.title !== "Αρχική";
-  });
-
-  if (visibleItems.length === 0) {
-    return "";
-  }
-
-  html += '<div class="list-group">';
-
-  visibleItems.forEach(function (item) {
-    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
-    const hasContent = item.contentPath && item.type;
-
-    const indent = level * 20;
-    const arrow = hasChildren ? "▸ " : "↳ ";
-
-    if (hasContent) {
-      html +=
-        '<a href="#" class="list-group-item list-group-item-action" ' +
-        'data-home-content="' +
-        escapeAttribute(item.contentPath) +
-        '" style="padding-left: ' +
-        (16 + indent) +
-        'px;">' +
-        arrow +
-        escapeHtml(item.title || "Untitled") +
-        "</a>";
-    } else {
-      html +=
-        '<div class="list-group-item fw-semibold" style="padding-left: ' +
-        (16 + indent) +
-        'px;">' +
-        arrow +
-        escapeHtml(item.title || "Untitled") +
-        "</div>";
-    }
-
-    if (hasChildren) {
-      html += renderMenuHierarchy(item.children, level + 1);
-    }
-  });
-
-  html += "</div>";
-
-  return html;
 }
 
 function findContentItemByPath(items, path) {
@@ -638,6 +649,34 @@ function collectContentItems(items) {
   });
 
   return result;
+}
+
+function getContentPathFromHash() {
+  const hash = window.location.hash;
+
+  if (!hash || hash.length <= 1) {
+    return null;
+  }
+
+  return decodeURIComponent(hash.substring(1));
+}
+
+function setContentHash(contentPath) {
+  const encodedPath = encodeURIComponent(contentPath);
+
+  if (window.location.hash !== "#" + encodedPath) {
+    window.location.hash = encodedPath;
+  }
+}
+
+function clearContentHash() {
+  if (window.location.hash) {
+    history.pushState(
+      "",
+      document.title,
+      window.location.pathname + window.location.search
+    );
+  }
 }
 
 function showError(message, path) {
