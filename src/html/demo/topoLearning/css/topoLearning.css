@@ -76,3 +76,46 @@ body {
 .dropdown-submenu:hover > .dropdown-menu {
   display: block;
 }
+
+.tl-home-tree {
+  margin-bottom: 0;
+}
+
+.tl-home-tree .list-group {
+  border-radius: 0;
+}
+
+.tl-tree-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #ffffff;
+}
+
+.tl-tree-toggle:hover,
+.tl-tree-leaf:hover {
+  background-color: #f8f9fa;
+}
+
+.tl-tree-arrow::before {
+  content: "▸";
+  display: inline-block;
+  width: 1rem;
+  transition: transform 0.15s ease-in-out;
+}
+
+.tl-tree-toggle:not(.collapsed) .tl-tree-arrow::before {
+  transform: rotate(90deg);
+}
+
+.tl-tree-leaf {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tl-tree-leaf-arrow {
+  display: inline-block;
+  width: 1rem;
+  color: #6c757d;
+}

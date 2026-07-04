@@ -47,6 +47,16 @@
               "contentPath": "content/lessons/session_1/math07.json"
             }
           ]
+        },
+        {
+          "title": "Μάθημα 2: Εισαγωγή στη Γεωδαισία",
+          "children": [
+            {
+              "title": "Ενότητα 1: Ιστορική Αναδρομή",
+              "type": "json",
+              "contentPath": "content/lessons/session_2/geodecy01.json"
+            }
+          ]
         }
       ]
     },

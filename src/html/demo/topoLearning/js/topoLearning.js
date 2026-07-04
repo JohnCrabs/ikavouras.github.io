@@ -1,6 +1,7 @@
 let menuContainer = null;
 let mainContent = null;
 let menuData = null;
+let initialHomeContent = "";
 
 document.addEventListener("DOMContentLoaded", function () {
   menuContainer = document.getElementById("menuContainer");
@@ -16,8 +17,18 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
+  initialHomeContent = mainContent.innerHTML;
+
   loadMenu("data/menu.json");
 });
+
+function loadHomeContent() {
+  removeDynamicScripts();
+
+  mainContent.innerHTML = initialHomeContent;
+
+  renderHomeLessonsListIfAvailable();
+}
 
 function loadMenu(menuPath) {
   fetch(menuPath)
@@ -438,48 +449,179 @@ function renderHomeLessonsListIfAvailable() {
 }
 
 function renderHomeLessonsList(container) {
-  const lessons = collectContentItems(menuData.menu).filter(function (item) {
-    return item.type === "json";
-  });
-
-  if (lessons.length === 0) {
-    container.innerHTML =
-      '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
+  if (!menuData || !Array.isArray(menuData.menu)) {
+    container.innerHTML = '<p class="text-muted">Δεν βρέθηκε δομή μαθημάτων.</p>';
     return;
   }
 
-  let html = '<div class="list-group">';
-
-  lessons.forEach(function (lesson) {
-    html +=
-      '<a href="#" class="list-group-item list-group-item-action" data-home-content="' +
-      escapeAttribute(lesson.contentPath) +
-      '">' +
-      escapeHtml(lesson.title || "Untitled") +
-      "</a>";
+  const visibleItems = menuData.menu.filter(function (item) {
+    return item.type !== "home" && item.title !== "Αρχική";
   });
 
-  html += "</div>";
+  if (visibleItems.length === 0) {
+    container.innerHTML = '<p class="text-muted">Δεν έχουν οριστεί ακόμη μαθήματα.</p>';
+    return;
+  }
 
-  container.innerHTML = html;
+  container.innerHTML = renderCollapsibleMenuHierarchy(visibleItems, "homeTree", 0);
 
-  const links = container.querySelectorAll("[data-home-content]");
+  const contentLinks = container.querySelectorAll("[data-home-content]");
 
-  links.forEach(function (link) {
+  contentLinks.forEach(function (link) {
     link.addEventListener("click", function (event) {
       event.preventDefault();
 
       const path = link.getAttribute("data-home-content");
+      const item = findContentItemByPath(menuData.menu, path);
 
-      const lesson = lessons.find(function (item) {
-        return item.contentPath === path;
-      });
-
-      if (lesson) {
-        loadContent(lesson);
+      if (item) {
+        loadContent(item);
       }
     });
   });
+}
+
+function renderCollapsibleMenuHierarchy(items, parentId, level) {
+  let html = "";
+
+  html += '<div class="list-group tl-home-tree">';
+
+  items.forEach(function (item, index) {
+    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+    const hasContent = item.contentPath && item.type;
+    const itemId = parentId + "-" + index;
+    const paddingLeft = 16 + level * 24;
+
+    if (hasChildren) {
+      html +=
+        '<button ' +
+          'class="list-group-item list-group-item-action tl-tree-toggle collapsed" ' +
+          'type="button" ' +
+          'data-bs-toggle="collapse" ' +
+          'data-bs-target="#' + escapeAttribute(itemId) + '" ' +
+          'aria-expanded="false" ' +
+          'aria-controls="' + escapeAttribute(itemId) + '" ' +
+          'style="padding-left: ' + paddingLeft + 'px;"' +
+        '>' +
+          '<span class="tl-tree-arrow"></span>' +
+          '<span class="fw-semibold">' + escapeHtml(item.title || "Untitled") + '</span>' +
+        '</button>';
+
+      html +=
+        '<div class="collapse" id="' + escapeAttribute(itemId) + '">' +
+          renderCollapsibleMenuHierarchy(item.children, itemId, level + 1) +
+        '</div>';
+
+      return;
+    }
+
+    if (hasContent) {
+      html +=
+        '<a href="#" ' +
+          'class="list-group-item list-group-item-action tl-tree-leaf" ' +
+          'data-home-content="' + escapeAttribute(item.contentPath) + '" ' +
+          'style="padding-left: ' + paddingLeft + 'px;"' +
+        '>' +
+          '<span class="tl-tree-leaf-arrow">↳</span>' +
+          escapeHtml(item.title || "Untitled") +
+        '</a>';
+    }
+  });
+
+  html += "</div>";
+
+  return html;
+}
+
+function findContentItemByPath(items, path) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    if (item.contentPath === path) {
+      return item;
+    }
+
+    if (Array.isArray(item.children)) {
+      const found = findContentItemByPath(item.children, path);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
+}
+
+function renderMenuHierarchy(items, level) {
+  let html = "";
+
+  const visibleItems = items.filter(function (item) {
+    return item.type !== "home" && item.title !== "Αρχική";
+  });
+
+  if (visibleItems.length === 0) {
+    return "";
+  }
+
+  html += '<div class="list-group">';
+
+  visibleItems.forEach(function (item) {
+    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+    const hasContent = item.contentPath && item.type;
+
+    const indent = level * 20;
+    const arrow = hasChildren ? "▸ " : "↳ ";
+
+    if (hasContent) {
+      html +=
+        '<a href="#" class="list-group-item list-group-item-action" ' +
+        'data-home-content="' +
+        escapeAttribute(item.contentPath) +
+        '" style="padding-left: ' +
+        (16 + indent) +
+        'px;">' +
+        arrow +
+        escapeHtml(item.title || "Untitled") +
+        "</a>";
+    } else {
+      html +=
+        '<div class="list-group-item fw-semibold" style="padding-left: ' +
+        (16 + indent) +
+        'px;">' +
+        arrow +
+        escapeHtml(item.title || "Untitled") +
+        "</div>";
+    }
+
+    if (hasChildren) {
+      html += renderMenuHierarchy(item.children, level + 1);
+    }
+  });
+
+  html += "</div>";
+
+  return html;
+}
+
+function findContentItemByPath(items, path) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    if (item.contentPath === path) {
+      return item;
+    }
+
+    if (Array.isArray(item.children)) {
+      const found = findContentItemByPath(item.children, path);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
 }
 
 function collectContentItems(items) {
