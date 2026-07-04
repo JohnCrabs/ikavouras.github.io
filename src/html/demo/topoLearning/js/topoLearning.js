@@ -199,7 +199,11 @@ function loadJsonContent(path) {
     .then(function (data) {
       removeDynamicScripts();
 
-      mainContent.innerHTML = renderJsonContent(data);
+      mainContent.innerHTML =
+        renderJsonContent(data) +
+        renderSectionNavigation(path);
+
+      attachSectionNavigationEvents();
 
       if (window.MathJax) {
         MathJax.typesetPromise();
@@ -389,6 +393,118 @@ function renderAlert(section) {
     escapeHtml(section.text || "") +
     "</div>"
   );
+}
+
+function renderSectionNavigation(currentPath) {
+  if (!menuData || !Array.isArray(menuData.menu)) {
+    return "";
+  }
+
+  const lessonGroup = findLessonGroupByContentPath(menuData.menu, currentPath);
+
+  if (!lessonGroup || !Array.isArray(lessonGroup.children)) {
+    return "";
+  }
+
+  const sectionItems = lessonGroup.children.filter(function (item) {
+    return item.type === "json" && item.contentPath;
+  });
+
+  const currentIndex = sectionItems.findIndex(function (item) {
+    return item.contentPath === currentPath;
+  });
+
+  if (currentIndex === -1) {
+    return "";
+  }
+
+  const previousItem = currentIndex > 0 ? sectionItems[currentIndex - 1] : null;
+  const nextItem =
+    currentIndex < sectionItems.length - 1
+      ? sectionItems[currentIndex + 1]
+      : null;
+
+  let html = "";
+
+  html += '<nav class="tl-section-navigation container my-5">';
+  html += '<div class="d-flex justify-content-between gap-3 border-top pt-4">';
+
+  if (previousItem) {
+    html +=
+      '<a href="#" class="btn btn-outline-primary tl-section-prev" ' +
+      'data-section-nav="' +
+      escapeAttribute(previousItem.contentPath) +
+      '">' +
+      "← " +
+      escapeHtml(previousItem.title || "Προηγούμενη ενότητα") +
+      "</a>";
+  } else {
+    html += "<span></span>";
+  }
+
+  if (nextItem) {
+    html +=
+      '<a href="#" class="btn btn-primary tl-section-next" ' +
+      'data-section-nav="' +
+      escapeAttribute(nextItem.contentPath) +
+      '">' +
+      escapeHtml(nextItem.title || "Επόμενη ενότητα") +
+      " →" +
+      "</a>";
+  } else {
+    html += "<span></span>";
+  }
+
+  html += "</div>";
+  html += "</nav>";
+
+  return html;
+}
+
+function attachSectionNavigationEvents() {
+  const sectionNavLinks = document.querySelectorAll("[data-section-nav]");
+
+  sectionNavLinks.forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      const path = link.getAttribute("data-section-nav");
+      const item = findContentItemByPath(menuData.menu, path);
+
+      if (item) {
+        loadContent(item);
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+    });
+  });
+}
+
+function findLessonGroupByContentPath(items, contentPath) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    if (Array.isArray(item.children)) {
+      const containsCurrent = item.children.some(function (child) {
+        return child.contentPath === contentPath;
+      });
+
+      if (containsCurrent) {
+        return item;
+      }
+
+      const found = findLessonGroupByContentPath(item.children, contentPath);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
 }
 
 function loadJsonScriptPaths(data) {

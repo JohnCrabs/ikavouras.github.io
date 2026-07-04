@@ -73,30 +73,42 @@
     {
       "type": "heading",
       "level": 3,
-      "text": "Μονοδιάστατος χώρος"
+      "text": "1D χώρος"
     },
     {
       "type": "paragraph",
       "text": "Σε έναν μονοδιάστατο χώρο, η θέση ενός σημείου περιγράφεται με μία μόνο τιμή, για παράδειγμα x = 5."
     },
     {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 700 140' class='img-fluid border rounded bg-light' role='img' aria-label='Αναπαράσταση μονοδιάστατου χώρου'><line x1='80' y1='70' x2='620' y2='70' stroke='#212529' stroke-width='3'/><line x1='620' y1='70' x2='600' y2='60' stroke='#212529' stroke-width='3'/><line x1='620' y1='70' x2='600' y2='80' stroke='#212529' stroke-width='3'/><circle cx='350' cy='70' r='8' fill='#0d6efd'/><text x='340' y='50' font-size='20' fill='#0d6efd'>P</text><text x='335' y='105' font-size='18' fill='#212529'>x = 5</text><text x='625' y='75' font-size='20' fill='#212529'>x</text><text x='80' y='105' font-size='16' fill='#6c757d'>0</text><text x='300' y='30' font-size='18' fill='#212529'>1D χώρος: μία θέση περιγράφεται με μία τιμή</text></svg><figcaption class='tl-caption'>Στον μονοδιάστατο χώρο, ένα σημείο τοποθετείται πάνω σε έναν άξονα και περιγράφεται με μία αριθμητική τιμή.</figcaption></figure>"
+    },
+    {
       "type": "heading",
       "level": 3,
-      "text": "Δισδιάστατος χώρος"
+      "text": "2D χώρος"
     },
     {
       "type": "paragraph",
       "text": "Σε έναν δισδιάστατο χώρο, η θέση ενός σημείου περιγράφεται με δύο τιμές, για παράδειγμα P(x, y) ή P(3, 4)."
     },
     {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 700 420' class='img-fluid border rounded bg-light' role='img' aria-label='Αναπαράσταση δισδιάστατου χώρου'><defs><pattern id='grid2d' width='40' height='40' patternUnits='userSpaceOnUse'><path d='M 40 0 L 0 0 0 40' fill='none' stroke='#dee2e6' stroke-width='1'/></pattern></defs><rect x='0' y='0' width='700' height='420' fill='url(#grid2d)'/><line x1='80' y1='340' x2='620' y2='340' stroke='#212529' stroke-width='3'/><line x1='80' y1='340' x2='80' y2='60' stroke='#212529' stroke-width='3'/><line x1='620' y1='340' x2='600' y2='330' stroke='#212529' stroke-width='3'/><line x1='620' y1='340' x2='600' y2='350' stroke='#212529' stroke-width='3'/><line x1='80' y1='60' x2='70' y2='80' stroke='#212529' stroke-width='3'/><line x1='80' y1='60' x2='90' y2='80' stroke='#212529' stroke-width='3'/><circle cx='360' cy='180' r='9' fill='#0d6efd'/><line x1='360' y1='340' x2='360' y2='180' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><line x1='80' y1='180' x2='360' y2='180' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><text x='370' y='175' font-size='20' fill='#0d6efd'>P(x, y)</text><text x='625' y='346' font-size='20' fill='#212529'>x</text><text x='62' y='55' font-size='20' fill='#212529'>y</text><text x='300' y='35' font-size='18' fill='#212529'>2D χώρος: μία θέση περιγράφεται με δύο τιμές</text></svg><figcaption class='tl-caption'>Στον δισδιάστατο χώρο, ένα σημείο περιγράφεται με δύο συντεταγμένες, μία ως προς κάθε άξονα.</figcaption></figure>"
+    },
+    {
       "type": "heading",
       "level": 3,
-      "text": "Τρισδιάστατος χώρος"
+      "text": "3D χώρος"
     },
     {
       "type": "paragraph",
       "text": "Σε έναν τρισδιάστατο χώρο, η θέση ενός σημείου περιγράφεται με τρεις τιμές, για παράδειγμα P(x, y, z) ή P(3, 4, 2)."
     },
+    {
+	  "type": "html",
+	  "html": "<figure class='my-4'><svg viewBox='0 0 760 500' class='img-fluid border rounded bg-light' role='img' aria-label='Αναπαράσταση τρισδιάστατου χώρου'><text x='250' y='42' font-size='18' fill='#212529'>3D χώρος: μία θέση περιγράφεται με τρεις τιμές</text><polygon points='170,350 470,350 590,425 290,425' fill='#e9f2ff' stroke='#cfe2ff' stroke-width='1.5'/><line x1='170' y1='350' x2='610' y2='350' stroke='#212529' stroke-width='3'/><line x1='610' y1='350' x2='588' y2='340' stroke='#212529' stroke-width='3'/><line x1='610' y1='350' x2='588' y2='360' stroke='#212529' stroke-width='3'/><line x1='170' y1='350' x2='170' y2='85' stroke='#212529' stroke-width='3'/><line x1='170' y1='85' x2='160' y2='107' stroke='#212529' stroke-width='3'/><line x1='170' y1='85' x2='180' y2='107' stroke='#212529' stroke-width='3'/><line x1='170' y1='350' x2='320' y2='445' stroke='#212529' stroke-width='3'/><line x1='320' y1='445' x2='298' y2='441' stroke='#212529' stroke-width='3'/><line x1='320' y1='445' x2='309' y2='425' stroke='#212529' stroke-width='3'/><text x='618' y='356' font-size='20' fill='#212529'>y</text><text x='154' y='77' font-size='20' fill='#212529'>z</text><text x='326' y='452' font-size='20' fill='#212529'>x</text><line x1='170' y1='350' x2='260' y2='407' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><line x1='260' y1='407' x2='500' y2='407' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><line x1='170' y1='350' x2='410' y2='350' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><line x1='410' y1='350' x2='500' y2='407' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><line x1='500' y1='407' x2='500' y2='215' stroke='#0d6efd' stroke-width='2.5' stroke-dasharray='6 6'/><circle cx='500' cy='215' r='9' fill='#0d6efd'/><text x='514' y='212' font-size='18' fill='#0d6efd'>P(x, y, z)</text><circle cx='500' cy='407' r='4' fill='#6c757d'/><text x='510' y='412' font-size='16' fill='#6c757d'>προβολή στο επίπεδο xy</text><text x='220' y='394' font-size='16' fill='#0d6efd'>x</text><text x='320' y='340' font-size='16' fill='#0d6efd'>y</text><text x='508' y='318' font-size='16' fill='#0d6efd'>z</text><text x='186' y='370' font-size='15' fill='#6c757d'>O</text></svg><figcaption class='tl-caption'>Στον τρισδιάστατο χώρο, ένα σημείο περιγράφεται με τρεις συντεταγμένες. Στο σχήμα, ο άξονας x αποδίδεται προς τα εμπρός, ο άξονας y προς τα δεξιά και ο άξονας z κατακόρυφα προς τα πάνω.</figcaption></figure>"
+	},
     {
       "type": "heading",
       "level": 2,
