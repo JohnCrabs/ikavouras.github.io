@@ -1,0 +1,362 @@
+{
+  "title": "Ενότητα 6: Γωνίες",
+  "subtitle": "Μαθηματική εισαγωγή στην έννοια της γωνίας, στη μέτρησή της και στις μετατροπές μεταξύ μοιρών, ακτινίων και βαθμών grad.",
+  "sections": [
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Σκοπός ενότητας"
+    },
+    {
+      "type": "paragraph",
+      "text": "Σκοπός της ενότητας είναι να εισαγάγει την έννοια της γωνίας ως μέτρο της στροφής ή της απόκλισης μεταξύ δύο διευθύνσεων."
+    },
+    {
+      "type": "paragraph",
+      "text": "Η κατανόηση των γωνιών είναι απαραίτητη για τη μελέτη ευθειών, επιπέδων, τριγώνων, διευθύνσεων και τριγωνομετρικών αριθμών."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Βασική ιδέα"
+    },
+    {
+      "type": "alert",
+      "style": "info",
+      "text": "Η γωνία εκφράζει το μέγεθος της στροφής από μία διεύθυνση προς μία άλλη."
+    },
+    {
+      "type": "paragraph",
+      "text": "Μία γωνία σχηματίζεται από δύο ημιευθείες που έχουν κοινή αρχή. Η κοινή αρχή ονομάζεται κορυφή της γωνίας, ενώ οι δύο ημιευθείες ονομάζονται πλευρές της γωνίας."
+    },
+    {
+      "type": "paragraph",
+      "text": "Η γωνία δεν μετρά μήκος. Μετρά στροφή ή άνοιγμα μεταξύ δύο διευθύνσεων."
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 760 360' class='img-fluid border rounded bg-light' role='img' aria-label='Ορισμός γωνίας'><line x1='180' y1='260' x2='620' y2='260' stroke='#212529' stroke-width='3'/><line x1='180' y1='260' x2='520' y2='95' stroke='#212529' stroke-width='3'/><circle cx='180' cy='260' r='8' fill='#0d6efd'/><path d='M260 260 A80 80 0 0 1 252 225' fill='none' stroke='#dc3545' stroke-width='4'/><text x='270' y='235' font-size='22' fill='#dc3545'>θ</text><text x='160' y='292' font-size='20' fill='#0d6efd'>O</text><text x='420' y='285' font-size='18' fill='#212529'>πλευρά γωνίας</text><text x='390' y='105' font-size='18' fill='#212529'>πλευρά γωνίας</text><text x='230' y='50' font-size='18' fill='#212529'>Γωνία μεταξύ δύο ημιευθειών με κοινή κορυφή</text></svg><figcaption class='tl-caption'>Μία γωνία σχηματίζεται από δύο ημιευθείες με κοινή αρχή.</figcaption></figure>"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Στοιχεία γωνίας"
+    },
+    {
+      "type": "paragraph",
+      "text": "Κάθε γωνία έχει ορισμένα βασικά στοιχεία που πρέπει να αναγνωρίζονται με σαφήνεια."
+    },
+    {
+      "type": "list",
+      "items": [
+        "Κορυφή: το κοινό σημείο από το οποίο ξεκινούν οι δύο πλευρές.",
+        "Πλευρές: οι δύο ημιευθείες που σχηματίζουν τη γωνία.",
+        "Μέτρο γωνίας: η αριθμητική τιμή που εκφράζει το άνοιγμα ή τη στροφή.",
+        "Φορά μέτρησης: η κατεύθυνση με την οποία μετριέται η γωνία."
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Θετική και αρνητική φορά"
+    },
+    {
+      "type": "paragraph",
+      "text": "Στα μαθηματικά, η θετική φορά μέτρησης γωνιών θεωρείται συνήθως η αντιωρολογιακή φορά, δηλαδή η φορά αντίθετη από αυτή των δεικτών του ρολογιού."
+    },
+    {
+      "type": "paragraph",
+      "text": "Η ωρολογιακή φορά μπορεί να θεωρηθεί αρνητική, όταν χρησιμοποιείται προσανατολισμένη μέτρηση γωνιών."
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 760 380' class='img-fluid border rounded bg-light' role='img' aria-label='Θετική και αρνητική φορά γωνίας'><line x1='380' y1='190' x2='620' y2='190' stroke='#212529' stroke-width='3'/><line x1='380' y1='190' x2='500' y2='80' stroke='#0d6efd' stroke-width='3'/><line x1='380' y1='190' x2='510' y2='290' stroke='#dc3545' stroke-width='3'/><circle cx='380' cy='190' r='8' fill='#212529'/><path d='M460 190 A80 80 0 0 1 438 132' fill='none' stroke='#0d6efd' stroke-width='4'/><path d='M460 190 A80 80 0 0 0 442 245' fill='none' stroke='#dc3545' stroke-width='4'/><text x='470' y='145' font-size='18' fill='#0d6efd'>θετική φορά</text><text x='470' y='245' font-size='18' fill='#dc3545'>αρνητική φορά</text><text x='245' y='45' font-size='18' fill='#212529'>Φορά μέτρησης γωνιών</text></svg><figcaption class='tl-caption'>Η αντιωρολογιακή φορά θεωρείται συνήθως θετική, ενώ η ωρολογιακή μπορεί να θεωρηθεί αρνητική.</figcaption></figure>"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Μονάδες μέτρησης γωνιών"
+    },
+    {
+      "type": "paragraph",
+      "text": "Οι γωνίες μπορούν να μετρηθούν με διαφορετικές μονάδες. Οι τρεις βασικές μονάδες που χρησιμοποιούνται συχνά είναι οι μοίρες, τα ακτίνια και οι βαθμοί grad."
+    },
+    {
+      "type": "list",
+      "items": [
+        "Μοίρες: συμβολίζονται με deg ή °.",
+        "Ακτίνια: συμβολίζονται με rad.",
+        "Βαθμοί grad: συμβολίζονται με grad ή gon."
+      ]
+    },
+    {
+      "type": "alert",
+      "style": "info",
+      "text": "Ένας πλήρης κύκλος αντιστοιχεί σε 360°, 2π rad ή 400 grad."
+    },
+    {
+      "type": "equation",
+      "text": "360^\\circ = 2\\pi\\,rad = 400\\,grad"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Μοίρες"
+    },
+    {
+      "type": "paragraph",
+      "text": "Στο σύστημα των μοιρών, ένας πλήρης κύκλος χωρίζεται σε 360 ίσα μέρη. Κάθε μέρος ονομάζεται μία μοίρα."
+    },
+    {
+      "type": "equation",
+      "text": "1\\ κύκλος = 360^\\circ"
+    },
+    {
+      "type": "paragraph",
+      "text": "Οι μοίρες χρησιμοποιούνται συχνά στη γεωμετρία, στην εκπαίδευση και σε πολλές πρακτικές εφαρμογές."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Ακτίνια"
+    },
+    {
+      "type": "paragraph",
+      "text": "Το ακτίνιο είναι μονάδα μέτρησης γωνίας που συνδέεται με τον κύκλο. Μία γωνία ενός ακτινίου αντιστοιχεί σε τόξο με μήκος ίσο με την ακτίνα του κύκλου."
+    },
+    {
+      "type": "equation",
+      "text": "1\\ κύκλος = 2\\pi\\,rad"
+    },
+    {
+      "type": "paragraph",
+      "text": "Τα ακτίνια χρησιμοποιούνται πολύ συχνά στα μαθηματικά, επειδή συνδέονται άμεσα με τις τριγωνομετρικές συναρτήσεις και την ανάλυση."
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 760 420' class='img-fluid border rounded bg-light' role='img' aria-label='Έννοια ακτινίου'><circle cx='360' cy='210' r='130' fill='none' stroke='#212529' stroke-width='3'/><line x1='360' y1='210' x2='490' y2='210' stroke='#0d6efd' stroke-width='3'/><line x1='360' y1='210' x2='430' y2='100' stroke='#0d6efd' stroke-width='3'/><path d='M490 210 A130 130 0 0 0 430 100' fill='none' stroke='#dc3545' stroke-width='5'/><path d='M420 210 A60 60 0 0 0 392 160' fill='none' stroke='#198754' stroke-width='4'/><circle cx='360' cy='210' r='6' fill='#212529'/><text x='415' y='190' font-size='20' fill='#198754'>1 rad</text><text x='415' y='235' font-size='18' fill='#0d6efd'>r</text><text x='425' y='85' font-size='18' fill='#0d6efd'>r</text><text x='505' y='160' font-size='18' fill='#dc3545'>τόξο μήκους r</text><text x='235' y='45' font-size='18' fill='#212529'>Ορισμός του ακτινίου</text></svg><figcaption class='tl-caption'>Μία γωνία ενός ακτινίου αντιστοιχεί σε τόξο με μήκος ίσο με την ακτίνα του κύκλου.</figcaption></figure>"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Βαθμοί grad"
+    },
+    {
+      "type": "paragraph",
+      "text": "Στο σύστημα grad, ένας πλήρης κύκλος χωρίζεται σε 400 ίσα μέρη. Κάθε μέρος ονομάζεται grad ή gon."
+    },
+    {
+      "type": "equation",
+      "text": "1\\ κύκλος = 400\\,grad"
+    },
+    {
+      "type": "paragraph",
+      "text": "Το σύστημα grad είναι ιδιαίτερα χρήσιμο σε τοπογραφικές και γεωδαιτικές εφαρμογές, επειδή η ορθή γωνία αντιστοιχεί σε 100 grad."
+    },
+    {
+      "type": "equation",
+      "text": "90^\\circ = 100\\,grad"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Βασικές αντιστοιχίες γωνιών"
+    },
+    {
+      "type": "paragraph",
+      "text": "Η ίδια γωνία μπορεί να εκφραστεί σε διαφορετικά συστήματα μέτρησης. Για αυτό είναι σημαντικό να γνωρίζουμε τις βασικές αντιστοιχίες μεταξύ μοιρών, ακτινίων και grad."
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><div class='table-responsive'><table class='table table-bordered table-striped align-middle'><thead class='table-light'><tr><th>Γωνία</th><th>Μοίρες deg</th><th>Ακτίνια rad</th><th>Grad</th></tr></thead><tbody><tr><td>Μηδενική γωνία</td><td>0°</td><td>0</td><td>0 grad</td></tr><tr><td>Ορθή γωνία</td><td>90°</td><td>π/2</td><td>100 grad</td></tr><tr><td>Ευθεία γωνία</td><td>180°</td><td>π</td><td>200 grad</td></tr><tr><td>Πλήρης γωνία</td><td>360°</td><td>2π</td><td>400 grad</td></tr></tbody></table></div><figcaption class='tl-caption'>Βασικές αντιστοιχίες μεταξύ μοιρών, ακτινίων και grad.</figcaption></figure>"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Πίνακας μετατροπών μεταξύ μονάδων"
+    },
+    {
+      "type": "paragraph",
+      "text": "Για να μετατρέψουμε μία γωνία από ένα σύστημα μέτρησης σε άλλο, πολλαπλασιάζουμε την αρχική τιμή με τον κατάλληλο συντελεστή μετατροπής."
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><div class='table-responsive'><table class='table table-bordered table-hover align-middle'><thead class='table-light'><tr><th>Μετατροπή</th><th>Τύπος</th><th>Συντελεστής πολλαπλασιασμού</th></tr></thead><tbody><tr><td>rad → deg</td><td>deg = rad · 180 / π</td><td>180 / π</td></tr><tr><td>deg → rad</td><td>rad = deg · π / 180</td><td>π / 180</td></tr><tr><td>rad → grad</td><td>grad = rad · 200 / π</td><td>200 / π</td></tr><tr><td>grad → rad</td><td>rad = grad · π / 200</td><td>π / 200</td></tr><tr><td>deg → grad</td><td>grad = deg · 10 / 9</td><td>10 / 9</td></tr><tr><td>grad → deg</td><td>deg = grad · 9 / 10</td><td>9 / 10</td></tr></tbody></table></div><figcaption class='tl-caption'>Συντελεστές μετατροπής μεταξύ rad, deg και grad.</figcaption></figure>"
+    },
+    {
+      "type": "alert",
+      "style": "warning",
+      "text": "Στους υπολογισμούς πρέπει πάντα να είναι σαφές σε ποια μονάδα εκφράζεται η γωνία. Η ίδια αριθμητική τιμή δεν σημαίνει την ίδια γωνία σε διαφορετικό σύστημα."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Μαθηματικές σχέσεις μετατροπής"
+    },
+    {
+      "type": "paragraph",
+      "text": "Οι παραπάνω μετατροπές προκύπτουν από την ισοδυναμία ενός πλήρους κύκλου στα τρία συστήματα μέτρησης."
+    },
+    {
+      "type": "equation",
+      "text": "360^\\circ = 2\\pi\\,rad = 400\\,grad"
+    },
+    {
+      "type": "paragraph",
+      "text": "Από αυτή τη σχέση προκύπτουν οι βασικοί τύποι μετατροπής."
+    },
+    {
+      "type": "equation",
+      "text": "rad = deg \\cdot \\frac{\\pi}{180}"
+    },
+    {
+      "type": "equation",
+      "text": "deg = rad \\cdot \\frac{180}{\\pi}"
+    },
+    {
+      "type": "equation",
+      "text": "grad = deg \\cdot \\frac{10}{9}"
+    },
+    {
+      "type": "equation",
+      "text": "deg = grad \\cdot \\frac{9}{10}"
+    },
+    {
+      "type": "equation",
+      "text": "grad = rad \\cdot \\frac{200}{\\pi}"
+    },
+    {
+      "type": "equation",
+      "text": "rad = grad \\cdot \\frac{\\pi}{200}"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Παραδείγματα μετατροπών"
+    },
+    {
+      "type": "paragraph",
+      "text": "Παράδειγμα 1: Μετατροπή 180° σε ακτίνια."
+    },
+    {
+      "type": "equation",
+      "text": "rad = 180 \\cdot \\frac{\\pi}{180} = \\pi"
+    },
+    {
+      "type": "paragraph",
+      "text": "Άρα 180° = π rad."
+    },
+    {
+      "type": "paragraph",
+      "text": "Παράδειγμα 2: Μετατροπή 100 grad σε μοίρες."
+    },
+    {
+      "type": "equation",
+      "text": "deg = 100 \\cdot \\frac{9}{10} = 90^\\circ"
+    },
+    {
+      "type": "paragraph",
+      "text": "Άρα 100 grad = 90°."
+    },
+    {
+      "type": "paragraph",
+      "text": "Παράδειγμα 3: Μετατροπή π/2 rad σε grad."
+    },
+    {
+      "type": "equation",
+      "text": "grad = \\frac{\\pi}{2} \\cdot \\frac{200}{\\pi} = 100\\,grad"
+    },
+    {
+      "type": "paragraph",
+      "text": "Άρα π/2 rad = 100 grad."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Είδη γωνιών"
+    },
+    {
+      "type": "paragraph",
+      "text": "Οι γωνίες μπορούν να ταξινομηθούν ανάλογα με το μέτρο τους."
+    },
+    {
+      "type": "list",
+      "items": [
+        "Οξεία γωνία: μικρότερη από 90°.",
+        "Ορθή γωνία: ίση με 90°.",
+        "Αμβλεία γωνία: μεγαλύτερη από 90° και μικρότερη από 180°.",
+        "Ευθεία γωνία: ίση με 180°.",
+        "Πλήρης γωνία: ίση με 360°."
+      ]
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 760 420' class='img-fluid border rounded bg-light' role='img' aria-label='Είδη γωνιών'><text x='80' y='50' font-size='18' fill='#212529'>Οξεία</text><line x1='120' y1='130' x2='230' y2='130' stroke='#212529' stroke-width='3'/><line x1='120' y1='130' x2='205' y2='85' stroke='#212529' stroke-width='3'/><path d='M160 130 A40 40 0 0 1 155 110' fill='none' stroke='#0d6efd' stroke-width='4'/><text x='315' y='50' font-size='18' fill='#212529'>Ορθή</text><line x1='350' y1='130' x2='460' y2='130' stroke='#212529' stroke-width='3'/><line x1='350' y1='130' x2='350' y2='40' stroke='#212529' stroke-width='3'/><path d='M350 105 L375 105 L375 130' fill='none' stroke='#0d6efd' stroke-width='3'/><text x='560' y='50' font-size='18' fill='#212529'>Αμβλεία</text><line x1='600' y1='130' x2='710' y2='130' stroke='#212529' stroke-width='3'/><line x1='600' y1='130' x2='520' y2='70' stroke='#212529' stroke-width='3'/><path d='M650 130 A50 50 0 0 0 560 94' fill='none' stroke='#0d6efd' stroke-width='4'/><text x='130' y='260' font-size='18' fill='#212529'>Ευθεία</text><line x1='90' y1='320' x2='260' y2='320' stroke='#212529' stroke-width='3'/><circle cx='175' cy='320' r='6' fill='#212529'/><path d='M225 320 A50 50 0 0 0 125 320' fill='none' stroke='#0d6efd' stroke-width='4'/><text x='450' y='260' font-size='18' fill='#212529'>Πλήρης</text><circle cx='490' cy='320' r='55' fill='none' stroke='#0d6efd' stroke-width='4'/><line x1='490' y1='320' x2='560' y2='320' stroke='#212529' stroke-width='3'/><circle cx='490' cy='320' r='6' fill='#212529'/></svg><figcaption class='tl-caption'>Βασικά είδη γωνιών ανάλογα με το μέτρο τους.</figcaption></figure>"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Γωνία μεταξύ δύο ευθειών"
+    },
+    {
+      "type": "paragraph",
+      "text": "Όταν δύο ευθείες τέμνονται, σχηματίζουν γωνίες. Η γωνία μεταξύ δύο ευθειών συνήθως θεωρείται η μικρότερη γωνία που σχηματίζεται μεταξύ τους."
+    },
+    {
+      "type": "paragraph",
+      "text": "Αν δύο ευθείες είναι κάθετες, τότε η γωνία μεταξύ τους είναι ορθή."
+    },
+    {
+      "type": "equation",
+      "text": "\\theta = 90^\\circ = \\frac{\\pi}{2}\\,rad = 100\\,grad"
+    },
+    {
+      "type": "html",
+      "html": "<figure class='my-4'><svg viewBox='0 0 760 360' class='img-fluid border rounded bg-light' role='img' aria-label='Γωνία μεταξύ δύο ευθειών'><line x1='140' y1='260' x2='650' y2='110' stroke='#212529' stroke-width='3'/><line x1='180' y1='100' x2='620' y2='270' stroke='#212529' stroke-width='3'/><circle cx='405' cy='182' r='7' fill='#212529'/><path d='M445 170 A42 42 0 0 1 442 198' fill='none' stroke='#dc3545' stroke-width='4'/><text x='455' y='190' font-size='22' fill='#dc3545'>θ</text><text x='250' y='50' font-size='18' fill='#212529'>Γωνία μεταξύ δύο τεμνόμενων ευθειών</text></svg><figcaption class='tl-caption'>Η γωνία μεταξύ δύο τεμνόμενων ευθειών εκφράζει τη στροφή από τη μία διεύθυνση προς την άλλη.</figcaption></figure>"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Συχνό λάθος"
+    },
+    {
+      "type": "paragraph",
+      "text": "Ένα συχνό λάθος είναι να χρησιμοποιείται η αριθμητική τιμή μιας γωνίας χωρίς να αναφέρεται η μονάδα της. Για παράδειγμα, η τιμή 100 δεν σημαίνει το ίδιο αν είναι 100°, 100 grad ή 100 rad."
+    },
+    {
+      "type": "alert",
+      "style": "warning",
+      "text": "Πριν γίνει οποιοσδήποτε υπολογισμός, πρέπει να γνωρίζουμε τη μονάδα μέτρησης της γωνίας."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Μικρή γέφυρα προς την Τοπογραφία"
+    },
+    {
+      "type": "paragraph",
+      "text": "Στην Τοπογραφία, οι γωνίες χρησιμοποιούνται για τη μέτρηση διευθύνσεων, προσανατολισμών και σχέσεων μεταξύ σημείων. Η σωστή μετατροπή μεταξύ deg, rad και grad είναι ιδιαίτερα σημαντική, επειδή διαφορετικά όργανα, λογισμικά ή τύποι μπορεί να χρησιμοποιούν διαφορετικά συστήματα μέτρησης."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Μικρή άσκηση"
+    },
+    {
+      "type": "paragraph",
+      "text": "Χρησιμοποίησε τους συντελεστές μετατροπής για να απαντήσεις στα παρακάτω."
+    },
+    {
+      "type": "list",
+      "items": [
+        "Μετέτρεψε τη γωνία 180° σε rad.",
+        "Μετέτρεψε τη γωνία 90° σε grad.",
+        "Μετέτρεψε τη γωνία π rad σε deg.",
+        "Μετέτρεψε τη γωνία 100 grad σε deg.",
+        "Μετέτρεψε τη γωνία π/2 rad σε grad.",
+        "Ποια αριθμητική τιμή αντιστοιχεί σε μία πλήρη γωνία σε deg, rad και grad;",
+        "Γιατί είναι λάθος να γράφουμε μόνο τον αριθμό 50 χωρίς μονάδα μέτρησης γωνίας;"
+      ]
+    }
+  ]
+}
