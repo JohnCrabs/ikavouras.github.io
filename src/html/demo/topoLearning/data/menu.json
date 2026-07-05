@@ -45,6 +45,11 @@
               "title": "Ενότητα 7: Τριγωνομετρικοί Αριθμοί",
               "type": "json",
               "contentPath": "content/lessons/session_1/math07.json"
+            },
+            {
+              "title": "Ενότητα 8: Εφαρμογές και Κώδικας",
+              "type": "json",
+              "contentPath": "content/lessons/session_1/math08.json"
             }
           ]
         },
