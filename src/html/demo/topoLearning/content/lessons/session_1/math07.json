@@ -307,6 +307,386 @@
       "style": "warning",
       "text": "Οι τριγωνομετρικοί αριθμοί δεν είναι πλευρές. Είναι αριθμητικές σχέσεις που εξαρτώνται από τη γωνία."
     },
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Βασικές τριγωνομετρικές ταυτότητες"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Οι τριγωνομετρικές ταυτότητες είναι σχέσεις που ισχύουν για τις τριγωνομετρικές συναρτήσεις μιας γωνίας. Είναι ιδιαίτερα χρήσιμες, επειδή επιτρέπουν τη μετατροπή, απλοποίηση και σύνδεση διαφορετικών τριγωνομετρικών εκφράσεων."
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Η πιο βασική ταυτότητα προκύπτει από τον μοναδιαίο κύκλο και το Πυθαγόρειο Θεώρημα."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin^2\\theta + \\cos^2\\theta = 1"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Από αυτή τη σχέση μπορούν να προκύψουν και άλλες μορφές, οι οποίες είναι χρήσιμες όταν θέλουμε να εκφράσουμε έναν τριγωνομετρικό αριθμό μέσω κάποιου άλλου."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin^2\\theta = 1 - \\cos^2\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos^2\\theta = 1 - \\sin^2\\theta"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Επειδή η εφαπτομένη και η συνεφαπτομένη ορίζονται ως λόγοι του ημιτόνου και του συνημιτόνου, ισχύουν οι παρακάτω σχέσεις."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cot\\theta = \\frac{\\cos\\theta}{\\sin\\theta}"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan\\theta \\cdot \\cot\\theta = 1"
+	},
+	{
+	  "type": "alert",
+	  "style": "warning",
+	  "text": "Οι σχέσεις που περιέχουν διαίρεση ισχύουν μόνο όταν ο παρονομαστής δεν είναι μηδέν."
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Ταυτότητες εφαπτομένης και συνεφαπτομένης"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Αν διαιρέσουμε τη βασική ταυτότητα με cos²θ, προκύπτει μία σημαντική σχέση που περιλαμβάνει την εφαπτομένη."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\frac{\\sin^2\\theta}{\\cos^2\\theta} + \\frac{\\cos^2\\theta}{\\cos^2\\theta} = \\frac{1}{\\cos^2\\theta}"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan^2\\theta + 1 = \\frac{1}{\\cos^2\\theta}"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Αντίστοιχα, αν διαιρέσουμε τη βασική ταυτότητα με sin²θ, προκύπτει σχέση που περιλαμβάνει τη συνεφαπτομένη."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\frac{\\sin^2\\theta}{\\sin^2\\theta} + \\frac{\\cos^2\\theta}{\\sin^2\\theta} = \\frac{1}{\\sin^2\\theta}"
+	},
+	{
+	  "type": "equation",
+	  "text": "1 + \\cot^2\\theta = \\frac{1}{\\sin^2\\theta}"
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Συμπληρωματικές και παραπληρωματικές γωνίες"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Δύο γωνίες ονομάζονται συμπληρωματικές όταν έχουν άθροισμα 90°. Σε αυτή την περίπτωση, το ημίτονο της μίας συνδέεται με το συνημίτονο της άλλης."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin(90^\\circ - \\theta) = \\cos\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(90^\\circ - \\theta) = \\sin\\theta"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Δύο γωνίες ονομάζονται παραπληρωματικές όταν έχουν άθροισμα 180°. Οι σχέσεις τους είναι επίσης σημαντικές."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin(180^\\circ - \\theta) = \\sin\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(180^\\circ - \\theta) = -\\cos\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan(180^\\circ - \\theta) = -\\tan\\theta"
+	},
+	{
+	  "type": "alert",
+	  "style": "info",
+	  "text": "Οι σχέσεις αυτές βοηθούν στη μεταφορά μιας γωνίας σε γνωστό τεταρτημόριο χωρίς να αλλάζει η γεωμετρική πληροφορία."
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Άθροισμα και διαφορά γωνιών"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Οι τριγωνομετρικοί αριθμοί του αθροίσματος ή της διαφοράς δύο γωνιών δεν υπολογίζονται με απλή πρόσθεση ή αφαίρεση των τριγωνομετρικών αριθμών. Χρειάζονται ειδικές ταυτότητες."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin(\\alpha + \\beta) = \\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin(\\alpha - \\beta) = \\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(\\alpha + \\beta) = \\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(\\alpha - \\beta) = \\cos\\alpha\\cos\\beta + \\sin\\alpha\\sin\\beta"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Για την εφαπτομένη ισχύουν οι αντίστοιχες σχέσεις."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan(\\alpha + \\beta) = \\frac{\\tan\\alpha + \\tan\\beta}{1 - \\tan\\alpha\\tan\\beta}"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan(\\alpha - \\beta) = \\frac{\\tan\\alpha - \\tan\\beta}{1 + \\tan\\alpha\\tan\\beta}"
+	},
+	{
+	  "type": "alert",
+	  "style": "warning",
+	  "text": "Γενικά δεν ισχύει ότι sin(α + β) = sinα + sinβ ή ότι cos(α + β) = cosα + cosβ."
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Διπλάσιες γωνίες"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Αν στις ταυτότητες αθροίσματος θέσουμε α = β = θ, προκύπτουν οι ταυτότητες διπλάσιας γωνίας."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\sin(2\\theta) = 2\\sin\\theta\\cos\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(2\\theta) = \\cos^2\\theta - \\sin^2\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(2\\theta) = 2\\cos^2\\theta - 1"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos(2\\theta) = 1 - 2\\sin^2\\theta"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\tan(2\\theta) = \\frac{2\\tan\\theta}{1 - \\tan^2\\theta}"
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Ο νόμος των ημιτόνων"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Οι τριγωνομετρικοί αριθμοί δεν χρησιμοποιούνται μόνο σε ορθογώνια τρίγωνα. Μπορούν να χρησιμοποιηθούν και σε οποιοδήποτε τρίγωνο. Ένας από τους βασικούς νόμους είναι ο νόμος των ημιτόνων."
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Σε ένα τρίγωνο με πλευρές a, b, c και απέναντι γωνίες A, B, C αντίστοιχα, ισχύει ότι ο λόγος κάθε πλευράς προς το ημίτονο της απέναντι γωνίας είναι σταθερός."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C}"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Ο νόμος των ημιτόνων είναι χρήσιμος όταν γνωρίζουμε μία πλευρά και την απέναντι γωνία της, καθώς και μία ακόμη γωνία ή πλευρά."
+	},
+	{
+	  "type": "html",
+	  "html": "<figure class='my-4'><svg viewBox='0 0 760 440' class='img-fluid border rounded bg-light' role='img' aria-label='Νόμος των ημιτόνων σε τρίγωνο'><polygon points='170,340 610,340 420,100' fill='#e9f2ff' stroke='#212529' stroke-width='3'/><text x='150' y='365' font-size='22' fill='#0d6efd'>A</text><text x='615' y='365' font-size='22' fill='#dc3545'>B</text><text x='420' y='85' font-size='22' fill='#198754'>C</text><text x='385' y='370' font-size='20' fill='#198754'>c</text><text x='265' y='210' font-size='20' fill='#dc3545'>b</text><text x='535' y='210' font-size='20' fill='#0d6efd'>a</text><path d='M230 340 A60 60 0 0 1 205 300' fill='none' stroke='#0d6efd' stroke-width='4'/><path d='M560 340 A55 55 0 0 0 590 300' fill='none' stroke='#dc3545' stroke-width='4'/><path d='M390 138 A55 55 0 0 0 450 138' fill='none' stroke='#198754' stroke-width='4'/><text x='245' y='315' font-size='18' fill='#0d6efd'>A</text><text x='555' y='315' font-size='18' fill='#dc3545'>B</text><text x='416' y='150' font-size='18' fill='#198754'>C</text><text x='235' y='45' font-size='18' fill='#212529'>Σε κάθε τρίγωνο, κάθε πλευρά αντιστοιχεί στην απέναντι γωνία.</text></svg><figcaption class='tl-caption'>Στον νόμο των ημιτόνων, κάθε πλευρά συνδέεται με το ημίτονο της απέναντι γωνίας.</figcaption></figure>"
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Ο νόμος των συνημιτόνων"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Ο νόμος των συνημιτόνων συνδέει τις τρεις πλευρές ενός τριγώνου με το συνημίτονο μίας γωνίας. Αποτελεί γενίκευση του Πυθαγορείου Θεωρήματος για μη ορθογώνια τρίγωνα."
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Σε ένα τρίγωνο με πλευρές a, b, c και απέναντι γωνίες A, B, C, ισχύουν οι εξής σχέσεις."
+	},
+	{
+	  "type": "equation",
+	  "text": "a^2 = b^2 + c^2 - 2bc\\cos A"
+	},
+	{
+	  "type": "equation",
+	  "text": "b^2 = a^2 + c^2 - 2ac\\cos B"
+	},
+	{
+	  "type": "equation",
+	  "text": "c^2 = a^2 + b^2 - 2ab\\cos C"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Αν μία γωνία είναι ορθή, τότε το συνημίτονό της είναι μηδέν και ο νόμος των συνημιτόνων μετατρέπεται στο Πυθαγόρειο Θεώρημα."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos 90^\\circ = 0"
+	},
+	{
+	  "type": "equation",
+	  "text": "a^2 = b^2 + c^2"
+	},
+	{
+	  "type": "alert",
+	  "style": "info",
+	  "text": "Ο νόμος των συνημιτόνων είναι ιδιαίτερα χρήσιμος όταν γνωρίζουμε δύο πλευρές και την περιεχόμενη γωνία ή όταν γνωρίζουμε και τις τρεις πλευρές ενός τριγώνου."
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Υπολογισμός γωνίας με τον νόμο των συνημιτόνων"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Ο νόμος των συνημιτόνων μπορεί να λυθεί ως προς το συνημίτονο μιας γωνίας. Έτσι μπορούμε να υπολογίσουμε γωνία όταν γνωρίζουμε τις τρεις πλευρές του τριγώνου."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos A = \\frac{b^2 + c^2 - a^2}{2bc}"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos B = \\frac{a^2 + c^2 - b^2}{2ac}"
+	},
+	{
+	  "type": "equation",
+	  "text": "\\cos C = \\frac{a^2 + b^2 - c^2}{2ab}"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Αφού υπολογιστεί το συνημίτονο της γωνίας, η γωνία μπορεί να βρεθεί με την αντίστροφη συνάρτηση του συνημιτόνου."
+	},
+	{
+	  "type": "equation",
+	  "text": "A = \\arccos\\left(\\frac{b^2 + c^2 - a^2}{2bc}\\right)"
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Εμβαδόν τριγώνου με χρήση ημιτόνου"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Το εμβαδόν ενός τριγώνου μπορεί να υπολογιστεί όταν γνωρίζουμε δύο πλευρές και την περιεχόμενη γωνία τους. Η σχέση αυτή βασίζεται στο ημίτονο της γωνίας."
+	},
+	{
+	  "type": "equation",
+	  "text": "E = \\frac{1}{2}bc\\sin A"
+	},
+	{
+	  "type": "equation",
+	  "text": "E = \\frac{1}{2}ac\\sin B"
+	},
+	{
+	  "type": "equation",
+	  "text": "E = \\frac{1}{2}ab\\sin C"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Η σχέση αυτή είναι χρήσιμη, επειδή δεν απαιτεί απαραίτητα να γνωρίζουμε το ύψος του τριγώνου. Αρκεί να γνωρίζουμε δύο πλευρές και τη μεταξύ τους γωνία."
+	},
+	{
+	  "type": "html",
+	  "html": "<figure class='my-4'><svg viewBox='0 0 760 440' class='img-fluid border rounded bg-light' role='img' aria-label='Εμβαδόν τριγώνου με ημίτονο'><polygon points='170,340 610,340 430,115' fill='#e9f2ff' stroke='#212529' stroke-width='3'/><line x1='430' y1='115' x2='430' y2='340' stroke='#0d6efd' stroke-width='2' stroke-dasharray='6 6'/><path d='M430 315 L455 315 L455 340' fill='none' stroke='#0d6efd' stroke-width='3'/><text x='395' y='235' font-size='18' fill='#0d6efd'>h</text><text x='380' y='370' font-size='20' fill='#198754'>c</text><text x='250' y='210' font-size='20' fill='#dc3545'>b</text><path d='M230 340 A60 60 0 0 1 203 298' fill='none' stroke='#6f42c1' stroke-width='4'/><text x='238' y='315' font-size='20' fill='#6f42c1'>A</text><text x='210' y='45' font-size='18' fill='#212529'>Το ύψος μπορεί να εκφραστεί μέσω του ημιτόνου της γωνίας.</text></svg><figcaption class='tl-caption'>Το εμβαδόν τριγώνου μπορεί να γραφεί ως μισό γινόμενο δύο πλευρών επί το ημίτονο της περιεχόμενης γωνίας.</figcaption></figure>"
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Συνοπτικός πίνακας σημαντικών σχέσεων"
+	},
+	{
+	  "type": "html",
+	  "html": "<figure class='my-4'><div class='table-responsive'><table class='table table-bordered table-striped align-middle'><thead class='table-light'><tr><th>Κατηγορία</th><th>Σχέση</th><th>Χρήση</th></tr></thead><tbody><tr><td>Βασική ταυτότητα</td><td>sin²θ + cos²θ = 1</td><td>Σύνδεση ημιτόνου και συνημιτόνου</td></tr><tr><td>Εφαπτομένη</td><td>tanθ = sinθ / cosθ</td><td>Σύνδεση με κλίση και λόγους πλευρών</td></tr><tr><td>Συνεφαπτομένη</td><td>cotθ = cosθ / sinθ</td><td>Αντίστροφος λόγος της εφαπτομένης</td></tr><tr><td>Νόμος ημιτόνων</td><td>a/sinA = b/sinB = c/sinC</td><td>Συσχέτιση πλευρών και απέναντι γωνιών</td></tr><tr><td>Νόμος συνημιτόνων</td><td>a² = b² + c² − 2bc cosA</td><td>Υπολογισμός πλευράς ή γωνίας σε γενικό τρίγωνο</td></tr><tr><td>Εμβαδόν με ημίτονο</td><td>E = 1/2 bc sinA</td><td>Υπολογισμός εμβαδού από δύο πλευρές και περιεχόμενη γωνία</td></tr></tbody></table></div><figcaption class='tl-caption'>Συγκεντρωτικός πίνακας βασικών τριγωνομετρικών σχέσεων που χρησιμοποιούνται στη γεωμετρία.</figcaption></figure>"
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Παράδειγμα χρήσης νόμου ημιτόνων"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Έστω τρίγωνο στο οποίο γνωρίζουμε ότι A = 30°, B = 45° και a = 10. Θέλουμε να υπολογίσουμε την πλευρά b."
+	},
+	{
+	  "type": "equation",
+	  "text": "\\frac{a}{\\sin A} = \\frac{b}{\\sin B}"
+	},
+	{
+	  "type": "equation",
+	  "text": "b = \\frac{a\\sin B}{\\sin A}"
+	},
+	{
+	  "type": "equation",
+	  "text": "b = \\frac{10\\sin45^\\circ}{\\sin30^\\circ}"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Το παράδειγμα δείχνει ότι ο νόμος των ημιτόνων επιτρέπει τον υπολογισμό άγνωστης πλευράς όταν είναι γνωστή η απέναντι γωνία μίας πλευράς."
+	},
+	{
+	  "type": "heading",
+	  "level": 2,
+	  "text": "Παράδειγμα χρήσης νόμου συνημιτόνων"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Έστω τρίγωνο με πλευρές b = 6, c = 8 και περιεχόμενη γωνία A = 60°. Η απέναντι πλευρά a μπορεί να υπολογιστεί με τον νόμο των συνημιτόνων."
+	},
+	{
+	  "type": "equation",
+	  "text": "a^2 = b^2 + c^2 - 2bc\\cos A"
+	},
+	{
+	  "type": "equation",
+	  "text": "a^2 = 6^2 + 8^2 - 2\\cdot6\\cdot8\\cos60^\\circ"
+	},
+	{
+	  "type": "equation",
+	  "text": "a^2 = 36 + 64 - 96\\cdot\\frac{1}{2}"
+	},
+	{
+	  "type": "equation",
+	  "text": "a^2 = 52"
+	},
+	{
+	  "type": "equation",
+	  "text": "a = \\sqrt{52}"
+	},
+	{
+	  "type": "paragraph",
+	  "text": "Το παράδειγμα δείχνει ότι ο νόμος των συνημιτόνων μπορεί να χρησιμοποιηθεί όταν γνωρίζουμε δύο πλευρές και την περιεχόμενη γωνία."
+	},
     {
       "type": "heading",
       "level": 2,
