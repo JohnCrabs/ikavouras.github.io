@@ -130,3 +130,24 @@ body {
   margin-top: 1.5rem;
   margin-bottom: 2rem;
 }
+
+.tl-calculator-card {
+  border-left: 4px solid #0d6efd;
+}
+
+.tl-calculator-card .form-label {
+  font-weight: 600;
+}
+
+.tl-calculator-card textarea {
+  font-family: monospace;
+}
+
+.geometry-playground canvas {
+  min-height: 360px;
+  cursor: crosshair;
+}
+
+#geometryInfo {
+  white-space: pre-line;
+}
