@@ -1,4 +1,14 @@
 {
+  "topLearning": {
+        "title": "TopoLearning: Μαθήματα & Εφαρμογές Τοπογραφίας",
+        "description": {
+          "en": "Εκπαιδευτικό υλικό και μαθήματα σχετικά με την Τοπογραφία.",
+          "gr": "Εκπαιδευτικό υλικό και μαθήματα σχετικά με την Τοπογραφία."
+        },
+        "links": [
+            { "label": "TopoLearning", "url": "src/html/demo/topoLearning/topoLearning.html" }
+        ]
+  },
   "eupolisGame": {
         "title": "The euPOLIS Game",
         "description": {
@@ -27,16 +37,6 @@
         },
         "links": [
             { "label": "EU Error Map", "url": "src/html/demo/euErrorMap/european_error_map_interactive.html" }
-        ]
-  },
-  "topLearning": {
-        "title": "TopoLearning: Μαθήματα & Εφαρμογές Τοπογραφίας",
-        "description": {
-          "en": "Εκπαιδευτικό υλικό και μαθήματα σχετικά με την Τοπογραφία.",
-          "gr": "Εκπαιδευτικό υλικό και μαθήματα σχετικά με την Τοπογραφία."
-        },
-        "links": [
-            { "label": "TopoLearning", "url": "src/html/demo/topoLearning/topoLearning.html" }
         ]
   }
 }
