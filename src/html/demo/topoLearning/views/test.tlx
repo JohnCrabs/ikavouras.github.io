@@ -1,0 +1,103 @@
+\page{
+  title = TLX Test Page,
+  description = This page is rendered from a .tlx file.
+}
+
+\section{Basic Text}
+
+\paragraph{
+This is a normal paragraph written in TLX. The browser reads the .tlx file, parses it, and renders it as HTML.
+}
+
+\note{
+This is a note block.
+}
+
+\tip{
+This is a tip block.
+}
+
+\warning{
+This is a warning block.
+}
+
+\section{Educational Blocks}
+
+\definition{Ground Sampling Distance}{
+The Ground Sampling Distance is the real-world ground distance represented by one image pixel.
+}
+
+\example{Simple GSD Calculation}{
+If an image has a width of 4000 pixels and a GSD of 0.05 m, then the ground coverage width is 4000 × 0.05 = 200 m.
+}
+
+\equation{
+GSD = \frac{H \times p}{f}
+}
+
+\section{Table}
+
+\section{Formatted Tables}
+
+\table{
+  title = Academic Table Example,
+  caption = Example of a formatted table controlled from TLX.
+  style = academic,
+  align = center,
+  width = full,
+
+  columns = Parameter | Value | Unit,
+  rows =
+    Image width | 4000 | pixels;
+    Image height | 3000 | pixels;
+    GSD | 0.05 | m;
+    Ground width | 200 | m
+}
+
+\section{Code}
+
+\code{python}{
+import rasterio
+
+with rasterio.open("image.tif") as src:
+    print(src.crs)
+}
+
+\section{Exercise}
+
+\exercise{Exercise 1}{
+Given an image of 6000 × 4000 pixels and GSD = 0.10 m, calculate the ground coverage.
+}
+
+\solution{Solution}{
+Width: 6000 × 0.10 = 600 m
+
+Height: 4000 × 0.10 = 400 m
+}
+
+\section{Quiz}
+
+\quiz{
+  question = What does GSD describe?,
+  options =
+    A: Flight height;
+    B: Ground distance represented by one pixel;
+    C: Number of images;
+    D: Camera model,
+  answer = B,
+  feedback = GSD describes the real-world ground distance represented by one image pixel.
+}
+
+\section{Interactive Placeholder}
+
+\interactive2Dplane{
+  title = 2D Object Placement,
+  instructions = This is a placeholder for a future 2D interactive activity.
+  width = 900,
+  height = 350,
+  grid = true,
+  objects =
+    gcp:GCP;
+    building:Building;
+    road:Road
+}

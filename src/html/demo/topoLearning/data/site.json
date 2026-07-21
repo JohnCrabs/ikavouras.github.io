@@ -1,0 +1,53 @@
+{
+  "site": {
+    "title": "TopoLearning",
+    "subtitle": "Geospatial Learning Environment"
+  },
+
+  "header": {
+    "logoIMG": "assets/img/logo/TopoLearning_Logo_subtitle.jpg",
+    "text": "TopoLearning - Geospatial Learning Environment",
+
+    "navigation": [
+      {
+        "title": "Αρχική",
+        "description": "Επιστροφή στην αρχική σελίδα του TopoLearning",
+        "hash": "#home",
+        "tlxPath": "views/nav/home.tlx"
+      },
+      {
+        "title": "Μαθήματα",
+        "description": "Προβολή θεματικών ενοτήτων και διαθέσιμων μαθημάτων",
+        "hash": "#lessons",
+        "htmlPath": "views/lessons.html"
+      },
+      {
+        "title": "Εκπαιδευτικό Υλικό",
+        "description": "Πρόσβαση σε αρχεία, παρουσιάσεις, παραδείγματα και βοηθητικό υλικό",
+        "hash": "#materials",
+        "htmlPath": "views/materials.html"
+      },
+      {
+        "title": "About",
+        "description": "Πληροφορίες για το TopoLearning",
+        "hash": "#about",
+        "htmlPath": "views/about.html"
+      }
+    ]
+  },
+
+	"footer": {
+		"owner": "Dr. Ioannis Kavouras (PhD)",
+		"description": "Geospatial Learning Environment",
+		"rights": "All rights reserved.",
+		"contact": {
+			"title": "Contact",
+			"emails": [
+				{
+					"label": "General contact",
+					"email": "kavouras.ioannis@gmail.com"
+				}
+			]
+		}
+	}
+}
