@@ -117,6 +117,68 @@ const TLXParser = (() => {
     });
   }
 
+  function parse(source) {
+    const cleanSource = removeComments(source);
+    const blocks = [];
+
+    let i = 0;
+
+    while (i < cleanSource.length) {
+      const commandMatch = cleanSource.slice(i).match(/^\\([A-Za-z0-9_]+)/);
+
+      if (!commandMatch) {
+        i += 1;
+        continue;
+      }
+
+      const command = commandMatch[1];
+      i += commandMatch[0].length;
+
+      const parsedGroups = readCommandGroups(cleanSource, i);
+      i = parsedGroups.endIndex;
+
+      blocks.push(normalizeBlock(command, parsedGroups.groups));
+    }
+
+    return blocks;
+  }
+
+  function parseCardsContent(content) {
+    const items = [];
+    let settingsContent = "";
+    let i = 0;
+
+    while (i < content.length) {
+      const match = content.slice(i).match(/\\item\s*/);
+
+      if (!match) {
+        settingsContent += content.slice(i);
+        break;
+      }
+
+      settingsContent += content.slice(i, i + match.index);
+      i += match.index + match[0].length;
+
+      while (/\s/.test(content[i])) {
+        i += 1;
+      }
+
+      if (content[i] !== "{") {
+        settingsContent += "\\item";
+        continue;
+      }
+
+      const itemGroup = parseBracedGroup(content, i);
+      items.push(parseKeyValueBlock(itemGroup.content));
+      i = itemGroup.endIndex;
+    }
+
+    return {
+      settings: parseKeyValueBlock(settingsContent),
+      items
+    };
+  }
+
   function normalizeBlock(command, groups) {
     if (command === "page" || command === "lesson") {
       return {
@@ -233,38 +295,31 @@ const TLXParser = (() => {
       };
     }
 
+    if (command === "cards") {
+      const rawContent = groups[0] || "";
+      const cardsData = parseCardsContent(rawContent);
+
+      return {
+        type: "cards",
+        columns: Number(cardsData.settings.columns || 3),
+        items: cardsData.items.map((item) => {
+          return {
+            title: item.title || "",
+            description: item.description || "",
+            image: item.image || "",
+            url: item.url || "#",
+            tag: item.tag || item.title || ""
+          };
+        })
+      };
+    }
+
     return {
       type: "unknown",
       command,
       groups
     };
-  }
-
-  function parse(source) {
-    const cleanSource = removeComments(source);
-    const blocks = [];
-
-    let i = 0;
-
-    while (i < cleanSource.length) {
-      const commandMatch = cleanSource.slice(i).match(/^\\([A-Za-z0-9_]+)/);
-
-      if (!commandMatch) {
-        i += 1;
-        continue;
-      }
-
-      const command = commandMatch[1];
-      i += commandMatch[0].length;
-
-      const parsedGroups = readCommandGroups(cleanSource, i);
-      i = parsedGroups.endIndex;
-
-      blocks.push(normalizeBlock(command, parsedGroups.groups));
     }
-
-    return blocks;
-  }
 
   return {
     parse

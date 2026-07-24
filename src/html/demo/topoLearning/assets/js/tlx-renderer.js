@@ -225,6 +225,60 @@ const TLXRenderer = (() => {
     `;
   }
 
+  function renderCards(block) {
+    const allowedColumns = [1, 2, 3, 4];
+
+    const columns = allowedColumns.includes(block.columns)
+      ? block.columns
+      : 3;
+
+    const cards = block.items
+      .map((item) => {
+        const title = item.title || "";
+        const description = item.description || "";
+        const image = item.image || "";
+        const url = item.url || "#";
+        const tag = item.tag || title || "TLX";
+
+        const imageHTML = image
+          ? `
+            <img
+              class="tl-card-image"
+              src="${escapeHTML(image)}"
+              alt="${escapeHTML(title)}"
+            >
+          `
+          : "";
+
+        const tagHTML = `
+          <div class="tl-card-tag" ${image ? "hidden" : ""}>
+            ${escapeHTML(tag)}
+          </div>
+        `;
+
+        return `
+          <a class="tl-card" href="${escapeHTML(url)}">
+            <div class="tl-card-media">
+              ${imageHTML}
+              ${tagHTML}
+            </div>
+
+            <div class="tl-card-body">
+              <h3>${escapeHTML(title)}</h3>
+              <p>${renderInlineContent(description)}</p>
+            </div>
+          </a>
+        `;
+      })
+      .join("");
+
+    return `
+      <div class="tl-card-grid tl-card-grid-${columns}">
+        ${cards}
+      </div>
+    `;
+  }
+
   function renderBlock(block) {
     switch (block.type) {
       case "page":
@@ -292,6 +346,9 @@ const TLXRenderer = (() => {
       case "table":
         return renderTable(block);
 
+      case "cards":
+        return renderCards(block);
+
       case "quiz":
         return renderQuiz(block);
 
@@ -312,6 +369,19 @@ const TLXRenderer = (() => {
   }
 
   function activateInteractiveParts(rootElement) {
+    rootElement.querySelectorAll(".tl-card-image").forEach((image) => {
+      image.addEventListener("error", () => {
+        const media = image.closest(".tl-card-media");
+        const tag = media ? media.querySelector(".tl-card-tag") : null;
+
+        image.hidden = true;
+
+        if (tag) {
+          tag.hidden = false;
+        }
+      });
+    });
+
     rootElement.querySelectorAll(".tl-quiz").forEach((quiz) => {
       const correctAnswer = quiz.dataset.correctAnswer;
       const feedback = quiz.querySelector(".tl-quiz-feedback");

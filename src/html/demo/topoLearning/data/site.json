@@ -19,7 +19,7 @@
         "title": "Μαθήματα",
         "description": "Προβολή θεματικών ενοτήτων και διαθέσιμων μαθημάτων",
         "hash": "#lessons",
-        "htmlPath": "views/lessons.html"
+        "tlxPath": "views/nav/lessons.tlx"
       },
       {
         "title": "Εκπαιδευτικό Υλικό",

@@ -1,0 +1,57 @@
+\page{
+  title = Μαθήματα
+  description = Οι βασικές θεματικές ενότητες του TopoLearning.
+}
+
+\section{Βασικές ενότητες μαθημάτων}
+
+\paragraph{
+Το εκπαιδευτικό υλικό οργανώνεται σε θεματικές ενότητες. Κάθε ενότητα θα περιλαμβάνει μαθήματα, παραδείγματα, ασκήσεις και διαδραστικές δραστηριότητες.
+}
+
+\cards{
+  columns = 3
+  ratio = 1:1
+
+  \item{
+    title = Μαθηματικά Θεμέλια
+    description = Βασικές μαθηματικές έννοιες για γεωμετρία, μετρήσεις, μετασχηματισμούς και υπολογισμούς.
+    image = assets/img/lessons_categories/math_foundation.png
+    url = #math-foundations
+  }
+
+  \item{
+    title = Γεωδαισία
+    description = Συστήματα αναφοράς, συντεταγμένες, μετασχηματισμοί και έννοιες ακρίβειας.
+    image = assets/img/lessons_categories/topography.png
+    url = #geodesy
+  }
+
+  \item{
+    title = Φωτογραμμετρία
+    description = Εξαγωγή μετρητικής πληροφορίας από εικόνες, GSD, προσανατολισμός και 3D ανακατασκευή.
+    image = assets/img/lessons_categories/photogrammetry.png
+    url = #photogrammetry
+  }
+
+  \item{
+    title = Τηλεπισκόπηση
+    description = Ανάλυση δορυφορικών και εναέριων δεδομένων για παρατήρηση της Γης.
+    image = assets/img/lessons_categories/remote_sensing.png
+    url = #remote-sensing
+  }
+
+  \item{
+    title = GIS
+    description = Διαχείριση, ανάλυση, χαρτογράφηση και οπτικοποίηση γεωχωρικών δεδομένων.
+    image = assets/img/lessons_categories/gis.png
+    url = #gis
+  }
+
+  \item{
+    title = Όραση Υπολογιστών
+    description = Ανάλυση εικόνας, ανίχνευση αντικειμένων, ταξινόμηση και γεωχωρικές εφαρμογές ML.
+    image = assets/img/lessons_categories/computer_vision.png
+    url = #computer-vision
+  }
+}
