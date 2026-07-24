@@ -36,18 +36,52 @@
     ]
   },
 
-	"footer": {
-		"owner": "Dr. Ioannis Kavouras (PhD)",
-		"description": "Geospatial Learning Environment",
-		"rights": "All rights reserved.",
-		"contact": {
-			"title": "Contact",
-			"emails": [
-				{
-					"label": "General contact",
-					"email": "kavouras.ioannis@gmail.com"
-				}
-			]
-		}
-	}
+  "footer": {
+      "owner": "Dr. Ioannis Kavouras (PhD)",
+      "description": "Geospatial Learning Environment",
+      "rights": "All rights reserved.",
+      "contact": {
+          "title": "Contact",
+          "emails": [
+              {
+                  "label": "General contact",
+                  "email": "kavouras.ioannis@gmail.com"
+              }
+          ]
+      }
+  },
+
+  "routes": [
+  {
+    "title": "Μαθηματικά",
+    "hash": "#math",
+    "tlxPath": "lessons/categories/math.tlx"
+  },
+  {
+    "title": "Γεωδαισία",
+    "hash": "#geodesy",
+    "tlxPath": "lessons/categories/geodesy.tlx"
+  },
+  {
+    "title": "Φωτογραμμετρία",
+    "hash": "#photogrammetry",
+    "tlxPath": "lessons/categories/photogrammetry.tlx"
+  },
+  {
+    "title": "Τηλεπισκόπηση",
+    "hash": "#remote-sensing",
+    "tlxPath": "lessons/categories/remote_sensing.tlx"
+  },
+  {
+    "title": "GIS",
+    "hash": "#gis",
+    "tlxPath": "lessons/categories/gis.tlx"
+  },
+  {
+    "title": "Όραση Υπολογιστών",
+    "hash": "#computer-vision",
+    "tlxPath": "lessons/categories/computer_vision.tlx"
+  }
+]
+
 }

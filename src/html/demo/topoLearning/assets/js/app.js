@@ -42,14 +42,28 @@ function getCurrentHash(config) {
   return hash;
 }
 
+function getAllRoutes(config) {
+  return [
+    ...(config.header.navigation || []),
+    ...(config.routes || [])
+  ];
+}
+
 function findCurrentNavItem(config) {
   const currentHash = getCurrentHash(config);
+  const allRoutes = getAllRoutes(config);
 
-  const navItem = config.header.navigation.find((item) => {
+  const routeItem = allRoutes.find((item) => {
     return item.hash === currentHash;
   });
 
-  return navItem || config.header.navigation[0];
+  return routeItem || config.header.navigation[0];
+}
+
+function isExtraRoute(config, hash) {
+  return (config.routes || []).some((route) => {
+    return route.hash === hash;
+  });
 }
 
 function renderHeader(config) {
@@ -59,7 +73,8 @@ function renderHeader(config) {
     return;
   }
 
-  const currentHash = getCurrentHash(config);
+  const currentRoute = findCurrentNavItem(config);
+  const currentHash = currentRoute.hash;
 
   const logoHTML =
     config.header.logoIMG && config.header.logoIMG.trim() !== ""
@@ -76,7 +91,12 @@ function renderHeader(config) {
 
   const navItems = config.header.navigation
     .map((item) => {
-      const isActive = item.hash === currentHash;
+      const currentIsExtraRoute = isExtraRoute(config, currentHash);
+
+      const isActive =
+        item.hash === currentHash ||
+        (currentIsExtraRoute && item.hash === "#lessons");
+
       const ariaCurrent = isActive ? ' aria-current="page"' : "";
 
       return `

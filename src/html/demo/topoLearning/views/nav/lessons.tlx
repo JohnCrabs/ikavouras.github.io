@@ -14,10 +14,10 @@
   ratio = 1:1
 
   \item{
-    title = Μαθηματικά Θεμέλια
+    title = Μαθηματικά
     description = Βασικές μαθηματικές έννοιες για γεωμετρία, μετρήσεις, μετασχηματισμούς και υπολογισμούς.
-    image = assets/img/lessons_categories/math_foundation.png
-    url = #math-foundations
+    image = assets/img/lessons_categories/math.png
+    url = #math
   }
 
   \item{
@@ -50,7 +50,7 @@
 
   \item{
     title = Όραση Υπολογιστών
-    description = Ανάλυση εικόνας, ανίχνευση αντικειμένων, ταξινόμηση και γεωχωρικές εφαρμογές ML.
+    description = Ανάλυση εικόνας, ανίχνευση αντικειμένων, ταξινόμηση και γεωχωρικές εφαρμογές όρασης υπολογιστών.
     image = assets/img/lessons_categories/computer_vision.png
     url = #computer-vision
   }
