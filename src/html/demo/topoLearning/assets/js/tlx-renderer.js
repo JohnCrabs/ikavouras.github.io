@@ -225,14 +225,87 @@ const TLXRenderer = (() => {
     `;
   }
 
-  function renderCards(block) {
+  function getBlockSetting(block, key, fallback) {
+    const directValue = block ? block[key] : undefined;
+    const dataValue = block && block.data ? block.data[key] : undefined;
+    const settingsValue = block && block.settings ? block.settings[key] : undefined;
+
+    const candidates = [directValue, dataValue, settingsValue];
+
+    for (const candidate of candidates) {
+      if (candidate !== undefined && candidate !== null && String(candidate).trim() !== "") {
+        return candidate;
+      }
+    }
+
+    return fallback;
+  }
+
+  function parseCardRatio(value) {
+    const ratioText = String(value || "1:1").trim();
+
+    const ratioMatch = ratioText.match(
+      /^(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)$/
+    );
+
+    if (!ratioMatch) {
+      return {
+        width: 1,
+        height: 1
+      };
+    }
+
+    const width = Number(ratioMatch[1]);
+    const height = Number(ratioMatch[2]);
+
+    if (
+      !Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width <= 0 ||
+      height <= 0
+    ) {
+      return {
+        width: 1,
+        height: 1
+      };
+    }
+
+    return {
+      width,
+      height
+    };
+  }
+
+  function parseCardColumns(value) {
+    const columns = Number(value);
     const allowedColumns = [1, 2, 3, 4];
 
-    const columns = allowedColumns.includes(block.columns)
-      ? block.columns
+    return allowedColumns.includes(columns)
+      ? columns
       : 3;
+  }
 
-    const cards = block.items
+  function parseCardSize(value) {
+    const size = String(value || "normal").trim();
+    const allowedSizes = ["normal", "small"];
+
+    return allowedSizes.includes(size)
+      ? size
+      : "normal";
+  }
+
+  function renderCards(block) {
+    const columns = parseCardColumns(getBlockSetting(block, "columns", 3));
+    const ratio = parseCardRatio(getBlockSetting(block, "ratio", "1:1"));
+    const size = parseCardSize(getBlockSetting(block, "size", "normal"));
+
+    const items = Array.isArray(block.items)
+      ? block.items
+      : [];
+
+    const mediaRatioStyle = `aspect-ratio: ${ratio.width} / ${ratio.height};`;
+
+    const cards = items
       .map((item) => {
         const title = item.title || "";
         const description = item.description || "";
@@ -258,7 +331,7 @@ const TLXRenderer = (() => {
 
         return `
           <a class="tl-card" href="${escapeHTML(url)}">
-            <div class="tl-card-media">
+            <div class="tl-card-media" style="${mediaRatioStyle}">
               ${imageHTML}
               ${tagHTML}
             </div>
@@ -273,7 +346,7 @@ const TLXRenderer = (() => {
       .join("");
 
     return `
-      <div class="tl-card-grid tl-card-grid-${columns}">
+      <div class="tl-card-grid tl-card-grid-${columns} tl-card-size-${size}">
         ${cards}
       </div>
     `;
@@ -368,9 +441,9 @@ const TLXRenderer = (() => {
     return blocks.map(renderBlock).join("\n");
   }
 
-  function activateInteractiveParts(rootElement) {
+  function activateCardFallbackImages(rootElement) {
     rootElement.querySelectorAll(".tl-card-image").forEach((image) => {
-      image.addEventListener("error", () => {
+      const showFallbackTag = () => {
         const media = image.closest(".tl-card-media");
         const tag = media ? media.querySelector(".tl-card-tag") : null;
 
@@ -379,9 +452,33 @@ const TLXRenderer = (() => {
         if (tag) {
           tag.hidden = false;
         }
-      });
-    });
+      };
 
+      const showImage = () => {
+        const media = image.closest(".tl-card-media");
+        const tag = media ? media.querySelector(".tl-card-tag") : null;
+
+        image.hidden = false;
+
+        if (tag) {
+          tag.hidden = true;
+        }
+      };
+
+      image.addEventListener("load", showImage);
+      image.addEventListener("error", showFallbackTag);
+
+      if (image.complete) {
+        if (image.naturalWidth > 0) {
+          showImage();
+        } else {
+          showFallbackTag();
+        }
+      }
+    });
+  }
+
+  function activateQuizzes(rootElement) {
     rootElement.querySelectorAll(".tl-quiz").forEach((quiz) => {
       const correctAnswer = quiz.dataset.correctAnswer;
       const feedback = quiz.querySelector(".tl-quiz-feedback");
@@ -426,6 +523,11 @@ const TLXRenderer = (() => {
         });
       });
     });
+  }
+
+  function activateInteractiveParts(rootElement) {
+    activateCardFallbackImages(rootElement);
+    activateQuizzes(rootElement);
   }
 
   return {

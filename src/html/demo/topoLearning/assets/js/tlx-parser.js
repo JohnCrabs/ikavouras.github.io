@@ -50,7 +50,7 @@ const TLXParser = (() => {
     let i = index;
 
     while (i < source.length) {
-      while (/\s/.test(source[i])) {
+      while (i < source.length && /\s/.test(source[i])) {
         i += 1;
       }
 
@@ -59,6 +59,11 @@ const TLXParser = (() => {
       }
 
       const group = parseBracedGroup(source, i);
+
+      if (!group) {
+        break;
+      }
+
       groups.push(group.content);
       i = group.endIndex;
     }
@@ -71,7 +76,7 @@ const TLXParser = (() => {
 
   function parseKeyValueBlock(content) {
     const result = {};
-    const lines = content.split("\n");
+    const lines = String(content || "").split("\n");
 
     let currentKey = null;
 
@@ -100,7 +105,7 @@ const TLXParser = (() => {
   }
 
   function parseSimpleList(value) {
-    return value
+    return String(value || "")
       .split(";")
       .map((item) => item.trim())
       .filter(Boolean);
@@ -115,6 +120,47 @@ const TLXParser = (() => {
         label: (parts[1] || parts[0] || "").trim()
       };
     });
+  }
+
+  function parseCardsContent(content) {
+    const items = [];
+    let settingsContent = "";
+    let i = 0;
+
+    while (i < content.length) {
+      const match = content.slice(i).match(/\\item\s*/);
+
+      if (!match) {
+        settingsContent += content.slice(i);
+        break;
+      }
+
+      settingsContent += content.slice(i, i + match.index);
+      i += match.index + match[0].length;
+
+      while (i < content.length && /\s/.test(content[i])) {
+        i += 1;
+      }
+
+      if (content[i] !== "{") {
+        settingsContent += "\\item";
+        continue;
+      }
+
+      const itemGroup = parseBracedGroup(content, i);
+
+      if (!itemGroup) {
+        break;
+      }
+
+      items.push(parseKeyValueBlock(itemGroup.content));
+      i = itemGroup.endIndex;
+    }
+
+    return {
+      settings: parseKeyValueBlock(settingsContent),
+      items
+    };
   }
 
   function parse(source) {
@@ -141,42 +187,6 @@ const TLXParser = (() => {
     }
 
     return blocks;
-  }
-
-  function parseCardsContent(content) {
-    const items = [];
-    let settingsContent = "";
-    let i = 0;
-
-    while (i < content.length) {
-      const match = content.slice(i).match(/\\item\s*/);
-
-      if (!match) {
-        settingsContent += content.slice(i);
-        break;
-      }
-
-      settingsContent += content.slice(i, i + match.index);
-      i += match.index + match[0].length;
-
-      while (/\s/.test(content[i])) {
-        i += 1;
-      }
-
-      if (content[i] !== "{") {
-        settingsContent += "\\item";
-        continue;
-      }
-
-      const itemGroup = parseBracedGroup(content, i);
-      items.push(parseKeyValueBlock(itemGroup.content));
-      i = itemGroup.endIndex;
-    }
-
-    return {
-      settings: parseKeyValueBlock(settingsContent),
-      items
-    };
   }
 
   function normalizeBlock(command, groups) {
@@ -301,7 +311,13 @@ const TLXParser = (() => {
 
       return {
         type: "cards",
+
         columns: Number(cardsData.settings.columns || 3),
+        ratio: cardsData.settings.ratio || "1:1",
+        size: cardsData.settings.size || "normal",
+
+        settings: cardsData.settings,
+
         items: cardsData.items.map((item) => {
           return {
             title: item.title || "",
@@ -319,7 +335,7 @@ const TLXParser = (() => {
       command,
       groups
     };
-    }
+  }
 
   return {
     parse

@@ -12,6 +12,7 @@
 \cards{
   columns = 3
   ratio = 1:1
+  size = normal
 
   \item{
     title = Μαθηματικά

@@ -81,6 +81,51 @@
     "title": "Όραση Υπολογιστών",
     "hash": "#computer-vision",
     "tlxPath": "lessons/categories/computer_vision.tlx"
+  },
+  {
+    "title": "Μαθηματική Ανάλυση",
+    "hash": "#math-calculus",
+    "tlxPath": "lessons/math/subjects/calculus.tlx"
+  },
+  {
+    "title": "Ευκλείδια Γεωμετρία",
+    "hash": "#math-euclidean-geometry",
+    "tlxPath": "lessons/math/subjects/euclidean_geometry.tlx"
+  },
+  {
+    "title": "Τριγωνομετρία",
+    "hash": "#math-trigonometry",
+    "tlxPath": "lessons/math/subjects/trigonometry.tlx"
+  },
+  {
+    "title": "Αναλυτική Γεωμετρία",
+    "hash": "#math-analytic-geometry",
+    "tlxPath": "lessons/math/subjects/analytic_geometry.tlx"
+  },
+  {
+    "title": "Γραμμική Άλγεβρα",
+    "hash": "#math-linear-algebra",
+    "tlxPath": "lessons/math/subjects/linear_algebra.tlx"
+  },
+  {
+    "title": "Πιθανότητες και Στατιστική",
+    "hash": "#math-probability-statistics",
+    "tlxPath": "lessons/math/subjects/probability_statistics.tlx"
+  },
+  {
+    "title": "Αριθμητικές Μέθοδοι και Βελτιστοποίηση",
+    "hash": "#math-numerical-optimization",
+    "tlxPath": "lessons/math/subjects/numerical_optimization.tlx"
+  },
+  {
+    "title": "Παραστατική Γεωμετρία",
+    "hash": "#math-descriptive-geometry",
+    "tlxPath": "lessons/math/subjects/descriptive_geometry.tlx"
+  },
+  {
+    "title": "Προβολική Γεωμετρία",
+    "hash": "#math-projective-geometry",
+    "tlxPath": "lessons/math/subjects/projective_geometry.tlx"
   }
 ]
 

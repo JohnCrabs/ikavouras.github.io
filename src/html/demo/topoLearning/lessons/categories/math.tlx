@@ -1,0 +1,88 @@
+\page{
+  title = Μαθηματικά
+  description = Η ενότητα των Μαθηματικών περιλαμβάνει βασικά μαθηματικά αντικείμενα που υποστηρίζουν τη γεωδαισία, τη φωτογραμμετρία, την τηλεπισκόπηση, τα GIS και την όραση υπολογιστών.
+}
+
+\section{Υποκατηγορίες Μαθηματικών}
+
+\paragraph{
+Οι υποκατηγορίες είναι οργανωμένες ώστε ο φοιτητής να ξεκινά από έννοιες μεταβολής, συναρτήσεων και μαθηματικής μοντελοποίησης, και στη συνέχεια να περνά σταδιακά σε γεωμετρικές, αλγεβρικές, στατιστικές και εφαρμοσμένες μαθηματικές έννοιες.
+}
+
+\cards{
+  columns = 3
+  ratio = 5:3
+  size = normal
+
+  \item{
+    title = Μαθηματική Ανάλυση
+    description = Συναρτήσεις, όρια, συνέχεια, παράγωγοι, διαφορικός λογισμός, ολοκληρώματα και βασικές έννοιες μεταβολής και μοντελοποίησης.
+    image = assets/img/math/subjects/calculus.png
+    tag = CALC
+    url = #math-calculus
+  }
+
+  \item{
+    title = Ευκλείδια Γεωμετρία
+    description = Σημεία, ευθείες, επίπεδα, γωνίες, αποστάσεις, τρίγωνα, κύκλοι και βασικές γεωμετρικές σχέσεις.
+    image = assets/img/math/subjects/euclidean_geometry.png
+    tag = EUC
+    url = #math-euclidean-geometry
+  }
+
+  \item{
+    title = Τριγωνομετρία
+    description = Γωνίες, τρίγωνα, τριγωνομετρικοί αριθμοί και εφαρμογές σε μετρήσεις, υψόμετρα και γεωμετρικούς υπολογισμούς.
+    image = assets/img/math/subjects/trigonometry.png
+    tag = TRIG
+    url = #math-trigonometry
+  }
+
+  \item{
+    title = Αναλυτική Γεωμετρία
+    description = Περιγραφή σημείων, ευθειών, επιπέδων και καμπυλών με συντεταγμένες, εξισώσεις και γεωμετρικές σχέσεις.
+    image = assets/img/math/subjects/analytic_geometry.png
+    tag = AG
+    url = #math-analytic-geometry
+  }
+
+  \item{
+    title = Γραμμική Άλγεβρα
+    description = Διανύσματα, πίνακες, γραμμικά συστήματα, γραμμικοί μετασχηματισμοί και βασικές αλγεβρικές δομές.
+    image = assets/img/math/subjects/linear_algebra.png
+    tag = LA
+    url = #math-linear-algebra
+  }
+
+  \item{
+    title = Πιθανότητες και Στατιστική
+    description = Πιθανότητες, τυχαίες μεταβλητές, κατανομές, μέση τιμή, διασπορά, αβεβαιότητα και στατιστική ανάλυση.
+    image = assets/img/math/subjects/probability_statistics.png
+    tag = STAT
+    url = #math-probability-statistics
+  }
+
+  \item{
+    title = Αριθμητικές Μέθοδοι και Βελτιστοποίηση
+    description = Αριθμητική επίλυση προβλημάτων, γραμμικοποίηση, επαναληπτικές μέθοδοι, ελαχιστοποίηση και βασικές αρχές βελτιστοποίησης.
+    image = assets/img/math/subjects/numerical_optimization.png
+    tag = NUM
+    url = #math-numerical-optimization
+  }
+
+  \item{
+    title = Παραστατική Γεωμετρία
+    description = Αναπαράσταση 3D αντικειμένων σε 2D επίπεδα, όψεις, τομές, προβολές και γεωμετρική απεικόνιση του χώρου.
+    image = assets/img/math/subjects/descriptive_geometry.png
+    tag = DG
+    url = #math-descriptive-geometry
+  }
+
+  \item{
+    title = Προβολική Γεωμετρία
+    description = Προβολές, ομογενείς συντεταγμένες, σημεία φυγής και γεωμετρικές σχέσεις μεταξύ χώρου και εικόνας.
+    image = assets/img/math/subjects/projective_geometry.png
+    tag = PG
+    url = #math-projective-geometry
+  }
+}
