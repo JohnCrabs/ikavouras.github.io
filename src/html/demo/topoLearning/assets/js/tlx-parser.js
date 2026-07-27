@@ -163,6 +163,32 @@ const TLXParser = (() => {
     };
   }
 
+  function parseCodeTabsContent(content) {
+    const tabs = [];
+    let i = 0;
+
+    while (i < content.length) {
+      const match = content.slice(i).match(/\\tab\s*/);
+
+      if (!match) {
+        break;
+      }
+
+      i += match.index + match[0].length;
+
+      const parsedGroups = readCommandGroups(content, i);
+      i = parsedGroups.endIndex;
+
+      tabs.push({
+        label: parsedGroups.groups[0] || "Code",
+        language: parsedGroups.groups[1] || "",
+        code: parsedGroups.groups[2] || ""
+      });
+    }
+
+    return tabs;
+  }
+
   function parse(source) {
     const cleanSource = removeComments(source);
     const blocks = [];
@@ -233,6 +259,14 @@ const TLXParser = (() => {
         type: "code",
         language: groups[0] || "",
         content: groups[1] || ""
+      };
+    }
+
+    if (normalizedCommand === "codetabs") {
+      return {
+        type: "codetabs",
+        title: groups[0] || "Κώδικας",
+        tabs: parseCodeTabsContent(groups[1] || "")
       };
     }
 
@@ -343,6 +377,18 @@ const TLXParser = (() => {
             tag: item.tag || item.title || ""
           };
         })
+      };
+    }
+
+    if (normalizedCommand === "navlinks") {
+      const data = parseKeyValueBlock(groups[0] || "");
+
+      return {
+        type: "navlinks",
+        previousLabel: data.previousLabel || "",
+        previousUrl: data.previousUrl || "#",
+        nextLabel: data.nextLabel || "",
+        nextUrl: data.nextUrl || "#"
       };
     }
 

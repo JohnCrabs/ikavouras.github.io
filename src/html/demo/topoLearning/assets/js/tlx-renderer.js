@@ -287,6 +287,76 @@ const TLXRenderer = (() => {
     `;
   }
 
+  function renderCodeTabs(block) {
+    const tabs = Array.isArray(block.tabs)
+      ? block.tabs
+      : [];
+
+    if (tabs.length === 0) {
+      return `
+        <div class="tl-warning">
+          Δεν υπάρχουν διαθέσιμες καρτέλες κώδικα.
+        </div>
+      `;
+    }
+
+    const tabId = `tl-code-tabs-${Math.random().toString(36).slice(2)}`;
+
+    const buttons = tabs
+      .map((tab, index) => {
+        const isActive = index === 0;
+
+        return `
+          <button
+            type="button"
+            class="tl-code-tab-button ${isActive ? "is-active" : ""}"
+            data-tab-target="${escapeHTML(tabId)}-${index}"
+            aria-pressed="${isActive ? "true" : "false"}"
+          >
+            ${escapeHTML(tab.label)}
+          </button>
+        `;
+      })
+      .join("");
+
+    const panels = tabs
+      .map((tab, index) => {
+        const isActive = index === 0;
+
+        return `
+          <div
+            id="${escapeHTML(tabId)}-${index}"
+            class="tl-code-tab-panel ${isActive ? "is-active" : ""}"
+            ${isActive ? "" : "hidden"}
+          >
+            ${
+              tab.language
+                ? `<div class="tl-code-title">${escapeHTML(tab.language)}</div>`
+                : ""
+            }
+            <pre><code>${escapeHTML(tab.code)}</code></pre>
+          </div>
+        `;
+      })
+      .join("");
+
+    return `
+      <div class="tl-code-tabs">
+        <div class="tl-code-tabs-title">
+          ${escapeHTML(block.title || "Κώδικας")}
+        </div>
+
+        <div class="tl-code-tabs-buttons">
+          ${buttons}
+        </div>
+
+        <div class="tl-code-tabs-panels">
+          ${panels}
+        </div>
+      </div>
+    `;
+  }
+
   function getBlockSetting(block, key, fallback) {
     const directValue = block ? block[key] : undefined;
     const dataValue = block && block.data ? block.data[key] : undefined;
@@ -414,6 +484,31 @@ const TLXRenderer = (() => {
     `;
   }
 
+  function renderNavLinks(block) {
+      const previousHTML = block.previousLabel
+        ? `
+          <a class="tl-navlink tl-navlink-previous" href="${escapeHTML(block.previousUrl)}">
+            ${escapeHTML(block.previousLabel)}
+          </a>
+        `
+        : `<span></span>`;
+
+      const nextHTML = block.nextLabel
+        ? `
+          <a class="tl-navlink tl-navlink-next" href="${escapeHTML(block.nextUrl)}">
+            ${escapeHTML(block.nextLabel)}
+          </a>
+        `
+        : `<span></span>`;
+
+      return `
+        <nav class="tl-section-navigation" aria-label="Πλοήγηση ενοτήτων">
+          ${previousHTML}
+          ${nextHTML}
+        </nav>
+      `;
+  }
+
   function renderBlock(block) {
     switch (block.type) {
       case "page":
@@ -468,6 +563,9 @@ const TLXRenderer = (() => {
           </div>
         `;
 
+      case "codetabs":
+        return renderCodeTabs(block);
+
       case "image":
         return renderImage(block);
 
@@ -488,6 +586,9 @@ const TLXRenderer = (() => {
 
       case "plotplayground":
         return renderPlotPlayground(block);
+
+      case "navlinks":
+        return renderNavLinks(block);
 
       default:
         return `
@@ -536,6 +637,39 @@ const TLXRenderer = (() => {
           showFallbackTag();
         }
       }
+    });
+  }
+
+  function activateCodeTabs(rootElement) {
+    rootElement.querySelectorAll(".tl-code-tabs").forEach((tabsRoot) => {
+      const buttons = tabsRoot.querySelectorAll(".tl-code-tab-button");
+      const panels = tabsRoot.querySelectorAll(".tl-code-tab-panel");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const targetId = button.dataset.tabTarget;
+
+          buttons.forEach((item) => {
+            item.classList.remove("is-active");
+            item.setAttribute("aria-pressed", "false");
+          });
+
+          panels.forEach((panel) => {
+            panel.classList.remove("is-active");
+            panel.hidden = true;
+          });
+
+          button.classList.add("is-active");
+          button.setAttribute("aria-pressed", "true");
+
+          const targetPanel = tabsRoot.querySelector(`#${CSS.escape(targetId)}`);
+
+          if (targetPanel) {
+            targetPanel.hidden = false;
+            targetPanel.classList.add("is-active");
+          }
+        });
+      });
     });
   }
 
@@ -595,6 +729,7 @@ const TLXRenderer = (() => {
   function activateInteractiveParts(rootElement) {
     activateCardFallbackImages(rootElement);
     activatePlotPlaygrounds(rootElement);
+    activateCodeTabs(rootElement);
     activateQuizzes(rootElement);
   }
 

@@ -19,7 +19,7 @@
     description = Συναρτήσεις, όρια, συνέχεια, παράγωγοι, διαφορικός λογισμός, ολοκληρώματα και βασικές έννοιες μεταβολής και μοντελοποίησης.
     image = assets/img/math/subjects/calculus.png
     tag = CALC
-    url = #math-calculus
+    url = #math_calculus
   }
 
   \item{
@@ -27,7 +27,7 @@
     description = Σημεία, ευθείες, επίπεδα, γωνίες, αποστάσεις, τρίγωνα, κύκλοι και βασικές γεωμετρικές σχέσεις.
     image = assets/img/math/subjects/euclidean_geometry.png
     tag = EUC
-    url = #math-euclidean-geometry
+    url = #math_euclidean_geometry
   }
 
   \item{
@@ -35,7 +35,7 @@
     description = Γωνίες, τρίγωνα, τριγωνομετρικοί αριθμοί και εφαρμογές σε μετρήσεις, υψόμετρα και γεωμετρικούς υπολογισμούς.
     image = assets/img/math/subjects/trigonometry.png
     tag = TRIG
-    url = #math-trigonometry
+    url = #math_trigonometry
   }
 
   \item{
@@ -43,7 +43,7 @@
     description = Περιγραφή σημείων, ευθειών, επιπέδων και καμπυλών με συντεταγμένες, εξισώσεις και γεωμετρικές σχέσεις.
     image = assets/img/math/subjects/analytic_geometry.png
     tag = AG
-    url = #math-analytic-geometry
+    url = #math_analytic_geometry
   }
 
   \item{
@@ -51,7 +51,7 @@
     description = Διανύσματα, πίνακες, γραμμικά συστήματα, γραμμικοί μετασχηματισμοί και βασικές αλγεβρικές δομές.
     image = assets/img/math/subjects/linear_algebra.png
     tag = LA
-    url = #math-linear-algebra
+    url = #math_linear_algebra
   }
 
   \item{
@@ -59,7 +59,7 @@
     description = Πιθανότητες, τυχαίες μεταβλητές, κατανομές, μέση τιμή, διασπορά, αβεβαιότητα και στατιστική ανάλυση.
     image = assets/img/math/subjects/probability_statistics.png
     tag = STAT
-    url = #math-probability-statistics
+    url = #math_probability_statistics
   }
 
   \item{
@@ -67,7 +67,7 @@
     description = Αριθμητική επίλυση προβλημάτων, γραμμικοποίηση, επαναληπτικές μέθοδοι, ελαχιστοποίηση και βασικές αρχές βελτιστοποίησης.
     image = assets/img/math/subjects/numerical_optimization.png
     tag = NUM
-    url = #math-numerical-optimization
+    url = #math_numerical_optimization
   }
 
   \item{
@@ -75,7 +75,7 @@
     description = Αναπαράσταση 3D αντικειμένων σε 2D επίπεδα, όψεις, τομές, προβολές και γεωμετρική απεικόνιση του χώρου.
     image = assets/img/math/subjects/descriptive_geometry.png
     tag = DG
-    url = #math-descriptive-geometry
+    url = #math_descriptive_geometry
   }
 
   \item{
@@ -83,6 +83,6 @@
     description = Προβολές, ομογενείς συντεταγμένες, σημεία φυγής και γεωμετρικές σχέσεις μεταξύ χώρου και εικόνας.
     image = assets/img/math/subjects/projective_geometry.png
     tag = PG
-    url = #math-projective-geometry
+    url = #math_projective_geometry
   }
 }
