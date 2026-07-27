@@ -33,10 +33,6 @@ const TLXRenderer = (() => {
     return result.replace(/\n/g, "<br>");
   }
 
-  function renderTextWithLineBreaks(value) {
-    return renderInlineContent(value);
-  }
-
   function renderPageMeta(block) {
     const title = block.data.title || "";
     const description = block.data.description || "";
@@ -63,6 +59,38 @@ const TLXRenderer = (() => {
       <div class="${className}">
         <h3>${escapeHTML(block.title)}</h3>
         <div>${renderInlineContent(block.content)}</div>
+      </div>
+    `;
+  }
+
+  function renderSolution(block) {
+    const title = block.title || "Λύση";
+
+    return `
+      <details class="tl-solution">
+        <summary>${escapeHTML(title)}</summary>
+        <div class="tl-solution-body">
+          ${renderInlineContent(block.content)}
+        </div>
+      </details>
+    `;
+  }
+
+  function renderEquation(block) {
+    const content = String(block.content || "").trim();
+
+    const alreadyDelimited =
+      content.startsWith("\\[") ||
+      content.startsWith("$$") ||
+      content.startsWith("\\(");
+
+    const mathContent = alreadyDelimited
+      ? content
+      : `\\[\n${content}\n\\]`;
+
+    return `
+      <div class="tl-equation">
+        ${escapeHTML(mathContent)}
       </div>
     `;
   }
@@ -220,6 +248,40 @@ const TLXRenderer = (() => {
           >
             2D workspace placeholder
           </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPlotPlayground(block) {
+    return `
+      <div class="tl-plot-playground">
+        <div class="tl-plot-playground-header">
+          ${escapeHTML(block.title || "Διαδραστικό γράφημα συναρτήσεων")}
+        </div>
+
+        <div class="tl-plot-playground-body">
+          <div class="tl-plot-controls">
+            <label>Συναρτήσεις</label>
+            <textarea class="tl-plot-functions" rows="7">${escapeHTML(block.functions || "x^2")}</textarea>
+
+            <label>x min</label>
+            <input class="tl-plot-x-min" data-axis="xmin" type="number" step="0.5" value="${escapeHTML(block.xMin)}">
+
+            <label>x max</label>
+            <input class="tl-plot-x-max" data-axis="xmax" type="number" step="0.5" value="${escapeHTML(block.xMax)}">
+
+            <label>y min</label>
+            <input class="tl-plot-y-min" data-axis="ymin" type="number" step="0.5" value="${escapeHTML(block.yMin)}">
+
+            <label>y max</label>
+            <input class="tl-plot-y-max" data-axis="ymax" type="number" step="0.5" value="${escapeHTML(block.yMax)}">
+
+            <button class="tl-plot-update" type="button">Plot</button>
+            <div class="tl-plot-message" aria-live="polite"></div>
+          </div>
+
+          <canvas class="tl-plot-canvas"></canvas>
         </div>
       </div>
     `;
@@ -389,14 +451,10 @@ const TLXRenderer = (() => {
         return renderTitledBlock(block, "tl-exercise");
 
       case "solution":
-        return renderTitledBlock(block, "tl-solution");
+        return renderSolution(block);
 
       case "equation":
-        return `
-          <div class="tl-equation">
-            ${escapeHTML(block.content)}
-          </div>
-        `;
+        return renderEquation(block);
 
       case "code":
         return `
@@ -427,6 +485,9 @@ const TLXRenderer = (() => {
 
       case "interactive2Dplane":
         return renderInteractive2DPlane(block);
+
+      case "plotplayground":
+        return renderPlotPlayground(block);
 
       default:
         return `
@@ -525,8 +586,15 @@ const TLXRenderer = (() => {
     });
   }
 
+  function activatePlotPlaygrounds(rootElement) {
+    if (window.TLXPlotPlayground && window.TLXPlotPlayground.activateAll) {
+      window.TLXPlotPlayground.activateAll(rootElement);
+    }
+  }
+
   function activateInteractiveParts(rootElement) {
     activateCardFallbackImages(rootElement);
+    activatePlotPlaygrounds(rootElement);
     activateQuizzes(rootElement);
   }
 

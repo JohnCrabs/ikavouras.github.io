@@ -17,8 +17,27 @@
 
   <footer id="site-footer"></footer>
 
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["\\(", "\\)"]],
+        displayMath: [["\\[", "\\]"]]
+      },
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+
+  <script
+    id="MathJax-script"
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+  </script>
+
   <script src="assets/js/tlx-parser.js"></script>
   <script src="assets/js/tlx-renderer.js"></script>
+  <script src="assets/js/function-plotter.js"></script>
   <script src="assets/js/interactive-2d.js"></script>
   <script src="assets/js/app.js"></script>
 

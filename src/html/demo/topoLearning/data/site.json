@@ -126,6 +126,131 @@
     "title": "Προβολική Γεωμετρία",
     "hash": "#math-projective-geometry",
     "tlxPath": "lessons/math/subjects/projective_geometry.tlx"
+  },
+  {
+    "title": "Συγκεντρωτικές Λίστες και Τυπολόγιο",
+    "hash": "#math-calculus-reference-lists",
+    "tlxPath": "lessons/math/calculus/reference-lists.tlx"
+  },
+  {
+    "title": "Συναρτήσεις και Γραφικές Παραστάσεις",
+    "hash": "#math-calculus-functions",
+    "tlxPath": "lessons/math/calculus/functions.tlx"
+  },
+  {
+    "title": "Βασικές Συναρτήσεις Αναφοράς",
+    "hash": "#math-calculus-basic-functions",
+    "tlxPath": "lessons/math/calculus/basic-functions.tlx"
+  },
+  {
+    "title": "Όρια Συναρτήσεων",
+    "hash": "#math-calculus-limits",
+    "tlxPath": "lessons/math/calculus/limits.tlx"
+  },
+  {
+    "title": "Συνέχεια",
+    "hash": "#math-calculus-continuity",
+    "tlxPath": "lessons/math/calculus/continuity.tlx"
+  },
+  {
+    "title": "Η Έννοια της Παραγώγου",
+    "hash": "#math-calculus-derivatives",
+    "tlxPath": "lessons/math/calculus/derivatives.tlx"
+  },
+  {
+    "title": "Κανόνες Παραγώγισης",
+    "hash": "#math-calculus-differentiation-rules",
+    "tlxPath": "lessons/math/calculus/differentiation-rules.tlx"
+  },
+  {
+    "title": "Παράγωγοι Βασικών Συναρτήσεων",
+    "hash": "#math-calculus-derivatives-basic-functions",
+    "tlxPath": "lessons/math/calculus/derivatives-basic-functions.tlx"
+  },
+  {
+    "title": "Γραμμική Προσέγγιση και Διαφορικά",
+    "hash": "#math-calculus-linear-approximation",
+    "tlxPath": "lessons/math/calculus/linear-approximation.tlx"
+  },
+  {
+    "title": "Μελέτη Συνάρτησης",
+    "hash": "#math-calculus-function-study",
+    "tlxPath": "lessons/math/calculus/function-study.tlx"
+  },
+  {
+    "title": "Βασικά Θεωρήματα Διαφορικού Λογισμού",
+    "hash": "#math-calculus-differential-theorems",
+    "tlxPath": "lessons/math/calculus/differential-theorems.tlx"
+  },
+  {
+    "title": "Κανόνας de l'Hôpital",
+    "hash": "#math-calculus-lhopital",
+    "tlxPath": "lessons/math/calculus/lhopital.tlx"
+  },
+  {
+    "title": "Αντιπαράγωγοι και Αόριστα Ολοκληρώματα",
+    "hash": "#math-calculus-antiderivatives",
+    "tlxPath": "lessons/math/calculus/antiderivatives.tlx"
+  },
+  {
+    "title": "Ορισμένο Ολοκλήρωμα",
+    "hash": "#math-calculus-definite-integrals",
+    "tlxPath": "lessons/math/calculus/definite-integrals.tlx"
+  },
+  {
+    "title": "Θεμελιώδες Θεώρημα του Λογισμού",
+    "hash": "#math-calculus-fundamental-theorem",
+    "tlxPath": "lessons/math/calculus/fundamental-theorem.tlx"
+  },
+  {
+    "title": "Τεχνικές Ολοκλήρωσης",
+    "hash": "#math-calculus-integration-methods",
+    "tlxPath": "lessons/math/calculus/integration-methods.tlx"
+  },
+  {
+    "title": "Αριθμητική Ολοκλήρωση",
+    "hash": "#math-calculus-numerical-integration",
+    "tlxPath": "lessons/math/calculus/numerical-integration.tlx"
+  },
+  {
+    "title": "Εφαρμογές Ολοκληρωμάτων",
+    "hash": "#math-calculus-integral-applications",
+    "tlxPath": "lessons/math/calculus/integral-applications.tlx"
+  },
+  {
+    "title": "Παραμετρικές και Πολικές Καμπύλες",
+    "hash": "#math-calculus-parametric-polar",
+    "tlxPath": "lessons/math/calculus/parametric-polar.tlx"
+  },
+  {
+    "title": "Ακολουθίες και Σειρές",
+    "hash": "#math-calculus-sequences-series",
+    "tlxPath": "lessons/math/calculus/sequences-series.tlx"
+  },
+  {
+    "title": "Σειρές Taylor και Maclaurin",
+    "hash": "#math-calculus-taylor-series",
+    "tlxPath": "lessons/math/calculus/taylor-series.tlx"
+  },
+  {
+    "title": "Συναρτήσεις Πολλών Μεταβλητών",
+    "hash": "#math-calculus-multivariable-functions",
+    "tlxPath": "lessons/math/calculus/multivariable-functions.tlx"
+  },
+  {
+    "title": "Μερικές Παράγωγοι και Κλίση",
+    "hash": "#math-calculus-partial-derivatives",
+    "tlxPath": "lessons/math/calculus/partial-derivatives.tlx"
+  },
+  {
+    "title": "Ακρότατα Συναρτήσεων Πολλών Μεταβλητών",
+    "hash": "#math-calculus-multivariable-optimization",
+    "tlxPath": "lessons/math/calculus/multivariable-optimization.tlx"
+  },
+  {
+    "title": "Πολλαπλά Ολοκληρώματα",
+    "hash": "#math-calculus-multiple-integrals",
+    "tlxPath": "lessons/math/calculus/multiple-integrals.tlx"
   }
 ]
 

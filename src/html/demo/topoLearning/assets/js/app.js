@@ -173,6 +173,28 @@ function renderFooter(config) {
   `;
 }
 
+async function typesetMath(rootElement) {
+  if (!window.MathJax) {
+    return;
+  }
+
+  try {
+    if (window.MathJax.startup && window.MathJax.startup.promise) {
+      await window.MathJax.startup.promise;
+    }
+
+    if (window.MathJax.typesetClear) {
+      window.MathJax.typesetClear([rootElement]);
+    }
+
+    if (window.MathJax.typesetPromise) {
+      await window.MathJax.typesetPromise([rootElement]);
+    }
+  } catch (error) {
+    console.warn("MathJax typesetting failed:", error);
+  }
+}
+
 async function renderView(config) {
   const contentRoot = document.getElementById("lesson-root");
 
@@ -196,6 +218,7 @@ async function renderView(config) {
     `;
 
     TLXRenderer.activateInteractiveParts(contentRoot);
+    await typesetMath(contentRoot);
   } catch (error) {
     console.error(error);
 

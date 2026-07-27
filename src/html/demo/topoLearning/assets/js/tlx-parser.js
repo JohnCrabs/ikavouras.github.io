@@ -1,6 +1,6 @@
 const TLXParser = (() => {
   function removeComments(source) {
-    return source
+    return String(source || "")
       .split("\n")
       .filter((line) => !line.trim().startsWith("%"))
       .join("\n");
@@ -190,43 +190,45 @@ const TLXParser = (() => {
   }
 
   function normalizeBlock(command, groups) {
-    if (command === "page" || command === "lesson") {
+    const normalizedCommand = String(command || "").trim();
+
+    if (normalizedCommand === "page" || normalizedCommand === "lesson") {
       return {
-        type: command,
+        type: normalizedCommand,
         data: parseKeyValueBlock(groups[0] || "")
       };
     }
 
     if (
-      command === "section" ||
-      command === "subsection" ||
-      command === "subsubsection" ||
-      command === "paragraph" ||
-      command === "note" ||
-      command === "tip" ||
-      command === "warning" ||
-      command === "equation"
+      normalizedCommand === "section" ||
+      normalizedCommand === "subsection" ||
+      normalizedCommand === "subsubsection" ||
+      normalizedCommand === "paragraph" ||
+      normalizedCommand === "note" ||
+      normalizedCommand === "tip" ||
+      normalizedCommand === "warning" ||
+      normalizedCommand === "equation"
     ) {
       return {
-        type: command,
+        type: normalizedCommand,
         content: groups[0] || ""
       };
     }
 
     if (
-      command === "definition" ||
-      command === "example" ||
-      command === "exercise" ||
-      command === "solution"
+      normalizedCommand === "definition" ||
+      normalizedCommand === "example" ||
+      normalizedCommand === "exercise" ||
+      normalizedCommand === "solution"
     ) {
       return {
-        type: command,
+        type: normalizedCommand,
         title: groups[0] || "",
         content: groups[1] || ""
       };
     }
 
-    if (command === "code") {
+    if (normalizedCommand === "code") {
       return {
         type: "code",
         language: groups[0] || "",
@@ -234,21 +236,21 @@ const TLXParser = (() => {
       };
     }
 
-    if (command === "image") {
+    if (normalizedCommand === "image") {
       return {
         type: "image",
         data: parseKeyValueBlock(groups[0] || "")
       };
     }
 
-    if (command === "video") {
+    if (normalizedCommand === "video") {
       return {
         type: "video",
         data: parseKeyValueBlock(groups[0] || "")
       };
     }
 
-    if (command === "table") {
+    if (normalizedCommand === "table") {
       const data = parseKeyValueBlock(groups[0] || "");
 
       return {
@@ -272,7 +274,7 @@ const TLXParser = (() => {
       };
     }
 
-    if (command === "quiz") {
+    if (normalizedCommand === "quiz") {
       const data = parseKeyValueBlock(groups[0] || "");
 
       return {
@@ -291,7 +293,7 @@ const TLXParser = (() => {
       };
     }
 
-    if (command === "interactive2Dplane") {
+    if (normalizedCommand === "interactive2Dplane") {
       const data = parseKeyValueBlock(groups[0] || "");
 
       return {
@@ -305,7 +307,21 @@ const TLXParser = (() => {
       };
     }
 
-    if (command === "cards") {
+    if (normalizedCommand === "plotplayground") {
+      const data = parseKeyValueBlock(groups[0] || "");
+
+      return {
+        type: "plotplayground",
+        title: data.title || "Διαδραστικό γράφημα συναρτήσεων",
+        functions: data.functions || "x^2",
+        xMin: Number(data.xMin || -10),
+        xMax: Number(data.xMax || 10),
+        yMin: Number(data.yMin || -10),
+        yMax: Number(data.yMax || 10)
+      };
+    }
+
+    if (normalizedCommand === "cards") {
       const rawContent = groups[0] || "";
       const cardsData = parseCardsContent(rawContent);
 
@@ -332,7 +348,7 @@ const TLXParser = (() => {
 
     return {
       type: "unknown",
-      command,
+      command: normalizedCommand,
       groups
     };
   }
