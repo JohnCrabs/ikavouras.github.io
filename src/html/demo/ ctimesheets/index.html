@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timesheet Generator</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="app-header">
+    <h1>Δημιουργία Timesheet (CSV)</h1>
+    <div class="filename-preview">
+      <span id="filenamePreview">TS_ΕΠΩΝΥΜΟ_ΟΝΟΜΑ_ΧΧΧ_ΚΩΔΙΚΟΣ_ΜΜ-ΕΕΕΕ.csv</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- PROFILE (JSON file) -->
+    <section class="card">
+      <h2>Προφίλ έργου (αρχείο JSON)</h2>
+      <p class="hint">Για μηνιαία έργα, ο κωδικός και τα WPs μένουν σταθερά. Αποθήκευσε τα στοιχεία της φόρμας (όχι μήνα/ημέρες/ώρες) σε ένα αρχείο JSON στον υπολογιστή σου και φόρτωσέ το ξανά τον επόμενο μήνα ή σε άλλο έργο.</p>
+      <div class="actions">
+        <button id="btnSaveProfile" class="btn-secondary">Αποθήκευση προφίλ σε JSON</button>
+        <button id="btnLoadProfile" class="btn-secondary">Φόρτωση προφίλ από JSON</button>
+        <input type="file" id="profileFileInput" accept="application/json,.json" style="display:none">
+      </div>
+      <div id="profileStatusMsg" class="status-msg"></div>
+    </section>
+
+    <!-- STEP 1 -->
+    <section class="card">
+      <h2><span class="step-no">1</span> Στοιχεία αρχείου</h2>
+      <div class="grid grid-2">
+        <label>Επώνυμο (SURNAME)
+          <input type="text" id="surname" placeholder="π.χ. SURNAME" autocomplete="off">
+        </label>
+        <label>Όνομα (NAME)
+          <input type="text" id="firstname" placeholder="π.χ. NAME" autocomplete="off">
+        </label>
+        <label>Πατρώνυμο, 3 γράμματα (FATHER_NAME)
+          <input type="text" id="fatherCode" maxlength="3" placeholder="π.χ. FNA" autocomplete="off">
+        </label>
+        <label>Κωδικός έργου (PROJECT_ID)
+          <input type="text" id="projectId" placeholder="π.χ. PROJECT_ID" autocomplete="off">
+        </label>
+        <label>Μήνας
+          <select id="month"></select>
+        </label>
+        <label>Έτος
+          <input type="number" id="year" min="2000" max="2100" step="1">
+        </label>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="card">
+      <h2><span class="step-no">2</span> Πακέτα Εργασίας (Work Packages)</h2>
+      <div class="grid grid-2" style="margin-bottom:12px;">
+        <label>Πλήθος WPs του έργου
+          <input type="number" id="wpCount" min="1" max="30" step="1" value="9">
+        </label>
+      </div>
+      <p class="hint">Επίλεξε ποια WPs θα χρησιμοποιηθούν αυτό τον μήνα (σε αυτά θα μπορείς να καταχωρήσεις ώρες).</p>
+      <div id="wpCheckboxes" class="wp-checkbox-grid"></div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="card">
+      <h2><span class="step-no">3</span> Ημερολόγιο &amp; αργίες</h2>
+      <div class="grid grid-2" style="margin-bottom:12px;max-width:360px;">
+        <label>Χώρα (αργίες)
+          <select id="country">
+            <option value="GR" selected>Ελλάδα</option>
+            <option value="NONE">Χωρίς αργίες (μόνο Σ/Κ)</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">Κάνε κλικ στις ημέρες που δούλεψες. Τα Σαββατοκύριακα και οι αργίες είναι γκριζαρισμένα και δεν επιλέγονται.</p>
+      <div class="legend">
+        <span class="legend-item"><i class="swatch swatch-work"></i> Εργάσιμη</span>
+        <span class="legend-item"><i class="swatch swatch-selected"></i> Επιλεγμένη</span>
+        <span class="legend-item"><i class="swatch swatch-weekend"></i> Σαββατοκύριακο</span>
+        <span class="legend-item"><i class="swatch swatch-holiday"></i> Αργία</span>
+      </div>
+      <div id="calendar" class="calendar"></div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="card">
+      <h2><span class="step-no">4</span> Ώρες ανά ημέρα / WP</h2>
+      <div id="hoursArea"></div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="card">
+      <h2><span class="step-no">5</span> Δημιουργία αρχείου</h2>
+      <div id="summary" class="summary"></div>
+      <div class="actions">
+        <button id="btnGenerate" class="btn-primary">Λήψη CSV</button>
+        <button id="btnCopy" class="btn-secondary">Αντιγραφή περιεχομένου</button>
+        <button id="btnResetMonth" class="btn-ghost">Καθαρισμός μήνα</button>
+      </div>
+      <div id="statusMsg" class="status-msg"></div>
+      <details class="preview-details">
+        <summary>Προεπισκόπηση CSV</summary>
+        <textarea id="csvPreview" readonly></textarea>
+      </details>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    Τα στοιχεία αποθηκεύονται τοπικά στον browser σου (localStorage) για να μη τα ξαναγράφεις κάθε μήνα.
+  </footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

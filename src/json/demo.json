@@ -10,13 +10,14 @@
         ]
   },
   "cpdf": {
-        "title": "CPDF",
+        "title": "CToolBox",
         "description": {
-          "en": "Free tools for editing your PDF files reliably.",
-          "gr": "Ελεύθερα εργαλεία για την αξιόπιστη επεργασία αρχείων PDF."
+          "en": "Free toolbox of useful tools for various applications.",
+          "gr": "Ελεύθερα χρήσιμα εργαλεία για την επίλυση εφαρμογών."
         },
         "links": [
-            { "label": "CPDF", "url": "src/html/demo/cpdf/index.html" }
+            { "label": "CPDF", "url": "src/html/demo/cpdf/index.html" },
+            { "label": "CTimeSheets", "url": "src/html/demo/ctimesheets/index.html" }
         ]
   },
   "eupolisGame": {
