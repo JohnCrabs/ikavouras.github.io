@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPDF — every PDF tool on your computer</title>
+  <meta name="description" content="Merge, split, compress, convert, rotate, watermark, sign and edit PDF files. Runs locally; files never leave your device.">
+  <script src="../js/i18n.js"></script>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" data-icon="file"></span><span class="brand-name"><span class="brand-accent">C</span>PDF</span>
+    </a>
+    <nav class="topnav">
+      <a href="tool.html?tool=merge" data-i18n="nav.merge">Merge</a>
+      <a href="tool.html?tool=split" data-i18n="nav.split">Split</a>
+      <a href="tool.html?tool=compress" data-i18n="nav.compress">Compress</a>
+      <a href="editor.html" data-i18n="nav.edit">Edit</a>
+      <a href="#tools" data-i18n="nav.allTools">All tools</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1 data-i18n-html="home.title">Every tool you need to work with <em>PDFs</em>, in one place</h1>
+      <p data-i18n="home.subtitle">Merge, split, compress, convert, rotate, sign and edit PDFs on your own computer.</p>
+      <div class="hero-search">
+        <span data-icon="search"></span>
+        <input class="input" type="search" id="tool-search" data-i18n-attr="placeholder:home.search;aria-label:home.search">
+      </div>
+    </section>
+
+    <section class="tools" id="tools">
+      <div class="recent" id="recent" hidden>
+        <h2 class="section-title" data-icon="clock" data-icon-size="16" data-i18n="home.recent">Recently used</h2>
+        <div class="recent-list" id="recent-list"></div>
+      </div>
+      <div class="filters" id="filters" role="tablist"></div>
+      <div class="tool-grid" id="tool-grid"></div>
+    </section>
+
+    <section class="features">
+      <div class="feature">
+        <span data-icon="shield" data-icon-size="26"></span>
+        <h3 data-i18n="feat.private.t">Private by design</h3>
+        <p data-i18n="feat.private.d">Everything runs on your computer.</p>
+      </div>
+      <div class="feature">
+        <span data-icon="bolt" data-icon-size="26"></span>
+        <h3 data-i18n="feat.fast.t">Works offline</h3>
+        <p data-i18n="feat.fast.d">All libraries and fonts are bundled.</p>
+      </div>
+      <div class="feature">
+        <span data-icon="gift" data-icon-size="26"></span>
+        <h3 data-i18n="feat.free.t">Free, no sign-up</h3>
+        <p data-i18n="feat.free.d">No accounts, watermarks or file limits.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer">CPDF</p>
+    <p class="copyright">&copy; 2026 Ioannis A. Kavouras. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/tools.js"></script>
+  <script src="../js/tools/organize.js"></script>
+  <script src="../js/tools/convert.js"></script>
+  <script src="../js/tools/edit.js"></script>
+  <script src="../js/tools/optimize.js"></script>
+  <script src="../js/tools/security.js"></script>
+  <script src="../js/tools/compare.js"></script>
+  <script src="../js/tools/ocr.js"></script>
+  <script src="../js/tools/export.js"></script>
+  <script src="../js/home.js"></script>
+</body>
+</html>

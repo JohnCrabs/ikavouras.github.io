@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPDF</title>
+  <script src="../js/i18n.js"></script>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/tool.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" data-icon="file"></span><span class="brand-name"><span class="brand-accent">C</span>PDF</span>
+    </a>
+    <nav class="topnav">
+      <a href="index.html" data-icon="arrowLeft" data-i18n="nav.allTools">All tools</a>
+    </nav>
+  </header>
+
+  <main class="tool-main">
+    <!-- 1. Upload -->
+    <section class="stage stage-upload" id="stage-upload">
+      <div class="tool-hero">
+        <div class="tool-icon" id="tool-icon"></div>
+        <h1 id="tool-title"></h1>
+        <p id="tool-desc"></p>
+      </div>
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="file-input" hidden>
+        <span class="btn btn-primary btn-lg" data-icon="upload"><span id="select-label"></span></span>
+        <span class="dropzone-hint" data-i18n="tool.dropHint">or drop them here</span>
+      </label>
+      <p class="privacy-note" data-icon="shield" data-icon-size="16" data-i18n="tool.privacy">Your files are processed on your computer and never uploaded.</p>
+    </section>
+
+    <!-- 2. Work -->
+    <section class="stage workspace" id="stage-work" hidden>
+      <div class="work-area">
+        <div class="work-toolbar" id="work-toolbar"></div>
+        <div class="grid" id="work-grid"></div>
+      </div>
+      <aside class="sidebar">
+        <h2 class="side-title" id="side-title"></h2>
+        <div class="options" id="options"></div>
+        <button class="btn btn-primary btn-lg btn-block" id="run-btn" type="button"></button>
+      </aside>
+    </section>
+
+    <!-- 3. Done -->
+    <section class="stage stage-done" id="stage-done" hidden>
+      <div class="done-card">
+        <div class="done-icon" data-icon="check" data-icon-size="34"></div>
+        <h1 id="done-title"></h1>
+        <button class="btn btn-primary btn-lg" id="download-main" type="button"></button>
+        <div class="results" id="results"></div>
+        <div class="done-actions">
+          <button class="btn btn-ghost" id="continue-btn" type="button" data-icon="arrowRight" data-i18n="tool.continue">Continue with another tool</button>
+          <button class="btn btn-ghost" id="back-btn" type="button" data-icon="arrowLeft" data-i18n="tool.back">Back to options</button>
+          <button class="btn btn-ghost" id="restart-btn" type="button" data-icon="rotateCcw" data-i18n="tool.restart">Start over</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="copyright">&copy; 2026 Ioannis A. Kavouras. All rights reserved.</p>
+  </footer>
+
+  <div class="drop-overlay"><span data-icon="upload" data-icon-size="40"></span><span data-i18n="tool.dropOverlay">Drop files to add them</span></div>
+
+  <script src="../js/vendor/pdf.min.js"></script>
+  <script src="../js/vendor/pdf-lib.min.js"></script>
+  <script src="../js/vendor/fontkit.umd.min.js"></script>
+  <script src="../js/vendor/jszip.min.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/tools.js"></script>
+  <script src="../js/tools/organize.js"></script>
+  <script src="../js/tools/convert.js"></script>
+  <script src="../js/tools/edit.js"></script>
+  <script src="../js/tools/optimize.js"></script>
+  <script src="../js/tools/security.js"></script>
+  <script src="../js/tools/compare.js"></script>
+  <script src="../js/tools/ocr.js"></script>
+  <script src="../js/tools/export.js"></script>
+  <script src="../js/tool-page.js"></script>
+</body>
+</html>

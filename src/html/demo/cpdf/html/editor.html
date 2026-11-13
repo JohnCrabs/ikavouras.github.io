@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPDF</title>
+  <script src="../js/i18n.js"></script>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/tool.css">
+  <link rel="stylesheet" href="../css/editor.css">
+</head>
+<body class="editor-page">
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" data-icon="file"></span><span class="brand-name"><span class="brand-accent">C</span>PDF</span>
+    </a>
+    <div class="doc-name" id="file-name"></div>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost hide-sm" href="index.html" data-icon="grid" data-i18n="nav.allTools">All tools</a>
+      <button class="btn btn-ghost" id="open-btn" type="button" data-icon="upload"><span class="hide-sm" data-i18n="ed.open">Open</span></button>
+      <button class="btn btn-primary" id="download-btn" type="button" data-icon="download" disabled data-i18n="ed.download">Download</button>
+    </div>
+  </header>
+
+  <div class="editor-toolbar" role="toolbar">
+    <div class="tb-group" id="tool-group"></div>
+    <div class="tb-sep"></div>
+    <div class="tb-group props">
+      <label class="prop" data-prop="color" data-i18n-attr="title:ed.color">
+        <input type="color" id="prop-color" data-i18n-attr="aria-label:ed.color">
+      </label>
+      <label class="prop" data-prop="stroke">
+        <span data-i18n="ed.size">Size</span>
+        <input type="range" id="prop-stroke" min="1" max="24" step="1">
+      </label>
+      <label class="prop" data-prop="font">
+        <select class="input" id="prop-font" data-i18n-attr="aria-label:ed.font;title:ed.font">
+          <option value="sans" data-i18n="ed.font.sans">Sans</option>
+          <option value="serif" data-i18n="ed.font.serif">Serif</option>
+          <option value="mono" data-i18n="ed.font.mono">Mono</option>
+        </select>
+      </label>
+      <label class="prop" data-prop="fontSize">
+        <span data-i18n="ed.fontSize">Size</span>
+        <input type="number" class="input" id="prop-font-size" min="4" max="144" step="1">
+      </label>
+      <div class="prop prop-style" data-prop="style">
+        <button type="button" class="icon-btn style-btn" id="prop-bold" data-i18n-attr="title:ed.bold;aria-label:ed.bold"><b>B</b></button>
+        <button type="button" class="icon-btn style-btn" id="prop-italic" data-i18n-attr="title:ed.italic;aria-label:ed.italic"><i>I</i></button>
+      </div>
+      <label class="prop" data-prop="opacity">
+        <span data-i18n="ed.opacity">Opacity</span>
+        <input type="range" id="prop-opacity" min="0.1" max="1" step="0.05">
+      </label>
+      <span class="prop-hint" id="prop-hint"></span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-group">
+      <button class="icon-btn" id="undo-btn" type="button" data-icon="undo" data-i18n-attr="title:ed.undo;aria-label:ed.undo" disabled></button>
+      <button class="icon-btn" id="redo-btn" type="button" data-icon="redo" data-i18n-attr="title:ed.redo;aria-label:ed.redo" disabled></button>
+      <button class="icon-btn" id="delete-btn" type="button" data-icon="trash" data-i18n-attr="title:ed.delete;aria-label:ed.delete" disabled></button>
+      <div class="tb-sep"></div>
+      <button class="icon-btn" id="zoom-out" type="button" data-icon="zoomOut" data-i18n-attr="title:ed.zoomOut;aria-label:ed.zoomOut"></button>
+      <button class="zoom-label" id="zoom-label" type="button" data-i18n-attr="title:ed.fit">100%</button>
+      <button class="icon-btn" id="zoom-in" type="button" data-icon="zoomIn" data-i18n-attr="title:ed.zoomIn;aria-label:ed.zoomIn"></button>
+      <span class="page-indicator" id="page-indicator"></span>
+    </div>
+  </div>
+
+  <div class="editor-body">
+    <aside class="thumbs" id="thumbs"></aside>
+    <main class="stage" id="stage">
+      <div class="editor-empty" id="empty">
+        <div class="tool-icon" id="empty-icon"></div>
+        <h1 id="empty-title"></h1>
+        <p id="empty-desc"></p>
+        <label class="dropzone">
+          <span class="btn btn-primary btn-lg" data-icon="upload" data-i18n="ed.selectPdf">Select PDF file</span>
+          <span class="dropzone-hint" data-i18n="ed.dropHint">or drop it here</span>
+          <input type="file" id="drop-input" accept="application/pdf,.pdf" hidden>
+        </label>
+        <p class="copyright editor-copyright">&copy; 2026 Ioannis A. Kavouras. All rights reserved.</p>
+      </div>
+      <div class="pages" id="pages" data-tool="select"></div>
+    </main>
+  </div>
+
+  <input type="file" id="file-input" accept="application/pdf,.pdf" hidden>
+  <input type="file" id="image-input" accept="image/*" hidden>
+
+  <dialog class="sig-dialog" id="sig-dialog">
+    <form method="dialog" class="sig-inner">
+      <header class="sig-head">
+        <h2 data-i18n="sig.title">Create your signature</h2>
+        <button class="icon-btn" value="cancel" data-icon="x" data-i18n-attr="aria-label:sig.close"></button>
+      </header>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="draw" role="tab" data-i18n="sig.draw">Draw</button>
+        <button type="button" class="tab" data-tab="type" role="tab" data-i18n="sig.type">Type</button>
+        <button type="button" class="tab" data-tab="upload" role="tab" data-i18n="sig.upload">Upload</button>
+      </div>
+      <div class="tab-panel" data-panel="draw">
+        <canvas class="sig-canvas" id="sig-canvas"></canvas>
+        <div class="sig-row">
+          <div class="swatches" id="sig-colors"></div>
+          <button type="button" class="btn btn-ghost btn-sm" id="sig-clear" data-i18n="sig.clear">Clear</button>
+        </div>
+      </div>
+      <div class="tab-panel" data-panel="type" hidden>
+        <input type="text" class="input" id="sig-text" maxlength="60" data-i18n-attr="placeholder:sig.typePh">
+        <div class="sig-preview" id="sig-preview" data-i18n="sig.preview">Your signature</div>
+      </div>
+      <div class="tab-panel" data-panel="upload" hidden>
+        <label class="dropzone dropzone-sm">
+          <span class="btn btn-ghost" data-icon="image" data-i18n="sig.choose">Choose image</span>
+          <span class="dropzone-hint" data-i18n="sig.pngHint">A PNG with a transparent background works best</span>
+          <input type="file" id="sig-file" accept="image/*" hidden>
+        </label>
+      </div>
+      <footer class="sig-foot">
+        <button class="btn btn-ghost" value="cancel" data-i18n="sig.cancel">Cancel</button>
+        <button class="btn btn-primary" type="button" id="sig-insert" data-i18n="sig.insert">Insert signature</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="../js/vendor/pdf.min.js"></script>
+  <script src="../js/vendor/pdf-lib.min.js"></script>
+  <script src="../js/vendor/fontkit.umd.min.js"></script>
+  <script src="../js/common.js"></script>
+  <script src="../js/pdf-text.js"></script>
+  <script src="../js/editor.js"></script>
+</body>
+</html>

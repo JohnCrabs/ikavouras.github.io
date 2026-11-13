@@ -9,6 +9,16 @@
             { "label": "TopoLearning", "url": "src/html/demo/topoLearning/topoLearning.html" }
         ]
   },
+  "cpdf": {
+        "title": "CPDF",
+        "description": {
+          "en": "Free tools for editing your PDF files reliably.",
+          "gr": "Ελεύθερα εργαλεία για την αξιόπιστη επεργασία αρχείων PDF."
+        },
+        "links": [
+            { "label": "CPDF", "url": "src/html/demo/cpdf/index.html" }
+        ]
+  },
   "eupolisGame": {
         "title": "The euPOLIS Game",
         "description": {

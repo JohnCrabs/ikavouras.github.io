@@ -1,0 +1,308 @@
+/* CPDF — visual editor. */
+
+/* Handwriting font for typed signatures, bundled locally. */
+@font-face {
+  font-family: "Dancing Script";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/dancing-script-latin.woff2") format("woff2");
+}
+
+.editor-page {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-name {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-actions { display: flex; gap: 8px; }
+@media (max-width: 720px) { .hide-sm { display: none; } }
+
+/* ---------- Toolbar ---------- */
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.tb-group { display: flex; align-items: center; gap: 4px; }
+.tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+.tb-spacer { flex: 1; }
+.props { gap: 14px; min-height: 36px; }
+.prop { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.prop input[type="range"] { width: 90px; accent-color: var(--primary); }
+.prop input[type="color"] {
+  width: 32px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.prop .input { width: 66px; height: 32px; padding: 0 8px; }
+.prop-hint { font-size: 13px; color: var(--muted); }
+.zoom-label {
+  min-width: 56px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.zoom-label:hover { background: var(--surface-2); }
+.page-indicator { min-width: 56px; text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- Layout ---------- */
+.editor-body { flex: 1; display: flex; min-height: 0; }
+.thumbs {
+  width: 150px;
+  flex: none;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.thumbs:empty { display: none; }
+@media (max-width: 760px) { .thumbs { display: none; } }
+.thumb-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.thumb-frame {
+  width: 100%;
+  min-height: 60px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+}
+.thumb-frame canvas { display: block; width: 100%; height: auto; }
+.thumb-item.active .thumb-frame { border-color: var(--primary); }
+.thumb-item.active { color: var(--primary); font-weight: 700; }
+
+.stage { flex: 1; overflow: auto; background: var(--stage-bg); position: relative; }
+.editor-empty {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 24px;
+  text-align: center;
+}
+.editor-empty .tool-icon { --c: var(--primary); }
+.editor-empty h1 { font-size: 34px; letter-spacing: -0.03em; margin-top: 18px; }
+.editor-empty p { color: var(--muted); margin-top: 8px; }
+.editor-empty .dropzone { --c: var(--primary); }
+
+.pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 28px;
+  width: max-content;
+  min-width: 100%;
+}
+.page {
+  position: relative;
+  flex: none;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
+}
+.page-canvas { position: absolute; inset: 0; display: block; }
+.layer { position: absolute; inset: 0; overflow: hidden; }
+
+.pages[data-tool="text"] .layer { cursor: text; }
+.pages[data-tool="ink"] .layer,
+.pages[data-tool="rect"] .layer,
+.pages[data-tool="highlight"] .layer,
+.pages[data-tool="whiteout"] .layer { cursor: crosshair; }
+.pages:not([data-tool="select"]) .layer { touch-action: none; }
+
+/* ---------- Annotations ---------- */
+.annot { position: absolute; box-sizing: border-box; user-select: none; }
+.pages[data-tool="select"] .annot { cursor: move; touch-action: none; }
+.pages:not([data-tool="select"]) .annot:not(.annot-text):not(.annot-textEdit) { pointer-events: none; }
+.annot.selected { outline: 1.5px dashed var(--primary); outline-offset: 3px; }
+
+.annot-text {
+  white-space: pre;
+  line-height: 1.2;
+  font-family: Helvetica, Arial, sans-serif;
+  min-width: 2px;
+  min-height: 1.2em;
+}
+.annot-text.editing {
+  cursor: text;
+  user-select: text;
+  outline: 1.5px solid var(--primary);
+  background: rgb(255 255 255 / 0.65);
+}
+.annot-highlight { mix-blend-mode: multiply; }
+.annot-whiteout { background: #fff; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08); }
+.annot-ink svg, .annot-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.ink-live {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.handle {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 13px;
+  height: 13px;
+  display: none;
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  background: #fff;
+  cursor: nwse-resize;
+}
+.annot.selected .handle { display: block; }
+
+/* ---------- Signature dialog ---------- */
+.sig-dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+.sig-dialog::backdrop { background: rgb(15 17 23 / 0.5); }
+.sig-inner { display: flex; flex-direction: column; gap: 16px; padding: 20px 22px 22px; }
+.sig-head { display: flex; align-items: center; justify-content: space-between; }
+.sig-head h2 { font-size: 19px; }
+.tabs { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--surface-2); }
+.tab {
+  flex: 1;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab.active { color: var(--text); background: var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+.tab-panel { display: flex; flex-direction: column; gap: 12px; }
+.sig-canvas {
+  width: 100%;
+  height: 200px;
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+.sig-row { display: flex; align-items: center; justify-content: space-between; }
+.swatches { display: flex; gap: 8px; }
+.swatch {
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--sw);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+}
+.swatch.active { box-shadow: 0 0 0 2px var(--sw); }
+.sig-preview {
+  height: 120px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  font: 600 52px "Dancing Script", cursive;
+  white-space: nowrap;
+}
+.dropzone-sm { margin: 0; padding: 40px 20px; --c: var(--primary); }
+.sig-foot { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- Phase 5 additions ---------- */
+.prop select.input { width: auto; height: 32px; padding: 0 8px; }
+.prop-style { gap: 2px; }
+.style-btn { width: 32px; height: 32px; font-size: 15px; font-family: Georgia, serif; }
+.annot-ellipse { border-radius: 50%; }
+.annot-line svg .arrow-head { stroke-linecap: round; }
+.annot-line svg, .annot-ink svg { overflow: visible; }
+
+/* Existing text lines that can be edited (Edit text tool) */
+.text-line {
+  position: absolute;
+  border-radius: 3px;
+  cursor: text;
+  outline: 1px dashed color-mix(in srgb, var(--primary) 55%, transparent);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  transition: background 0.12s;
+}
+.text-line:hover { background: color-mix(in srgb, var(--primary) 18%, transparent); outline-style: solid; }
+.pages:not([data-tool="editText"]) .text-line { display: none; }
+
+.annot-textEdit {
+  white-space: pre;
+  line-height: 1.2;
+  min-height: 1.2em;
+}
+.pages[data-tool="select"] .annot-textEdit { cursor: text; }
+.annot-textEdit.editing { cursor: text; user-select: text; outline: 1.5px solid var(--primary); }
+.annot-text.editing:empty::before,
+.annot-textEdit.editing:empty::before { content: attr(data-placeholder); opacity: 0.4; }
+.pages[data-tool="editText"] .annot:not(.annot-textEdit) { pointer-events: none; }
+
+@media (max-width: 640px) {
+  .doc-name { display: none; }
+  .topbar-actions { margin-left: auto; }
+  .editor-page .topbar { gap: 8px; }
+  .editor-page .topbar-actions .btn { padding: 0 10px; }
+}
+@media (max-width: 640px) {
+  .editor-toolbar .tb-group { flex-wrap: wrap; }
+  .editor-toolbar #tool-group { width: 100%; justify-content: space-between; }
+  .editor-toolbar .tb-sep:first-of-type { display: none; }
+}
+
+.text-line { transform-origin: 0 0; }
+.editor-copyright { margin-top: 28px; color: var(--muted); }
