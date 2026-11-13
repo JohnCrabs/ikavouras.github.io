@@ -17,7 +17,8 @@
         },
         "links": [
             { "label": "CPDF", "url": "src/html/demo/cpdf/index.html" },
-            { "label": "CTimeSheets", "url": "src/html/demo/ctimesheets/index.html" }
+            { "label": "CTimeSheets", "url": "src/html/demo/ctimesheets/index.html" },
+            { "label": "CTopoSimulator", "url": "src/html/demo/ctoposim/index.html" }
         ]
   },
   "eupolisGame": {

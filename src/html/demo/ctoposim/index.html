@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <b>CTopoSim</b>
+    <span>Προσομοιωτής πολυγωνομετρίας &amp; ταχυμετρίας · ΕΓΣΑ 87</span>
+  </div>
+  <div class="student">
+    <input id="stu-name" placeholder="Ονοματεπώνυμο" autocomplete="name">
+    <input id="stu-am" placeholder="ΑΜ" size="9">
+    <button id="prj-save" title="Αποθήκευση όλης της εργασίας σε αρχείο JSON">💾 Αποθήκευση</button>
+    <button id="prj-open" title="Άνοιγμα αποθηκευμένου έργου">📂 Άνοιγμα</button>
+    <button id="prj-new" title="Νέο έργο">✚ Νέο</button>
+    <input type="file" id="prj-file" accept=".json" hidden>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="p1">1 · Περιοχή &amp; στάσεις</button>
+  <button data-tab="p2">2 · Έντυπο πολυγωνομετρίας</button>
+  <button data-tab="p3">3 · Ανηγμένες μετρήσεις</button>
+  <button data-tab="p4">4 · Επίλυση όδευσης</button>
+  <button data-tab="p5">5 · Ταχυμετρία</button>
+  <button data-tab="rep">Βαθμολογία</button>
+</nav>
+
+<main>
+<!-- ============================ ΦΑΣΗ 1 ============================ -->
+<section class="tab" id="tab-p1">
+  <div class="subtabs"><button data-sub="work" class="active">Εργασία</button><button data-sub="theory">Θεωρία</button></div>
+  <div class="sub work split">
+    <div class="maphost" id="p1-maphost"><div id="map"></div></div>
+    <aside class="panel">
+      <h3>Α. Περιοχή μελέτης</h3>
+      <div class="row">
+        <input id="p1-search" placeholder="Αναζήτηση τοποθεσίας (π.χ. Μαρούσι)">
+        <button id="p1-search-btn">🔍</button>
+      </div>
+      <button id="p1-setarea" class="primary wide">Ορισμός περιοχής από την τρέχουσα όψη</button>
+      <p id="p1-area-status" class="muted">Δεν έχει οριστεί περιοχή. Η περιοχή πρέπει να είναι έως 4 km² (ζουμ ≥ 15).</p>
+
+      <h3>Β. Στάσεις όδευσης</h3>
+      <p id="p1-hint" class="hint"></p>
+      <div class="row" id="p1-edit">
+        <button id="p1-place">Τοποθέτηση στάσεων</button>
+        <button id="p1-undo" title="Αναίρεση τελευταίου σημείου">↶ Αναίρεση</button>
+        <button id="p1-clear">Καθαρισμός</button>
+        <button id="p1-finish" class="primary">Ολοκλήρωση</button>
+      </div>
+      <div id="p1-lockbox" class="lockbox" hidden>
+        🔒 Η όδευση είναι κλειδωμένη. <button id="p1-unlock">Ξεκλείδωμα</button>
+      </div>
+      <p id="p1-closed" class="muted"></p>
+      <table class="tbl" id="p1-points">
+        <thead><tr><th>Σημείο</th><th>Είδος</th><th>E (m)</th><th>N (m)</th><th>H (m)</th><th>Θέση</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <h3>Γ. Αναγνώριση: οπτική επαφή</h3>
+      <table class="tbl click" id="p1-legs">
+        <thead><tr><th>Σκόπευση</th><th>Μήκος</th><th>Ορατότητα</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p id="p1-profile-title" class="muted"></p>
+      <canvas id="p1-profile"></canvas>
+      <p class="muted small">Τομή: <span class="sw g"></span> έδαφος (DEM) <span class="sw b"></span> κτίρια (OSM) · διακεκομμένη γραμμή: σκόπευση σε ύψος 1.60 m.</p>
+    </aside>
+  </div>
+  <div class="sub theory" hidden>
+    <article class="theory">
+      <h2>Φάση 1 — Αναγνώριση περιοχής και επιλογή στάσεων</h2>
+      <p>Η <b>πολυγωνομετρική όδευση</b> είναι μια τεθλασμένη γραμμή από στάσεις, στις οποίες μετράμε οριζόντιες γωνίες και αποστάσεις, ώστε να προσδιορίσουμε τις συντεταγμένες των νέων στάσεων.
+      Για να «δεθεί» στο σύστημα αναφοράς (ΕΓΣΑ 87), η όδευση ξεκινά και τελειώνει σε γνωστά (τριγωνομετρικά) σημεία.</p>
+      <h3>Δομή της όδευσης στον προσομοιωτή</h3>
+      <ul>
+        <li><b>T1</b>: γνωστό σημείο προσανατολισμού στην αρχή. <b>T2</b>: γνωστό σημείο εκκίνησης (πρώτη στάση).</li>
+        <li><b>S1, S2, …</b>: νέες στάσεις (άγνωστες συντεταγμένες).</li>
+        <li><b>T3</b>: γνωστό σημείο τερματισμού (τελευταία στάση). <b>T4</b>: γνωστό σημείο προσανατολισμού στο τέλος.</li>
+        <li><b>Κλειστή όδευση</b>: με snap τα δύο τελευταία σημεία γίνονται T2 και T1, οπότε η όδευση επιστρέφει στο σημείο εκκίνησης.</li>
+      </ul>
+      <p>Οι γωνίες διεύθυνσης αρχής και τέλους προκύπτουν από τα γνωστά σημεία:</p>
+      $$\alpha_{\text{αρχ}} = \alpha_{T1\to T2}, \qquad \alpha_{\text{τελ}} = \alpha_{T3\to T4}, \qquad
+        \alpha_{AB} = \arctan\frac{E_B - E_A}{N_B - N_A}$$
+      <p>Η γωνία διεύθυνσης μετριέται από τον άξονα <b>N (Βορράς)</b> δεξιόστροφα, σε grad (0–400<sup>g</sup>). Το τεταρτημόριο καθορίζεται από τα πρόσημα των ΔE, ΔN.</p>
+      <h3>Κριτήρια επιλογής στάσεων</h3>
+      <ul>
+        <li><b>Αμοιβαία ορατότητα</b> μεταξύ διαδοχικών στάσεων. Ο προσομοιωτής ελέγχει την οπτική επαφή με το DEM και τα κτίρια του OSM, σε ύψος οργάνου/στόχου 1.60 m.</li>
+        <li><b>Ομοιόμορφα μήκη πλευρών</b>, χωρίς πολύ μικρές πλευρές δίπλα σε μεγάλες: τα σφάλματα κέντρωσης επηρεάζουν πολύ τις γωνίες στις μικρές πλευρές.</li>
+        <li><b>Όσο γίνεται ευθύγραμμη όδευση</b> και μικρός αριθμός στάσεων: τα σφάλματα συσσωρεύονται σε κάθε στάση.</li>
+        <li><b>Ασφαλής και σταθερή θέση</b> (π.χ. πεζοδρόμιο, όχι στη μέση του δρόμου) και καλή ορατότητα προς τα σημεία λεπτομερειών για την ταχυμετρία.</li>
+      </ul>
+      <h3>Το πρόχειρο DEM</h3>
+      <p>Το υψόμετρο εδάφους προέρχεται από παγκόσμιο μοντέλο εδάφους (Terrain Tiles, ανάλυση ≈ 4 m/pixel, με πραγματική ακρίβεια μερικών μέτρων). Πάνω του προστίθεται το ύψος κάθε κτιρίου του OpenStreetMap
+      (ετικέτα <code>height</code>, αλλιώς <code>building:levels</code> × 3.2 m, αλλιώς εκτίμηση 3 ορόφων). Έτσι:</p>
+      $$H_{\text{επιφ}} = H_{\text{εδάφους}} + h_{\text{κτιρίου}}$$
+      <p>Ένα σημείο μέσα σε κτίριο θεωρείται ότι βρίσκεται στο δώμα του.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ΦΑΣΗ 2 ============================ -->
+<section class="tab" id="tab-p2" hidden>
+  <div class="subtabs"><button data-sub="work" class="active">Εργασία</button><button data-sub="theory">Θεωρία</button></div>
+  <div class="sub work page">
+    <div class="card" id="p2-settings">
+      <h3>Ρυθμίσεις άσκησης</h3>
+      <div class="grid2">
+        <label>Αναγωγή αποστάσεων στο ΕΓΣΑ 87
+          <select id="p2-red">
+            <option value="none">Χωρίς αναγωγή</option>
+            <option value="k">Με συντελεστή κλίμακας k</option>
+            <option value="kH">Με k και υψόμετρο R/(R+Hm)</option>
+          </select></label>
+        <label>Κατανομή σφαλμάτων κλεισίματος
+          <select id="p2-dist">
+            <option value="length">Ανάλογα με τα μήκη των πλευρών</option>
+            <option value="equal">Ισοκατανομή</option>
+          </select></label>
+        <label>Τυπικό σφάλμα σκόπευσης ±σ (cc), από – έως
+          <span class="row"><input id="p2-sb0" type="number" step="0.5" min="0.5"><input id="p2-sb1" type="number" step="0.5" min="0.5"></span></label>
+        <label>Τυπικό σφάλμα απόστασης ±σ (mm), από – έως
+          <span class="row"><input id="p2-sd0" type="number" step="0.5" min="0.5"><input id="p2-sd1" type="number" step="0.5" min="0.5"></span></label>
+      </div>
+      <p class="muted small">Τα τυχαία σφάλματα παράγονται από το ονοματεπώνυμο και τον ΑΜ, οπότε κάθε φοιτητής έχει διαφορετικές μετρήσεις. Μετά τη δημιουργία οι ρυθμίσεις κλειδώνουν.</p>
+      <button id="p2-gen" class="primary">Δημιουργία μετρήσεων υπαίθρου</button>
+    </div>
+    <div id="p2-out" hidden>
+      <div class="card">
+        <h3>Λήψη εντύπου</h3>
+        <div class="row">
+          <button id="p2-csv" class="primary">⬇ Έντυπο CSV (Excel)</button>
+          <button id="p2-print">🖨 Εκτυπώσιμο έντυπο / PDF</button>
+          <label class="inline">Δεκαδικά:
+            <select id="p2-dec"><option value=".">τελεία (1.234)</option><option value=",">κόμμα (1,234)</option></select></label>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Γνωστά σημεία (ΕΓΣΑ 87)</h3>
+        <table class="tbl" id="p2-known"><thead><tr><th>Σημείο</th><th>E (m)</th><th>N (m)</th><th>H (m)</th></tr></thead><tbody></tbody></table>
+        <h3>Μετρήσεις υπαίθρου (με τη σειρά των κλικ)</h3>
+        <table class="tbl" id="p2-table">
+          <thead><tr><th>Στάση</th><th>i (m)</th><th>Σκόπευση</th><th>t (m)</th><th>Hz I (grad)</th><th>Hz II (grad)</th>
+            <th>V I (grad)</th><th>V II (grad)</th><th>S I (m)</th><th>S II (m)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="sub theory" hidden>
+    <article class="theory">
+      <h2>Φάση 2 — Το έντυπο της πολυγωνομετρίας</h2>
+      <p>Σε κάθε στάση το όργανο κεντρώνεται και οριζοντιώνεται πάνω από το σημείο. Μετράμε το ύψος οργάνου <b>i</b> και σκοπεύουμε το <b>πίσω</b> και το <b>εμπρός</b> σημείο σε
+      <b>δύο θέσεις τηλεσκοπίου</b> (I και II). Σε κάθε σκόπευση καταγράφουμε:</p>
+      <ul>
+        <li><b>Hz</b>: οριζόντια ανάγνωση (grad). Ο κύκλος δεν είναι προσανατολισμένος, οπότε μόνο οι διαφορές αναγνώσεων έχουν νόημα.</li>
+        <li><b>V</b>: ζενίθια ανάγνωση (grad), με 0<sup>g</sup> στο ζενίθ και 100<sup>g</sup> στον ορίζοντα.</li>
+        <li><b>S</b>: κεκλιμένη απόσταση (m), από το κέντρο του οργάνου ως τον στόχο, που έχει ύψος <b>t</b>.</li>
+      </ul>
+      <p>Στα γνωστά σημεία προσανατολισμού (T1 από το T2, T4 από το T3) μετράμε μόνο οριζόντια διεύθυνση.</p>
+      <h3>Γιατί δύο θέσεις τηλεσκοπίου;</h3>
+      <p>Η αναστροφή του τηλεσκοπίου εξαλείφει τα συστηματικά σφάλματα του οργάνου. Στην II θέση η οριζόντια ανάγνωση διαφέρει κατά 200<sup>g</sup>,
+      ενώ η ζενίθια ανάγνωση γίνεται συμπληρωματική ως προς 400<sup>g</sup>:</p>
+      $$Hz_{II} \approx Hz_{I} \pm 200^g, \qquad V_{I} + V_{II} \approx 400^g$$
+      <ul>
+        <li><b>Σφάλμα σκόπευσης</b> (κολλιμασιόν): $2c = Hz_I - (Hz_{II} \mp 200^g)$. Εξαλείφεται με τον μέσο όρο των δύο θέσεων.</li>
+        <li><b>Σφάλμα δείκτη</b> κατακόρυφου κύκλου: $\varepsilon = \dfrac{V_I + V_{II} - 400^g}{2}$. Εξαλείφεται με τη ζενίθια γωνία $z = \dfrac{V_I - V_{II} + 400^g}{2}$.</li>
+      </ul>
+      <h3>Τι πρέπει να κάνεις</h3>
+      <ol>
+        <li>Κατέβασε το έντυπο (CSV για Excel ή εκτυπώσιμο).</li>
+        <li>Έλεγξε κάθε ζεύγος αναγνώσεων: η διαφορά $Hz_{II} - Hz_I$ πρέπει να είναι κοντά στα 200<sup>g</sup> και το άθροισμα $V_I + V_{II}$ κοντά στα 400<sup>g</sup>.</li>
+        <li>Συμπλήρωσε τις στήλες υπολογισμών (r, β, z, D, Δh). Οι τύποι βρίσκονται στη θεωρία της Φάσης 3.</li>
+      </ol>
+      <p class="note">Οι μετρήσεις περιέχουν τυχαία σφάλματα που προσομοιώνουν πραγματικές συνθήκες: σκόπευση ±(3–10) cc, απόσταση ±(1–5) mm (προεπιλογές). Γι' αυτό οι τιμές που θα υπολογίσεις δεν συμπίπτουν ακριβώς με τις «πραγματικές», και η όδευση θα εμφανίσει σφάλματα κλεισίματος.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ΦΑΣΗ 3 ============================ -->
+<section class="tab" id="tab-p3" hidden>
+  <div class="subtabs"><button data-sub="work" class="active">Εργασία</button><button data-sub="theory">Θεωρία</button></div>
+  <div class="sub work page">
+    <p id="p3-locked" class="lockbox">🔒 Δημιούργησε πρώτα τις μετρήσεις υπαίθρου στην καρτέλα 2.</p>
+    <div id="p3-work" hidden>
+      <div class="card">
+        <h3>Υποβολή ανηγμένων μετρήσεων</h3>
+        <ol class="steps">
+          <li>Κατέβασε το πρότυπο: <button id="p3-tpl">⬇ Πρότυπο CSV</button></li>
+          <li>Συμπλήρωσε τη στήλη «Τιμή» με τις οριζόντιες γωνίες β (grad), τις οριζόντιες αποστάσεις D (m) και τις υψομετρικές διαφορές Δh (m). Μην αλλάξεις τις άλλες στήλες.</li>
+          <li>Ανέβασε το αρχείο (CSV ή TXT, με διαχωριστικό <code>;</code>, <code>,</code> ή tab):
+            <input type="file" id="p3-file" accept=".csv,.txt"> <button id="p3-submit" class="primary">Υποβολή</button></li>
+        </ol>
+        <p class="muted small">Ανοχές: β ±1.5 cc (σωστό) / ±10 cc (μικρή απόκλιση) · D, Δh ±1.5 mm / ±5 mm. Βάρη: β 40%, D 30%, Δh 30%.</p>
+      </div>
+      <div class="card" id="p3-result"></div>
+    </div>
+  </div>
+  <div class="sub theory" hidden>
+    <article class="theory">
+      <h2>Φάση 3 — Αναγωγή των μετρήσεων</h2>
+      <h3>1. Μέση οριζόντια διεύθυνση κάθε σκόπευσης</h3>
+      $$r = \frac{Hz_I + (Hz_{II} \mp 200^g)}{2}$$
+      <p>Πρόσεξε την περίπτωση όπου οι αναγνώσεις είναι εκατέρωθεν του 0/400<sup>g</sup> (π.χ. 399.9990 και 0.0012). Πριν πάρεις τον μέσο όρο, πρόσθεσε ή αφαίρεσε 400<sup>g</sup>.</p>
+      <h3>2. Οριζόντια γωνία στη στάση</h3>
+      <p>Η οριζόντια γωνία μετριέται <b>δεξιόστροφα από την πίσω προς την εμπρός σκόπευση</b>:</p>
+      $$\beta = r_{\text{εμπρός}} - r_{\text{πίσω}} \quad (+400^g \text{ αν προκύψει αρνητική})$$
+      <h3>3. Ζενίθια γωνία, οριζόντια απόσταση, υψομετρική διαφορά</h3>
+      $$z = \frac{V_I - V_{II} + 400^g}{2}, \qquad \bar S = \frac{S_I + S_{II}}{2}$$
+      $$D = \bar S \sin z, \qquad \Delta h = \bar S \cos z + i - t$$
+      <h3>4. Μετάβαση και επιστροφή</h3>
+      <p>Κάθε πλευρά AB μετριέται δύο φορές: από το A προς το B (μετάβαση) και από το B προς το A (επιστροφή). Τελικές τιμές:</p>
+      $$D_{AB} = \frac{D_{A\to B} + D_{B\to A}}{2}, \qquad \Delta h_{AB} = \frac{\Delta h_{A\to B} - \Delta h_{B\to A}}{2}$$
+      <p>Η διαφορά μετάβασης–επιστροφής είναι και ένας έλεγχος ποιότητας: για πλευρές 100–200 m περιμένουμε λίγα mm.</p>
+      <h3>5. Καμπυλότητα της Γης και διάθλαση</h3>
+      <p>Η επίδραση καμπυλότητας και διάθλασης στην υψομετρική διαφορά είναι</p>
+      $$\delta h = \frac{(1-\kappa)\,D^2}{2R}, \qquad \kappa \approx 0.13,\; R \approx 6371\ \text{km}$$
+      <p>Στον μέσο όρο μετάβασης–επιστροφής <b>απαλείφεται</b>, γιατί εμφανίζεται με το ίδιο πρόσημο και στις δύο κατευθύνσεις. Δεν χρειάζεται να τη διορθώσεις στη Φάση 3.</p>
+      <h3>Μορφή του αρχείου</h3>
+      <p>Χρησιμοποίησε το πρότυπο. Κάθε γραμμή έχει: είδος (<code>beta</code>, <code>D</code>, <code>dH</code>), τα ονόματα των σημείων και την τιμή. Οι γωνίες δίνονται σε grad με 4 δεκαδικά, οι αποστάσεις και τα ύψη σε m με 3 δεκαδικά.
+      Η υψομετρική διαφορά έχει τη φορά της όδευσης (από το πρώτο προς το δεύτερο σημείο).</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ΦΑΣΗ 4 ============================ -->
+<section class="tab" id="tab-p4" hidden>
+  <div class="subtabs"><button data-sub="work" class="active">Εργασία</button><button data-sub="theory">Θεωρία</button></div>
+  <div class="sub work page">
+    <p id="p4-locked" class="lockbox">🔒 Δημιούργησε πρώτα τις μετρήσεις υπαίθρου στην καρτέλα 2.</p>
+    <div id="p4-work" hidden>
+      <div class="card">
+        <h3>Υποβολή επίλυσης όδευσης</h3>
+        <ol class="steps">
+          <li>Κατέβασε το πρότυπο: <button id="p4-tpl">⬇ Πρότυπο CSV</button></li>
+          <li>Συμπλήρωσε τα σφάλματα κλεισίματος w<sub>β</sub> (cc), w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> (m) και τις τελικές συντεταγμένες E, N, H των νέων στάσεων.</li>
+          <li>Ανέβασε το αρχείο: <input type="file" id="p4-file" accept=".csv,.txt"> <button id="p4-submit" class="primary">Υποβολή</button></li>
+        </ol>
+        <p class="muted small">Ανοχές: w<sub>β</sub> ±2 cc / ±10 cc · w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> ±2 mm / ±10 mm · E, N, H ±5 mm / ±20 mm. Βάρη: σφάλματα 25%, E-N 55%, H 20%.
+        Η σύγκριση γίνεται με την επίλυση των <b>σωστά ανηγμένων</b> μετρήσεων του εντύπου σου.</p>
+      </div>
+      <div class="card" id="p4-result"></div>
+    </div>
+  </div>
+  <div class="sub theory" hidden>
+    <article class="theory">
+      <h2>Φάση 4 — Επίλυση εξαρτημένης όδευσης</h2>
+      <h3>1. Γωνιακό σφάλμα κλεισίματος</h3>
+      <p>Με αφετηρία τη γνωστή γωνία διεύθυνσης $\alpha_{T1\to T2}$ μεταφέρουμε διαδοχικά τη γωνία διεύθυνσης σε κάθε πλευρά:</p>
+      $$\alpha_{i,i+1} = \alpha_{i-1,i} + \beta_i \pm 200^g \quad (\text{mod } 400^g)$$
+      <p>Μετά από n γωνίες προκύπτει η υπολογισμένη γωνία διεύθυνσης τέλους, που συγκρίνεται με τη γνωστή $\alpha_{T3\to T4}$:</p>
+      $$\alpha'_{\text{τελ}} = \alpha_{\text{αρχ}} + \sum_{i=1}^{n}\beta_i + n\cdot 200^g \;(\text{mod } 400^g), \qquad
+        w_\beta = \alpha_{\text{τελ}} - \alpha'_{\text{τελ}}$$
+      <p>Το σφάλμα πρέπει να είναι μέσα στην ανοχή (ενδεικτικά $\pm\, 2.5\,\sigma_\beta \sqrt{n}$). Κατανέμεται <b>εξίσου</b> σε όλες τις γωνίες: $\delta\beta = w_\beta / n$.</p>
+      <p class="note">Σύμβαση πρόσημου: <b>w = (τιμή από τα γνωστά σημεία) − (τιμή από τις μετρήσεις)</b>. Έτσι το w (ή το μερίδιό του) <b>προστίθεται</b> ως διόρθωση.</p>
+      <h3>2. Αναγωγή αποστάσεων στο ΕΓΣΑ 87</h3>
+      <p>Οι αποστάσεις της Φάσης 3 είναι <b>αποστάσεις εδάφους</b>. Ανάλογα με τη ρύθμιση της άσκησης (αναγράφεται στο έντυπο):</p>
+      $$D' = D \quad\text{(χωρίς αναγωγή)}, \qquad D' = k\,D, \qquad D' = k\,\frac{R}{R+H_m}\,D$$
+      $$k = k_0\left(1 + \frac{x^2}{2R^2}\right), \quad x = \frac{E_m - 500\,000}{k_0}, \quad k_0 = 0.9996,\; R = 6\,371\,000\ \text{m}$$
+      <p>Τα $E_m$ και $H_m$ είναι οι μέσες τιμές των σημείων εκκίνησης και τερματισμού (T2 και T3). Σε μικρή περιοχή αρκεί ένας ενιαίος συντελεστής για όλες τις πλευρές.</p>
+      <h3>3. Μερικές συντεταγμένες και γραμμικό σφάλμα κλεισίματος</h3>
+      $$\Delta x_i = D'_i \sin\alpha_i, \qquad \Delta y_i = D'_i \cos\alpha_i$$
+      $$w_x = (E_{T3} - E_{T2}) - \sum \Delta x_i, \qquad w_y = (N_{T3} - N_{T2}) - \sum \Delta y_i$$
+      $$w_s = \sqrt{w_x^2 + w_y^2}, \qquad \text{σχετικό σφάλμα } = 1 : \frac{\sum D'_i}{w_s}$$
+      <h3>4. Κατανομή και τελικές συντεταγμένες</h3>
+      <p>Ανάλογα με τη ρύθμιση: <b>ανάλογα με τα μήκη</b> (μέθοδος Bowditch) ή <b>ισοκατανομή</b> σε m πλευρές:</p>
+      $$v_{x_i} = w_x \frac{D'_i}{\sum D'}, \quad v_{y_i} = w_y \frac{D'_i}{\sum D'} \qquad\text{ή}\qquad v_{x_i} = \frac{w_x}{m}, \quad v_{y_i} = \frac{w_y}{m}$$
+      $$E_{i+1} = E_i + \Delta x_i + v_{x_i}, \qquad N_{i+1} = N_i + \Delta y_i + v_{y_i}$$
+      <p>Έλεγχος: ξεκινώντας από το T2 πρέπει να καταλήξεις <b>ακριβώς</b> στο T3.</p>
+      <h3>5. Υψόμετρα (τριγωνομετρική υψομετρία)</h3>
+      $$w_h = (H_{T3} - H_{T2}) - \sum \Delta h_i, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}$$
+      <p>Το $w_h$ κατανέμεται με τον ίδιο κανόνα που χρησιμοποιείς και για τις συντεταγμένες.</p>
+      <h3>Κλειστή όδευση</h3>
+      <p>Όταν T3 = T2 και T4 = T1, οι ίδιοι τύποι ισχύουν με $E_{T3} - E_{T2} = 0$, $N_{T3} - N_{T2} = 0$ και $H_{T3} - H_{T2} = 0$.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ΦΑΣΗ 5 ============================ -->
+<section class="tab" id="tab-p5" hidden>
+  <div class="subtabs"><button data-sub="work" class="active">Εργασία</button><button data-sub="theory">Θεωρία</button></div>
+  <div class="sub work split">
+    <div class="maphost" id="p5-maphost"></div>
+    <aside class="panel">
+      <p id="p5-locked" class="lockbox">🔒 Δημιούργησε πρώτα τις μετρήσεις υπαίθρου στην καρτέλα 2.</p>
+      <div id="p5-work" hidden>
+        <h3>Α. Στάση οργάνου</h3>
+        <div class="grid2">
+          <label>Στάση οργάνου <select id="p5-st"></select></label>
+          <label>Στάση μηδενισμού <select id="p5-bs"></select></label>
+        </div>
+        <button id="p5-new" class="primary wide">Νέα στάση οργάνου (μηδενισμός)</button>
+        <p id="p5-cur" class="hint"></p>
+        <div class="row">
+          <select id="p5-setups" title="Στάσεις ταχυμετρίας"></select>
+          <button id="p5-del" title="Διαγραφή στάσης">🗑</button>
+        </div>
+        <h3>Β. Σκόπευση σημείων λεπτομερειών</h3>
+        <div class="row">
+          <button id="p5-shoot">Σκόπευση σημείων</button>
+          <button id="p5-undo">↶ Αναίρεση</button>
+        </div>
+        <p class="muted small">Κλικ στον χάρτη: το σημείο μετριέται αν υπάρχει οπτική επαφή. Σημεία πάνω σε κτίριο μετριούνται στο δώμα χωρίς πρίσμα (t = 0). Αλλιώς ο στόχος είναι ανακλαστήρας σε ράβδο (t = 1.80 m).</p>
+        <table class="tbl" id="p5-table">
+          <thead><tr><th>Στάση</th><th>Σημείο</th><th>Hz (grad)</th><th>V (grad)</th><th>S (m)</th><th>t (m)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="row">
+          <button id="p5-csv">⬇ Βιβλίο ταχυμετρίας CSV</button>
+          <button id="p5-tpl">⬇ Πρότυπο αποτελεσμάτων</button>
+        </div>
+        <h3>Γ. Υποβολή συντεταγμένων σημείων</h3>
+        <div class="row"><input type="file" id="p5-file" accept=".csv,.txt"><button id="p5-submit" class="primary">Υποβολή</button></div>
+        <p class="muted small">Ανοχές: E, N, H ±1 cm / ±3 cm. Οι στάσεις υπολογίζονται με τις συντεταγμένες της επίλυσης της Φάσης 4.</p>
+        <div id="p5-result"></div>
+      </div>
+    </aside>
+  </div>
+  <div class="sub theory" hidden>
+    <article class="theory">
+      <h2>Φάση 5 — Ταχυμετρία</h2>
+      <p>Με την ταχυμετρία προσδιορίζουμε τη θέση και το υψόμετρο σημείων λεπτομερειών (γωνίες κτιρίων, κράσπεδα, φρεάτια κ.λπ.) από μια στάση γνωστών συντεταγμένων.</p>
+      <h3>1. Στάση και μηδενισμός</h3>
+      <p>Το όργανο στήνεται σε μια στάση Σ της όδευσης (γνωστή ή νέα, με τις συντεταγμένες που υπολόγισες) και σκοπεύει μια δεύτερη γνωστή στάση Μ.
+      Εκεί ο οριζόντιος κύκλος ρυθμίζεται σε <b>Hz = 0.0000<sup>g</sup></b> (μηδενισμός). Μετράμε και το ύψος οργάνου i.</p>
+      <h3>2. Μετρήσεις (1η θέση τηλεσκοπίου)</h3>
+      <p>Για κάθε σημείο P καταγράφεται η οριζόντια ανάγνωση Hz, η ζενίθια ανάγνωση V, η κεκλιμένη απόσταση S και το ύψος στόχου t.</p>
+      <h3>3. Υπολογισμοί</h3>
+      $$\alpha_{\Sigma P} = \alpha_{\Sigma M} + Hz_P \quad (\text{mod } 400^g)$$
+      $$D = S \sin V, \qquad D' = f \cdot D \quad (f \text{ όπως στη Φάση 4})$$
+      $$E_P = E_\Sigma + D' \sin\alpha_{\Sigma P}, \qquad N_P = N_\Sigma + D' \cos\alpha_{\Sigma P}$$
+      $$H_P = H_\Sigma + i + S\cos V - t \;\left(+\, \frac{(1-\kappa)D^2}{2R}\right)$$
+      <p>Ο όρος καμπυλότητας και διάθλασης είναι μικρός (≈ 1 mm στα 130 m, ≈ 6 mm στα 300 m). Σε ταχυμετρία, όπου έχουμε μία μόνο κατεύθυνση σκόπευσης, δεν απαλείφεται.</p>
+      <h3>Μορφή αρχείου υποβολής</h3>
+      <p>Χρησιμοποίησε το πρότυπο: <code>Σημείο; E (m); N (m); H (m)</code>, μία γραμμή για κάθε σημείο P1, P2, …</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================ ΒΑΘΜΟΛΟΓΙΑ ============================ -->
+<section class="tab" id="tab-rep" hidden>
+  <div class="sub work page">
+    <div class="card">
+      <h3>Βαθμολογία — <span id="rep-student"></span></h3>
+      <table class="tbl" id="rep-table">
+        <thead><tr><th>Φάση</th><th>Βάρος</th><th>Βαθμός</th><th>Υποβολές</th><th>Τελευταία υποβολή</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="score">Σύνολο: <b id="rep-total"></b> · Κωδικός ελέγχου: <code id="rep-code"></code></p>
+      <button id="rep-dl" class="primary">⬇ Αναφορά βαθμολογίας</button>
+      <p class="muted small">Για την παράδοση στείλε την αναφορά μαζί με το αρχείο έργου (💾 Αποθήκευση). Ο διδάσκων μπορεί να ανοίξει το έργο και να επαληθεύσει τον κωδικό ελέγχου.
+      Η εφαρμογή τρέχει εξ ολοκλήρου στον browser σου και η εργασία αποθηκεύεται τοπικά.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="toasts"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/dem.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/mapview.js"></script>
+<script src="js/phase1.js"></script>
+<script src="js/phase2.js"></script>
+<script src="js/phases34.js"></script>
+<script src="js/phase5.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
