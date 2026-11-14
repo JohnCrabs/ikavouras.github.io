@@ -4,9 +4,11 @@
 "use strict";
 
 const Phase1 = (() => {
-  const INSTR_H = 1.6;             // ύψος οργάνου/στόχου για τον έλεγχο ορατότητας
+  // ύψος οργάνου (μέσο των συνήθων τιμών) και στόχου για τον έλεγχο ορατότητας
+  const instrH = () => (Store.s.settings.iTyp[0] + Store.s.settings.iTyp[1]) / 2;
+  const targetH = () => Store.s.settings.tH;
   const MAX_AREA_KM2 = 4;
-  let placing = false, legInfo = [], selectedLeg = null, areaLoading = false;
+  let placing = false, legInfo = [], selectedLeg = null, loadGen = 0;
   const S = () => Store.s;
 
   /* ---------------- Περιοχή μελέτης ---------------- */
@@ -16,10 +18,18 @@ const Phase1 = (() => {
     if (map.getZoom() < 15) return toast("Κάνε μεγαλύτερο ζουμ (τουλάχιστον 15) πριν ορίσεις την περιοχή.", "warn");
     const b = map.getBounds();
     const sw = GEO.toEGSA(b.getSouth(), b.getWest()), ne = GEO.toEGSA(b.getNorth(), b.getEast());
-    const km2 = Math.abs((ne.E - sw.E) * (ne.N - sw.N)) / 1e6;
-    if (km2 > MAX_AREA_KM2) return toast(`Η περιοχή είναι ${km2.toFixed(1)} km². Μέγιστο ${MAX_AREA_KM2} km² — κάνε ζουμ.`, "warn");
+    let w = Math.abs(ne.E - sw.E), hgt = Math.abs(ne.N - sw.N);
+    const km2 = w * hgt / 1e6;
+    // μεγάλη οθόνη: αντί για απόρριψη, κράτα το κεντρικό τμήμα της όψης (≤ MAX_AREA_KM2)
+    if (km2 > MAX_AREA_KM2) { const f = Math.sqrt(MAX_AREA_KM2 / km2); w *= f; hgt *= f; }
+    const cE = (sw.E + ne.E) / 2, cN = (sw.N + ne.N) / 2;
+    const p0 = GEO.toWGS(cE - w / 2, cN - hgt / 2), p1 = GEO.toWGS(cE + w / 2, cN + hgt / 2);
     if (S().seq.length && !confirm("Ο ορισμός νέας περιοχής διαγράφει τις στάσεις που έχεις βάλει. Συνέχεια;")) return;
-    S().area = { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() };
+    S().area = { south: p0.lat, west: p0.lon, north: p1.lat, east: p1.lon };
+    if (km2 > MAX_AREA_KM2) {
+      toast(`Η όψη είναι ${km2.toFixed(1)} km²· κρατήθηκε το κεντρικό τμήμα ${MAX_AREA_KM2} km² (πλαίσιο στον χάρτη).`, "info", 7000);
+      map.fitBounds([[p0.lat, p0.lon], [p1.lat, p1.lon]]);
+    }
     S().points = {}; S().seq = []; S().finished = false;
     Store.save();
     await loadArea();
@@ -28,29 +38,51 @@ const Phase1 = (() => {
 
   async function loadArea() {
     const a = S().area;
-    if (!a || areaLoading) return;
-    areaLoading = true;
+    if (!a) return;
+    const gen = ++loadGen;               // νεότερη φόρτωση ακυρώνει την προηγούμενη
+    const stale = () => gen !== loadGen;
+    DEM.clearBuildings(); MapView.drawBuildings();
     MapView.drawArea(a);
     const st = $("#p1-area-status");
     st.textContent = "Φόρτωση DEM και κτιρίων…";
     try {
       const n = await DEM.preload(a);
+      if (stale()) return;
       st.textContent = `DEM: ${n} πλακίδια. Φόρτωση κτιρίων OSM…`;
       if (!n) toast("Δεν φορτώθηκε το DEM (σύνδεση;). Τα υψόμετρα δεν θα είναι διαθέσιμα.", "err");
     } catch (e) { toast("Σφάλμα DEM: " + e.message, "err"); }
-    try {
-      const nb = await DEM.loadBuildings(a);
-      MapView.drawBuildings();
-      const est = DEM.getBuildings().filter(b => b.src === "default").length;
-      st.innerHTML = `Περιοχή έτοιμη: DEM ✓, <b>${nb}</b> κτίρια OSM ` +
-        `(${nb - est} με ύψος/ορόφους, ${est} με εκτίμηση ${DEM.DEFAULT_LEVELS} ορόφων).`;
-    } catch (e) {
-      st.textContent = "DEM ✓ — τα κτίρια OSM δεν φορτώθηκαν (" + e.message + "). Δοκίμασε ξανά αργότερα.";
-      toast("Αποτυχία φόρτωσης κτιρίων από το Overpass API", "warn");
-    }
-    areaLoading = false;
+    if (stale()) return;
+    await loadBuildingsUI(false);
+    if (stale()) return;
     recompute();
     App.refresh();
+  }
+
+  /** καμία περιοχή (π.χ. «Νέο»): ακύρωση φόρτωσης σε εξέλιξη και καθαρισμός */
+  function clearArea() {
+    loadGen++;
+    DEM.clearBuildings(); MapView.drawBuildings();
+    $("#p1-area-status").textContent = "Δεν έχει οριστεί περιοχή. Η περιοχή πρέπει να είναι έως 4 km² (ζουμ ≥ 15).";
+  }
+
+  async function loadBuildingsUI(force) {
+    const a = S().area, st = $("#p1-area-status");
+    if (force) st.textContent = "Επανάληψη φόρτωσης κτιρίων OSM…";
+    try {
+      const { n: nb, cached, stale } = await DEM.loadBuildings(a, { force, onRetry: sec => {
+        if (a === S().area) st.textContent = `Οι διακομιστές κτιρίων (Overpass) είναι απασχολημένοι· νέα προσπάθεια σε ${sec} s…`; } });
+      if (stale || a !== S().area) return;
+      MapView.drawBuildings();
+      const est = DEM.getBuildings().filter(b => b.src === "default").length;
+      st.innerHTML = `Περιοχή έτοιμη: DEM ✓, <b>${nb}</b> κτίρια OSM${cached ? " (από την τοπική αποθήκευση)" : ""} ` +
+        `(${nb - est} με ύψος/ορόφους, ${est} με εκτίμηση ${DEM.DEFAULT_LEVELS} ορόφων).`;
+    } catch (e) {
+      if (a !== S().area) return;
+      st.innerHTML = "DEM ✓ — τα κτίρια OSM δεν φορτώθηκαν (" + e.message + "). " +
+        "Μπορείς να συνεχίσεις: οι στάσεις μπαίνουν κανονικά, αλλά ο έλεγχος ορατότητας θα λάβει υπόψη μόνο το έδαφος. ";
+      st.append(h("button", { onclick: async () => { await loadBuildingsUI(true); recompute(); App.refresh(); } }, "↻ Ξαναδοκίμασε"));
+      toast("Οι διακομιστές κτιρίων (Overpass API) είναι προσωρινά υπερφορτωμένοι. Πάτα «Ξαναδοκίμασε» σε 1–2 λεπτά.", "warn", 8000);
+    }
   }
 
   async function search() {
@@ -200,7 +232,7 @@ const Phase1 = (() => {
     legInfo = [];
     if (DEM.hasDEM()) for (let k = 0; k < q.length - 1; k++) {
       const a = P(q[k]), b = P(q[k + 1]);
-      const los = DEM.lineOfSight({ lat: a.lat, lon: a.lon, z: a.H + INSTR_H }, { lat: b.lat, lon: b.lon, z: b.H + INSTR_H });
+      const los = DEM.lineOfSight({ lat: a.lat, lon: a.lon, z: a.H + instrH() }, { lat: b.lat, lon: b.lon, z: b.H + targetH() + 0.05 });
       const orient = (k === 0) || (S().finished && k === q.length - 2);
       legInfo.push({ k, a, b, los, orient, label: a.name + "–" + b.name, len: GEO.dist(a, b) });
     }
@@ -215,6 +247,7 @@ const Phase1 = (() => {
   function draw() {
     const g = MapView.layers.traverse;
     g.clearLayers();
+    MapView.redraw3D();
     const q = S().seq;
     if (!q.length) return;
     legInfo.forEach(l => {
@@ -344,5 +377,5 @@ const Phase1 = (() => {
     window.addEventListener("resize", () => renderProfile());
   }
 
-  return { init, render, activate, loadArea, recompute, isClosed };
+  return { init, render, activate, loadArea, clearArea, recompute, isClosed };
 })();

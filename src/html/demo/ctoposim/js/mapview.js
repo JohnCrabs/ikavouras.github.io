@@ -30,12 +30,14 @@ const MapView = (() => {
     layers.dem = new DEM.HillshadeLayer({ maxNativeZoom: DEM.Z, maxZoom: 21, opacity: 0.55,
       attribution: "DEM: Mapzen/AWS Terrain Tiles" });
     layers.buildings = L.layerGroup().addTo(map);
+    layers.b3d = new Buildings3D();
     layers.area = L.layerGroup().addTo(map);
     layers.traverse = L.layerGroup().addTo(map);
     layers.tachy = L.layerGroup().addTo(map);
     overlays = {
       "DEM (σκίαση αναγλύφου)": layers.dem,
       "Κτίρια OSM (ύψος)": layers.buildings,
+      "Κτίρια 3D και σκοπεύσεις σε ύψος": layers.b3d,
       "Όδευση": layers.traverse,
       "Ταχυμετρία": layers.tachy,
     };
@@ -80,6 +82,7 @@ const MapView = (() => {
       L.polygon(b.ring, { renderer: r, color: "#5a3d2b", weight: 0.6, fillColor: heightColor(b.h), fillOpacity: 0.55,
                           interactive: false }).addTo(layers.buildings);
     }
+    if (map.hasLayer(layers.b3d)) layers.b3d.redraw();
   }
 
   function drawArea(area) {
@@ -91,6 +94,7 @@ const MapView = (() => {
 
   return {
     init, attach, drawBuildings, drawArea, heightColor,
+    redraw3D() { if (map && map.hasLayer(layers.b3d)) layers.b3d.redraw(); },
     get map() { return map; }, get layers() { return layers; },
     onClick(fn) { clickHandler = fn; },
   };

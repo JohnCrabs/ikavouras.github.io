@@ -105,7 +105,7 @@ const App = (() => {
     if (st.area) {
       MapView.map.fitBounds([[st.area.south, st.area.west], [st.area.north, st.area.east]]);
       Phase1.loadArea();
-    } else Phase1.recompute();
+    } else { Phase1.clearArea(); Phase1.recompute(); }
     refresh();
   }
 
@@ -135,6 +135,7 @@ const App = (() => {
     if (window.renderMathInElement)
       renderMathInElement(document.body, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }],
                                            throwOnError: false });
+    Quadrant.build($("#quad-widget"));
     afterLoad();
     const t = (location.hash || "#p1").slice(1);
     showTab(["p1", "p2", "p3", "p4", "p5", "rep"].includes(t) ? t : "p1");

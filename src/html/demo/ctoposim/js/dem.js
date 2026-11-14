@@ -89,46 +89,74 @@ const DEM = (() => {
     return { h: DEFAULT_LEVELS * LEVEL_H, src: "default" };
   }
 
-  async function loadBuildings(bounds) {
+  const CACHE_KEY = "ctoposim.buildings";
+  const areaKey = b => [b.south, b.west, b.north, b.east].map(v => v.toFixed(5)).join(",");
+
+  /**
+   * Φόρτωση κτιρίων: πρώτα από την τοπική αποθήκευση του browser (ίδια περιοχή),
+   * αλλιώς από το Overpass API. Έτσι ένα reload δεν ξαναρωτά τον διακομιστή.
+   */
+  let reqId = 0;   // μόνο η πιο πρόσφατη αίτηση ορίζει τα κτίρια
+  function clearBuildings() { reqId++; buildings = []; buildIndex({ south: 0, west: 0, north: 1e-6, east: 1e-6 }); }
+  async function loadBuildings(bounds, { force = false, onRetry = null } = {}) {
+    const key = areaKey(bounds), my = ++reqId;
+    if (!force) {
+      try {
+        const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (c && c.key === key && Array.isArray(c.list)) { setBuildings(c.list, bounds); return { n: buildings.length, cached: true }; }
+      } catch (e) { /* αγνόησε */ }
+    }
     const bb = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
     const q = `[out:json][timeout:40];(way["building"](${bb});` +
               `relation["building"]["type"="multipolygon"](${bb}););out geom;`;
-    // ερώτηση σε όλους τους διακομιστές παράλληλα: κρατάμε την πρώτη επιτυχημένη απάντηση
-    const ctrls = OVERPASS.map(() => new AbortController());
-    const timer = setTimeout(() => ctrls.forEach(c => c.abort()), 60000);
-    let data;
-    try {
-      data = await Promise.any(OVERPASS.map(async (url, k) => {
-        const r = await fetch(url + "?data=" + encodeURIComponent(q), { signal: ctrls[k].signal });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const j = await r.json();
-        if (!j.elements) throw new Error("κενή απάντηση");
-        return j;
-      }));
-    } catch (e) {
-      throw new Error("κανένας διακομιστής Overpass δεν απάντησε");
-    } finally {
-      clearTimeout(timer);
-      ctrls.forEach(c => c.abort());
+    // ερώτηση σε όλους τους διακομιστές παράλληλα: κρατάμε την πρώτη επιτυχημένη απάντηση.
+    // Οι διακομιστές συχνά είναι προσωρινά υπερφορτωμένοι (429/504): έως 3 γύροι με αναμονή.
+    const round = async () => {
+      const ctrls = OVERPASS.map(() => new AbortController());
+      const timer = setTimeout(() => ctrls.forEach(c => c.abort()), 45000);
+      try {
+        return await Promise.any(OVERPASS.map(async (url, k) => {
+          const r = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q),
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ctrls[k].signal });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const j = await r.json();
+          if (!j.elements) throw new Error("κενή απάντηση");
+          return j;
+        }));
+      } finally { clearTimeout(timer); ctrls.forEach(c => c.abort()); }
+    };
+    let data = null;
+    for (const wait of [0, 5000, 15000]) {
+      if (wait) { onRetry && onRetry(wait / 1000); await new Promise(r => setTimeout(r, wait)); }
+      if (my !== reqId) return { n: 0, cached: false, stale: true };
+      try { data = await round(); break; } catch (e) { /* επόμενος γύρος */ }
     }
-    buildings = [];
+    if (!data) throw new Error("κανένας διακομιστής Overpass δεν απάντησε");
+    const list = [];
+    const r7 = v => Math.round(v * 1e7) / 1e7;
     for (const el of data.elements) {
       const tags = el.tags || {};
       const rings = [];
-      if (el.type === "way" && el.geometry) rings.push(el.geometry.map(g => [g.lat, g.lon]));
+      if (el.type === "way" && el.geometry) rings.push(el.geometry.map(g => [r7(g.lat), r7(g.lon)]));
       if (el.type === "relation" && el.members)
         for (const m of el.members)
-          if (m.role === "outer" && m.geometry) rings.push(m.geometry.map(g => [g.lat, g.lon]));
+          if (m.role === "outer" && m.geometry) rings.push(m.geometry.map(g => [r7(g.lat), r7(g.lon)]));
       const { h, src } = buildingHeight(tags);
-      for (const ring of rings) {
-        if (ring.length < 4) continue;
-        let s = 90, w = 180, n = -90, e = -180;
-        for (const [la, lo] of ring) { s = Math.min(s, la); n = Math.max(n, la); w = Math.min(w, lo); e = Math.max(e, lo); }
-        buildings.push({ ring, bbox: { s, w, n, e }, h, src, name: tags.name || "" });
-      }
+      for (const ring of rings) if (ring.length >= 4) list.push({ ring, h, src });
     }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ key, list })); } catch (e) { /* πολύ μεγάλο: χωρίς cache */ }
+    if (my !== reqId) return { n: 0, cached: false, stale: true };
+    setBuildings(list, bounds);
+    return { n: buildings.length, cached: false };
+  }
+
+  function setBuildings(list, bounds) {
+    buildings = list.map(({ ring, h, src }) => {
+      let s = 90, w = 180, n = -90, e = -180;
+      for (const [la, lo] of ring) { s = Math.min(s, la); n = Math.max(n, la); w = Math.min(w, lo); e = Math.max(e, lo); }
+      return { ring, bbox: { s, w, n, e }, h, src };
+    });
     buildIndex(bounds);
-    return buildings.length;
   }
 
   function buildIndex(bounds) {
@@ -169,6 +197,33 @@ const DEM = (() => {
       if (inRing(lat, lon, b.ring) && (!best || b.h > best.h)) best = b;
     }
     return best;
+  }
+
+  /**
+   * Πλησιέστερο σημείο περιγράμματος κτιρίου (ακμή ή γωνία) σε απόσταση έως maxD m.
+   * Αν υπάρχει γωνία κτιρίου σε απόσταση έως 2 m, προτιμάται η γωνία.
+   */
+  function nearestEdge(lat, lon, maxD, only = null) {
+    const kx = Math.cos(lat * Math.PI / 180) * 111320, ky = 110540;
+    const dLat = maxD / ky, dLon = maxD / kx;
+    let best = null, corner = null;
+    for (const b of (only ? [only] : buildings)) {
+      if (!only && (lat < b.bbox.s - dLat || lat > b.bbox.n + dLat || lon < b.bbox.w - dLon || lon > b.bbox.e + dLon)) continue;
+      const r = b.ring;
+      for (let i = 0; i < r.length - 1; i++) {
+        const ax = (r[i][1] - lon) * kx, ay = (r[i][0] - lat) * ky;
+        const bx = (r[i + 1][1] - lon) * kx, by = (r[i + 1][0] - lat) * ky;
+        const dv = Math.hypot(ax, ay);
+        if (dv <= 2 && (!corner || dv < corner.d)) corner = { b, d: dv, lat: r[i][0], lon: r[i][1], corner: true };
+        const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+        const t = L2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0;
+        const px = ax + t * dx, py = ay + t * dy, d = Math.hypot(px, py);
+        if (d <= maxD && (!best || d < best.d)) best = { b, d, lat: lat + py / ky, lon: lon + px / kx, corner: false };
+      }
+    }
+    const res = corner || best;
+    if (res) res.inside = inRing(lat, lon, res.b.ring);
+    return res;
   }
 
   function surfaceAt(lat, lon) {
@@ -250,6 +305,6 @@ const DEM = (() => {
 
   const getBuildings = () => buildings;
   const hasDEM = () => ready.size > 0;
-  return { Z, preload, terrainAt, loadBuildings, buildingAt, surfaceAt, lineOfSight,
+  return { Z, preload, clearBuildings, terrainAt, loadBuildings, buildingAt, nearestEdge, surfaceAt, lineOfSight,
            getBuildings, hasDEM, HillshadeLayer, LEVEL_H, DEFAULT_LEVELS };
 })();

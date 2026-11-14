@@ -51,7 +51,8 @@ const Store = (() => {
   const defaults = () => ({
     version: 1,
     student: { name: "", am: "" },
-    settings: { reduction: "k", distribution: "length", sigB: [3, 10], sigD: [1, 5], decimal: "." },
+    settings: { reduction: "k", distribution: "length", sigB: [3, 10], sigD: [1, 5], decimal: ".",
+                iRange: [1.45, 1.75], iTyp: [1.55, 1.65], tH: 1.5 },
     area: null, points: {}, seq: [], finished: false, nextId: 1, seedSalt: 0,
     obs: null,
     attempts: { p3: 0, p4: 0, p5: 0 },
@@ -59,10 +60,16 @@ const Store = (() => {
     tachy: { setups: [], cur: null, nextP: 1 },
   });
   let state = defaults();
+  /** παλιά έργα: συμπλήρωση των ρυθμίσεων που προστέθηκαν αργότερα */
+  const merge = s => {
+    const m = Object.assign(defaults(), s);
+    m.settings = Object.assign(defaults().settings, s.settings || {});
+    return m;
+  };
   function load() {
     try {
       const s = JSON.parse(localStorage.getItem(KEY));
-      if (s && s.version === 1) state = Object.assign(defaults(), s);
+      if (s && s.version === 1) state = merge(s);
     } catch (e) { /* αγνόησε */ }
     return state;
   }
@@ -72,7 +79,7 @@ const Store = (() => {
   function reset() { state = defaults(); save(); return state; }
   function replace(s) {
     if (!s || s.version !== 1) throw new Error("Μη έγκυρο αρχείο έργου");
-    state = Object.assign(defaults(), s); save(); return state;
+    state = merge(s); save(); return state;
   }
   return { get s() { return state; }, load, save, reset, replace, defaults };
 })();

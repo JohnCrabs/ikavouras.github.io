@@ -27,6 +27,17 @@ const SIM = (() => {
     return { f, Em, Hm, k: GEO.kPoint(Em), hf: GEO.hFactor(Hm) };
   }
 
+  /**
+   * Ύψος οργάνου (Υ.Ο.): συνήθως μέσα στο «σύνηθες» διάστημα (80%),
+   * περιστασιακά οπουδήποτε μέσα στα όρια (20%). Στρογγύλευση στο mm.
+   */
+  function instrumentHeight(rng, S) {
+    const [lo, hi] = S.iRange, [tl, th] = S.iTyp;
+    const a = Math.max(lo, Math.min(tl, th)), b = Math.min(hi, Math.max(tl, th));
+    const v = rng.next() < 0.8 && b > a ? rng.uniform(a, b) : rng.uniform(lo, hi);
+    return r3(Math.max(lo, Math.min(hi, v)));
+  }
+
   /* ---------------- Φάση 2: παραγωγή μετρήσεων υπαίθρου ---------------- */
   function generate(st) {
     const P = id => st.points[id], seq = st.seq, L = seq.length, S = st.settings;
@@ -39,7 +50,7 @@ const SIM = (() => {
     const setups = [];
     for (let j = 1; j <= L - 2; j++) {
       const A = P(seq[j]);
-      const i = r3(rng.uniform(1.45, 1.65));
+      const i = instrumentHeight(rng, S);
       const omega = rng.uniform(0, 400);               // τυχαίος προσανατολισμός οριζόντιου κύκλου
       const sights = [];
       for (const [role, k] of [["back", j - 1], ["fwd", j + 1]]) {
@@ -53,7 +64,7 @@ const SIM = (() => {
           HzII: r4(mod(hz + 200 - inst.c + rng.gauss(0, sB), 400)),
           t: null, VI: null, VII: null, SI: null, SII: null };
         if (!orient) {
-          s.t = r2(rng.uniform(1.5, 1.8));
+          s.t = r3(S.tH);                                // σταθερό ύψος στόχου (Υ.Σ.)
           const Dh = dist(A, Q) / scaleTrue(A, Q, S.reduction);
           const dz = (Q.H + s.t) - (A.H + i) - GEO.curvRefr(Dh);
           const z = Math.atan2(Dh, dz) / GR, Sl = Math.hypot(Dh, dz);
@@ -143,14 +154,14 @@ const SIM = (() => {
   function newTachySetup(st, stationId, bsId) {
     const id = st.tachy.setups.length + 1;
     const rng = RNG.make(`tachy|${st.student.am}|${stationId}|${bsId}|${id}|${st.seedSalt || 0}`);
-    return { id, station: stationId, backsight: bsId, i: r3(rng.uniform(1.45, 1.65)), shots: [] };
+    return { id, station: stationId, backsight: bsId, i: instrumentHeight(rng, st.settings), shots: [] };
   }
 
   function shoot(st, setup, tgt) {
     const A = st.points[setup.station], B = st.points[setup.backsight];
     const rng = RNG.make(`shot|${st.student.am}|${setup.id}|${setup.shots.length}|${tgt.E.toFixed(3)}`);
     const sB = rng.uniform(st.settings.sigB[0], st.settings.sigB[1]) / 1e4;
-    const t = tgt.onRoof ? 0 : 1.8;
+    const t = tgt.onRoof ? 0 : r3(st.settings.tH);
     const Dh = dist(A, tgt) / scaleTrue(A, tgt, st.settings.reduction);
     const dz = (tgt.H + t) - (A.H + setup.i) - GEO.curvRefr(Dh);
     const z = Math.atan2(Dh, dz) / GR, Sl = Math.hypot(Dh, dz);
@@ -179,5 +190,5 @@ const SIM = (() => {
   }
 
   return { generate, expected, solve, reduceSight, scaleTrue, scaleSolve,
-           newTachySetup, shoot, tachyExpected, gradeItem, r3, r4 };
+           newTachySetup, shoot, tachyExpected, gradeItem, instrumentHeight, r3, r4 };
 })();

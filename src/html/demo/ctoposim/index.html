@@ -6,7 +6,7 @@
 <title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
 
@@ -73,7 +73,7 @@
       </table>
       <p id="p1-profile-title" class="muted"></p>
       <canvas id="p1-profile"></canvas>
-      <p class="muted small">Τομή: <span class="sw g"></span> έδαφος (DEM) <span class="sw b"></span> κτίρια (OSM) · διακεκομμένη γραμμή: σκόπευση σε ύψος 1.60 m.</p>
+      <p class="muted small">Τομή: <span class="sw g"></span> έδαφος (DEM) <span class="sw b"></span> κτίρια (OSM) · διακεκομμένη γραμμή: σκόπευση από το Υ.Ο. (μέσο των συνήθων τιμών) προς το Υ.Σ. των ρυθμίσεων της Φάσης 2.</p>
     </aside>
   </div>
   <div class="sub theory" hidden>
@@ -92,9 +92,14 @@
       $$\alpha_{\text{αρχ}} = \alpha_{T1\to T2}, \qquad \alpha_{\text{τελ}} = \alpha_{T3\to T4}, \qquad
         \alpha_{AB} = \arctan\frac{E_B - E_A}{N_B - N_A}$$
       <p>Η γωνία διεύθυνσης μετριέται από τον άξονα <b>N (Βορράς)</b> δεξιόστροφα, σε grad (0–400<sup>g</sup>). Το τεταρτημόριο καθορίζεται από τα πρόσημα των ΔE, ΔN.</p>
+      <h3>Γωνία διεύθυνσης ανά τεταρτημόριο (διαδραστικό)</h3>
+      <p>Στο ΕΓΣΑ 87 ο άξονας <b>y</b> δείχνει τον <b>Βορρά</b>: η τεταγμένη ονομάζεται <b>N</b> (Northing). Ο άξονας <b>x</b> δείχνει την <b>Ανατολή</b>: η τετμημένη ονομάζεται <b>E</b> (Easting).
+      Γι' αυτό η γωνία διεύθυνσης ξεκινά από τον Βορρά (άξονας y) και αυξάνεται δεξιόστροφα προς την Ανατολή (άξονας x), αντίθετα από τη γωνία των μαθηματικών.
+      Ο αριθμητής της εφαπτομένης είναι το <b>ΔE</b> και ο παρονομαστής το <b>ΔN</b>.</p>
+      <div id="quad-widget"></div>
       <h3>Κριτήρια επιλογής στάσεων</h3>
       <ul>
-        <li><b>Αμοιβαία ορατότητα</b> μεταξύ διαδοχικών στάσεων. Ο προσομοιωτής ελέγχει την οπτική επαφή με το DEM και τα κτίρια του OSM, σε ύψος οργάνου/στόχου 1.60 m.</li>
+        <li><b>Αμοιβαία ορατότητα</b> μεταξύ διαδοχικών στάσεων. Ο προσομοιωτής ελέγχει την οπτική επαφή με το DEM και τα κτίρια του OSM, με ύψος οργάνου το μέσο των συνήθων τιμών του Υ.Ο. και ύψος στόχου το Υ.Σ. (ρυθμίσεις Φάσης 2).</li>
         <li><b>Ομοιόμορφα μήκη πλευρών</b>, χωρίς πολύ μικρές πλευρές δίπλα σε μεγάλες: τα σφάλματα κέντρωσης επηρεάζουν πολύ τις γωνίες στις μικρές πλευρές.</li>
         <li><b>Όσο γίνεται ευθύγραμμη όδευση</b> και μικρός αριθμός στάσεων: τα σφάλματα συσσωρεύονται σε κάθε στάση.</li>
         <li><b>Ασφαλής και σταθερή θέση</b> (π.χ. πεζοδρόμιο, όχι στη μέση του δρόμου) και καλή ορατότητα προς τα σημεία λεπτομερειών για την ταχυμετρία.</li>
@@ -130,7 +135,16 @@
           <span class="row"><input id="p2-sb0" type="number" step="0.5" min="0.5"><input id="p2-sb1" type="number" step="0.5" min="0.5"></span></label>
         <label>Τυπικό σφάλμα απόστασης ±σ (mm), από – έως
           <span class="row"><input id="p2-sd0" type="number" step="0.5" min="0.5"><input id="p2-sd1" type="number" step="0.5" min="0.5"></span></label>
+        <label>Ύψος οργάνου Υ.Ο. (m): όρια, από – έως
+          <span class="row"><input id="p2-i0" type="number" step="0.01" min="0.5" max="2.5"><input id="p2-i1" type="number" step="0.01" min="0.5" max="2.5"></span></label>
+        <label>Ύψος οργάνου Υ.Ο. (m): συνήθεις τιμές, από – έως
+          <span class="row"><input id="p2-it0" type="number" step="0.01" min="0.5" max="2.5"><input id="p2-it1" type="number" step="0.01" min="0.5" max="2.5"></span></label>
+        <label>Ύψος στόχου Υ.Σ. (m), σταθερό σε όλες τις σκοπεύσεις
+          <input id="p2-t" type="number" step="0.001" min="0" max="5"></label>
       </div>
+      <p class="muted small">Το Υ.Ο. είναι διαφορετικό σε κάθε στάση οργάνου (η πρώτη είναι το T2). Στο 80% των στάσεων παίρνει τιμή μέσα στις συνήθεις τιμές και στο 20% οπουδήποτε μέσα στα όρια.
+      Το Υ.Σ. είναι το ύψος του στόχου πάνω από το σημείο: π.χ. 1.500 m για ανακλαστήρα σε ράβδο, ή 0.000 m για σκόπευση στη μύτη του καταφώτου (reflectorless).
+      Ισχύει και για τους στόχους εδάφους της ταχυμετρίας.</p>
       <p class="muted small">Τα τυχαία σφάλματα παράγονται από το ονοματεπώνυμο και τον ΑΜ, οπότε κάθε φοιτητής έχει διαφορετικές μετρήσεις. Μετά τη δημιουργία οι ρυθμίσεις κλειδώνουν.</p>
       <button id="p2-gen" class="primary">Δημιουργία μετρήσεων υπαίθρου</button>
     </div>
@@ -305,11 +319,19 @@
           <button id="p5-del" title="Διαγραφή στάσης">🗑</button>
         </div>
         <h3>Β. Σκόπευση σημείων λεπτομερειών</h3>
+        <label class="inline">Είδος στόχου
+          <select id="p5-mode">
+            <option value="auto">Αυτόματα (κοντά σε κτίριο → δώμα)</option>
+            <option value="ground" id="p5-opt-ground">Έδαφος (ράβδος)</option>
+            <option value="roof">Δώμα κτιρίου: ακμή/γωνία (χωρίς πρίσμα, t = 0)</option>
+            <option value="base" id="p5-opt-base">Βάση τοίχου: ακμή/γωνία (ράβδος)</option>
+          </select></label>
         <div class="row">
           <button id="p5-shoot">Σκόπευση σημείων</button>
           <button id="p5-undo">↶ Αναίρεση</button>
         </div>
-        <p class="muted small">Κλικ στον χάρτη: το σημείο μετριέται αν υπάρχει οπτική επαφή. Σημεία πάνω σε κτίριο μετριούνται στο δώμα χωρίς πρίσμα (t = 0). Αλλιώς ο στόχος είναι ανακλαστήρας σε ράβδο (t = 1.80 m).</p>
+        <p class="muted small">Κλικ στον χάρτη: το σημείο μετριέται αν υπάρχει οπτική επαφή. Στο «Δώμα» και στη «Βάση τοίχου» ο στόχος μαγνητίζεται στην πλησιέστερη ακμή ή γωνία κτιρίου του OSM (έως 8 m).
+        Το εσωτερικό ενός δώματος δεν φαίνεται από το έδαφος, γι' αυτό σκοπεύουμε την ακμή που βλέπει προς το όργανο. Για να βλέπεις πού στοχεύεις, άναψε το layer «Κτίρια 3D και σκοπεύσεις σε ύψος».</p>
         <table class="tbl" id="p5-table">
           <thead><tr><th>Στάση</th><th>Σημείο</th><th>Hz (grad)</th><th>V (grad)</th><th>S (m)</th><th>t (m)</th></tr></thead>
           <tbody></tbody>
@@ -370,15 +392,17 @@
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="js/geo.js"></script>
-<script src="js/dem.js"></script>
-<script src="js/sim.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/mapview.js"></script>
-<script src="js/phase1.js"></script>
-<script src="js/phase2.js"></script>
-<script src="js/phases34.js"></script>
-<script src="js/phase5.js"></script>
-<script src="js/app.js"></script>
+<script src="js/geo.js?v=9"></script>
+<script src="js/dem.js?v=9"></script>
+<script src="js/sim.js?v=9"></script>
+<script src="js/ui.js?v=9"></script>
+<script src="js/buildings3d.js?v=9"></script>
+<script src="js/mapview.js?v=9"></script>
+<script src="js/phase1.js?v=9"></script>
+<script src="js/phase2.js?v=9"></script>
+<script src="js/phases34.js?v=9"></script>
+<script src="js/phase5.js?v=9"></script>
+<script src="js/quadrant.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
 </body>
 </html>

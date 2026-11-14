@@ -17,7 +17,7 @@ const Phase5 = (() => {
     if (!st.obs) return toast("Δημιούργησε πρώτα τις μετρήσεις της όδευσης (καρτέλα 2).", "warn");
     if (!a || !b || a === b) return toast("Διάλεξε διαφορετική στάση οργάνου και στάση μηδενισμού.", "warn");
     const A = st.points[a], B = st.points[b];
-    const los = DEM.hasDEM() ? DEM.lineOfSight({ lat: A.lat, lon: A.lon, z: A.H + 1.6 }, { lat: B.lat, lon: B.lon, z: B.H + 1.6 }) : { visible: true };
+    const los = DEM.hasDEM() ? DEM.lineOfSight({ lat: A.lat, lon: A.lon, z: A.H + 1.6 }, { lat: B.lat, lon: B.lon, z: B.H + st.settings.tH + 0.05 }) : { visible: true };
     if (!los.visible && !confirm(`Δεν υπάρχει οπτική επαφή ${A.name} → ${B.name} (${los.obstacle.type}). Συνέχεια;`)) return;
     const u = SIM.newTachySetup(st, a, b);
     st.tachy.setups.push(u); st.tachy.cur = u.id;
@@ -33,20 +33,50 @@ const Phase5 = (() => {
     if (a && (e.latlng.lat < a.south || e.latlng.lat > a.north || e.latlng.lng < a.west || e.latlng.lng > a.east))
       return toast("Το σημείο είναι εκτός της περιοχής μελέτης.", "warn");
     const A = st.points[u.station];
-    const { E, N } = GEO.toEGSA(e.latlng.lat, e.latlng.lng);
-    const s = DEM.surfaceAt(e.latlng.lat, e.latlng.lng);
-    const tgt = { lat: e.latlng.lat, lon: e.latlng.lng, E, N, H: isFinite(s.surface) ? s.surface : A.H, onRoof: !!s.building };
+    const tgt = makeTarget(e.latlng.lat, e.latlng.lng, $("#p5-mode").value, A);
+    if (!tgt) return;
     const d = GEO.dist(A, tgt);
     if (d > MAX_RANGE) return toast(`Απόσταση ${d.toFixed(0)} m: εκτός εμβέλειας (${MAX_RANGE} m).`, "warn");
     if (d < 2) return toast("Το σημείο είναι πάνω στη στάση.", "warn");
-    const t = tgt.onRoof ? 0 : 1.8;
+    const t = tgt.onRoof ? 0 : st.settings.tH;
     if (DEM.hasDEM()) {
       const los = DEM.lineOfSight({ lat: A.lat, lon: A.lon, z: A.H + u.i }, { lat: tgt.lat, lon: tgt.lon, z: tgt.H + t + 0.05 });
-      if (!los.visible) return toast(`Δεν υπάρχει οπτική επαφή: ${los.obstacle.type} στα ${los.obstacle.d.toFixed(0)} m.`, "warn");
+      if (!los.visible) return toast(`Δεν υπάρχει οπτική επαφή: ${los.obstacle.type} στα ${los.obstacle.d.toFixed(0)} m.` +
+        (tgt.kind === "roof" ? " Σκόπευσε ακμή ή γωνία του δώματος που βλέπει προς το όργανο." : ""), "warn");
     }
     const obs = SIM.shoot(st, u, tgt);
     u.shots.push({ name: "P" + st.tachy.nextP++, ...tgt, ...obs });
     Store.save(); App.refresh();
+  }
+
+  const KIND = { ground: "έδαφος", roof: "δώμα", base: "βάση τοίχου" };
+
+  /**
+   * Δημιουργεί τον στόχο ανάλογα με το είδος σκόπευσης:
+   *  ground: σημείο εδάφους με ράβδο (Υ.Σ. από τις ρυθμίσεις)
+   *  roof:   ακμή/γωνία δώματος κτιρίου, χωρίς πρίσμα (t = 0)
+   *  base:   ακμή/γωνία κτιρίου στη βάση του τοίχου, με ράβδο (Υ.Σ. από τις ρυθμίσεις)
+   *  auto:   κοντά (≤ 3 m) ή μέσα σε κτίριο → roof, αλλιώς ground
+   */
+  function makeTarget(lat, lon, mode, A) {
+    const near = DEM.nearestEdge(lat, lon, mode === "auto" ? 3 : 8);
+    const inside = DEM.buildingAt(lat, lon);
+    if (mode === "auto") mode = (near || inside) ? "roof" : "ground";
+    let kind = mode, p = { lat, lon }, bh = 0;
+    if (mode === "roof" || mode === "base") {
+      // κλικ στο εσωτερικό κτιρίου: στόχος η γωνία/ακμή του κτιρίου που είναι πλησιέστερα στο όργανο
+      const n = inside ? DEM.nearestEdge(A.lat, A.lon, 1e6, inside) : near;
+      if (!n) { toast("Δεν υπάρχει κτίριο κοντά στο σημείο (8 m). Κάνε κλικ πάνω ή δίπλα σε ακμή κτιρίου.", "warn"); return null; }
+      p = { lat: n.lat, lon: n.lon }; bh = mode === "roof" ? n.b.h : 0;
+      kind = mode;
+      p.corner = n.corner;
+    } else if (inside) {
+      toast("Το σημείο είναι μέσα σε κτίριο. Διάλεξε «Δώμα» ή «Βάση τοίχου».", "warn"); return null;
+    }
+    const terr = DEM.terrainAt(p.lat, p.lon);
+    const { E, N } = GEO.toEGSA(p.lat, p.lon);
+    return { lat: p.lat, lon: p.lon, E, N, H: (isFinite(terr) ? terr : A.H) + bh,
+             onRoof: kind === "roof", kind, corner: !!p.corner };
   }
 
   function undoShot() {
@@ -112,6 +142,7 @@ const Phase5 = (() => {
   function draw() {
     const g = MapView.layers.tachy;
     g.clearLayers();
+    MapView.redraw3D();
     for (const u of S().tachy.setups) {
       const A = S().points[u.station], on = u.id === S().tachy.cur;
       for (const s of u.shots) {
@@ -135,6 +166,8 @@ const Phase5 = (() => {
     }
     if (!$("#p5-bs").dataset.init && ids.length > 1) { $("#p5-bs").value = ids[0]; $("#p5-st").value = ids[1]; $("#p5-bs").dataset.init = 1; }
     const u = cur();
+    $("#p5-opt-ground").textContent = `Έδαφος (ράβδος, t = ${st.settings.tH.toFixed(3)} m)`;
+    $("#p5-opt-base").textContent = `Βάση τοίχου: ακμή/γωνία (ράβδος, t = ${st.settings.tH.toFixed(3)} m)`;
     $("#p5-cur").innerHTML = u ? `Τρέχουσα στάση: <b>${nm(u.station)}</b> · i = <b>${u.i.toFixed(3)} m</b> · ` +
       `μηδενισμός (Hz = 0.0000<sup>g</sup>) προς <b>${nm(u.backsight)}</b>` : "Δεν έχει οριστεί στάση οργάνου.";
     $("#p5-shoot").textContent = shooting && u ? "Σκόπευση: ON" : "Σκόπευση σημείων";
@@ -148,7 +181,8 @@ const Phase5 = (() => {
     for (const x of st.tachy.setups) {
       tb.append(h("tr", { class: "first" }, h("td", {}, h("b", {}, nm(x.station))), h("td", {}, nm(x.backsight) + " (μηδ.)"),
         h("td", { class: "num" }, "0.0000"), h("td", {}, ""), h("td", {}, ""), h("td", { class: "num" }, "i=" + F(x.i, 3))));
-      for (const s of x.shots) tb.append(h("tr", {}, h("td", {}, ""), h("td", {}, s.name + (s.onRoof ? " (δώμα)" : "")),
+      for (const s of x.shots) tb.append(h("tr", {}, h("td", {}, ""),
+        h("td", {}, s.name + ` (${KIND[s.kind] || (s.onRoof ? "δώμα" : "έδαφος")}${s.corner ? ", γωνία" : ""})`),
         h("td", { class: "num" }, F(s.Hz, 4)), h("td", { class: "num" }, F(s.V, 4)), h("td", { class: "num" }, F(s.S, 3)),
         h("td", { class: "num" }, F(s.t, 3))));
     }

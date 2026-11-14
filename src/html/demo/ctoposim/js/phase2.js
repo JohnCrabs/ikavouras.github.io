@@ -42,6 +42,12 @@ const Phase2 = (() => {
     const n = (sel, def) => { const v = parseFloat($(sel).value); return isFinite(v) && v > 0 ? v : def; };
     st.sigB = [n("#p2-sb0", 3), n("#p2-sb1", 10)].sort((a, b) => a - b);
     st.sigD = [n("#p2-sd0", 1), n("#p2-sd1", 5)].sort((a, b) => a - b);
+    const m = (sel, def, lo, hi) => { const v = parseFloat(String($(sel).value).replace(",", ".")); return isFinite(v) && v >= lo && v <= hi ? v : def; };
+    st.iRange = [m("#p2-i0", 1.45, 0.5, 2.5), m("#p2-i1", 1.75, 0.5, 2.5)].sort((a, b) => a - b);
+    st.iTyp = [m("#p2-it0", 1.55, 0.5, 2.5), m("#p2-it1", 1.65, 0.5, 2.5)].sort((a, b) => a - b);
+    st.iTyp = [Math.max(st.iTyp[0], st.iRange[0]), Math.min(st.iTyp[1], st.iRange[1])];
+    if (st.iTyp[0] > st.iTyp[1]) st.iTyp = [...st.iRange];
+    st.tH = m("#p2-t", 1.5, 0, 5);
   }
 
   /* ---------------- Σειρές εντύπου ---------------- */
@@ -61,6 +67,7 @@ const Phase2 = (() => {
     R.push(["Ημερομηνία μετρήσεων", new Date(st.obs.created).toLocaleString("el-GR")]);
     R.push(["Αναγωγή αποστάσεων", REDUCTION[st.settings.reduction]]);
     R.push(["Κατανομή σφαλμάτων", DISTRIB[st.settings.distribution]]);
+    R.push(["Ύψος στόχου Υ.Σ. (σταθερό)", N(st.settings.tH, 3) + " m"]);
     R.push(["Γωνίες σε grad, αποστάσεις και ύψη σε m. Hz: οριζόντια ανάγνωση, V: ζενίθια ανάγνωση, S: κεκλιμένη απόσταση"]);
     R.push([]);
     R.push(["ΓΝΩΣΤΑ ΣΗΜΕΙΑ (ΕΓΣΑ 87)"]);
@@ -73,7 +80,7 @@ const Phase2 = (() => {
     for (const r of obsRows()) {
       const s = r.s;
       R.push([r.station, r.i != null ? N(r.i, 3) : "", r.target + (r.orient ? " (προσαν.)" : ""),
-        N(s.t, 2), N(s.HzI, 4), N(s.HzII, 4), N(s.VI, 4), N(s.VII, 4), N(s.SI, 3), N(s.SII, 3), "", "", "", "", ""]);
+        N(s.t, 3), N(s.HzI, 4), N(s.HzII, 4), N(s.VI, 4), N(s.VII, 4), N(s.SI, 3), N(s.SII, 3), "", "", "", "", ""]);
     }
     return CSV.build(R);
   }
@@ -88,7 +95,7 @@ const Phase2 = (() => {
     const st = S(), F = GEO.fmt;
     const rows = obsRows().map(r => `<tr${r.station ? ' class="first"' : ""}>
       <td><b>${r.station}</b></td><td>${r.i != null ? F(r.i, 3) : ""}</td><td>${r.target}${r.orient ? " <small>(προσαν.)</small>" : ""}</td>
-      <td>${r.s.t != null ? F(r.s.t, 2) : "—"}</td><td>${F(r.s.HzI, 4)}</td><td>${F(r.s.HzII, 4)}</td>
+      <td>${r.s.t != null ? F(r.s.t, 3) : "—"}</td><td>${F(r.s.HzI, 4)}</td><td>${F(r.s.HzII, 4)}</td>
       <td>${F(r.s.VI, 4)}</td><td>${F(r.s.VII, 4)}</td><td>${F(r.s.SI, 3)}</td><td>${F(r.s.SII, 3)}</td>
       <td></td><td></td><td></td><td></td><td></td></tr>`).join("");
     const known = knownPoints().map(p => `<tr><td><b>${p.name}</b></td><td>${F(p.E, 3)}</td><td>${F(p.N, 3)}</td><td>${F(p.H, 3)}</td></tr>`).join("");
@@ -102,7 +109,7 @@ tr.first td{border-top:2px solid #333}.meta td{border:none;text-align:left;paddi
 <h1>ΕΝΤΥΠΟ ΠΟΛΥΓΩΝΟΜΕΤΡΙΑΣ</h1>
 <table class="meta"><tr><td>Φοιτητής: <b>${st.student.name}</b></td><td>ΑΜ: <b>${st.student.am}</b></td>
 <td>Μετρήσεις: ${new Date(st.obs.created).toLocaleString("el-GR")}</td></tr>
-<tr><td colspan="3">Αναγωγή αποστάσεων: <b>${REDUCTION[st.settings.reduction]}</b> · Κατανομή σφαλμάτων: <b>${DISTRIB[st.settings.distribution]}</b></td></tr></table>
+<tr><td colspan="3">Αναγωγή αποστάσεων: <b>${REDUCTION[st.settings.reduction]}</b> · Κατανομή σφαλμάτων: <b>${DISTRIB[st.settings.distribution]}</b> · Υ.Σ. (σταθερό): <b>${F(st.settings.tH, 3)} m</b></td></tr></table>
 <h2>Γνωστά σημεία (ΕΓΣΑ 87)</h2>
 <table style="width:50%"><tr><th>Σημείο</th><th>E (m)</th><th>N (m)</th><th>H (m)</th></tr>${known}</table>
 <h2>Μετρήσεις υπαίθρου</h2>
@@ -125,6 +132,9 @@ tr.first td{border-top:2px solid #333}.meta td{border:none;text-align:left;paddi
     $("#p2-sb0").value = st.settings.sigB[0]; $("#p2-sb1").value = st.settings.sigB[1];
     $("#p2-sd0").value = st.settings.sigD[0]; $("#p2-sd1").value = st.settings.sigD[1];
     $("#p2-dec").value = st.settings.decimal;
+    $("#p2-i0").value = st.settings.iRange[0]; $("#p2-i1").value = st.settings.iRange[1];
+    $("#p2-it0").value = st.settings.iTyp[0]; $("#p2-it1").value = st.settings.iTyp[1];
+    $("#p2-t").value = st.settings.tH;
     $$("#p2-settings select, #p2-settings input").forEach(e => e.disabled = has);
     $("#p2-gen").textContent = has ? "Νέα σειρά μετρήσεων" : "Δημιουργία μετρήσεων υπαίθρου";
     $("#p2-gen").disabled = !st.finished;
@@ -134,7 +144,7 @@ tr.first td{border-top:2px solid #333}.meta td{border:none;text-align:left;paddi
     tb.innerHTML = "";
     for (const r of obsRows()) tb.append(h("tr", { class: r.station ? "first" : "" },
       h("td", {}, h("b", {}, r.station)), h("td", { class: "num" }, r.i != null ? F(r.i, 3) : ""),
-      h("td", {}, r.target + (r.orient ? " (προσαν.)" : "")), h("td", { class: "num" }, r.s.t != null ? F(r.s.t, 2) : "—"),
+      h("td", {}, r.target + (r.orient ? " (προσαν.)" : "")), h("td", { class: "num" }, r.s.t != null ? F(r.s.t, 3) : "—"),
       h("td", { class: "num" }, F(r.s.HzI, 4)), h("td", { class: "num" }, F(r.s.HzII, 4)),
       h("td", { class: "num" }, F(r.s.VI, 4)), h("td", { class: "num" }, F(r.s.VII, 4)),
       h("td", { class: "num" }, F(r.s.SI, 3)), h("td", { class: "num" }, F(r.s.SII, 3))));
@@ -149,6 +159,9 @@ tr.first td{border-top:2px solid #333}.meta td{border:none;text-align:left;paddi
     $("#p2-csv").onclick = () => download(filename("entypo_polygonometrias", "csv"), formCSV(), "text/csv;charset=utf-8");
     $("#p2-print").onclick = printForm;
     $("#p2-dec").onchange = e => { S().settings.decimal = e.target.value; Store.save(); };
+    // οι αλλαγές στα ύψη ισχύουν αμέσως (και για τον έλεγχο ορατότητας της Φάσης 1)
+    for (const id of ["#p2-i0", "#p2-i1", "#p2-it0", "#p2-it1", "#p2-t"])
+      $(id).addEventListener("change", () => { if (S().obs) return; readSettings(); Store.save(); Phase1.recompute(); App.refresh(); });
   }
 
   return { init, render, knownPoints, filename, formCSV, REDUCTION, DISTRIB };
