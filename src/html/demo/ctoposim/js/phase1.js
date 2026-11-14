@@ -12,28 +12,72 @@ const Phase1 = (() => {
   const S = () => Store.s;
 
   /* ---------------- Περιοχή μελέτης ---------------- */
-  async function setAreaFromView() {
-    const map = MapView.map;
+  /* Σχεδίαση ορθογωνίου: ο φοιτητής σέρνει ένα ορθογώνιο στον χάρτη (ποντίκι ή αφή). */
+  let drawing = false, drawStart = null, drawRect = null;
+  const MIN_SIDE = 50;                                  // ελάχιστη πλευρά (m)
+
+  /** διαστάσεις ορθογωνίου σε ΕΓΣΑ 87 */
+  function rectSize(a, b) {
+    const p = GEO.toEGSA(Math.min(a.lat, b.lat), Math.min(a.lng, b.lng)), q = GEO.toEGSA(Math.max(a.lat, b.lat), Math.max(a.lng, b.lng));
+    const w = Math.abs(q.E - p.E), hgt = Math.abs(q.N - p.N);
+    return { w, h: hgt, km2: w * hgt / 1e6 };
+  }
+
+  function startDrawing() {
     if (S().finished) return toast("Η όδευση είναι κλειδωμένη. Ξεκλείδωσέ την πρώτα.", "warn");
-    if (map.getZoom() < 15) return toast("Κάνε μεγαλύτερο ζουμ (τουλάχιστον 15) πριν ορίσεις την περιοχή.", "warn");
-    const b = map.getBounds();
-    const sw = GEO.toEGSA(b.getSouth(), b.getWest()), ne = GEO.toEGSA(b.getNorth(), b.getEast());
-    let w = Math.abs(ne.E - sw.E), hgt = Math.abs(ne.N - sw.N);
-    const km2 = w * hgt / 1e6;
-    // μεγάλη οθόνη: αντί για απόρριψη, κράτα το κεντρικό τμήμα της όψης (≤ MAX_AREA_KM2)
-    if (km2 > MAX_AREA_KM2) { const f = Math.sqrt(MAX_AREA_KM2 / km2); w *= f; hgt *= f; }
-    const cE = (sw.E + ne.E) / 2, cN = (sw.N + ne.N) / 2;
-    const p0 = GEO.toWGS(cE - w / 2, cN - hgt / 2), p1 = GEO.toWGS(cE + w / 2, cN + hgt / 2);
-    if (S().seq.length && !confirm("Ο ορισμός νέας περιοχής διαγράφει τις στάσεις που έχεις βάλει. Συνέχεια;")) return;
-    S().area = { south: p0.lat, west: p0.lon, north: p1.lat, east: p1.lon };
-    if (km2 > MAX_AREA_KM2) {
-      toast(`Η όψη είναι ${km2.toFixed(1)} km²· κρατήθηκε το κεντρικό τμήμα ${MAX_AREA_KM2} km² (πλαίσιο στον χάρτη).`, "info", 7000);
-      map.fitBounds([[p0.lat, p0.lon], [p1.lat, p1.lon]]);
-    }
-    S().points = {}; S().seq = []; S().finished = false;
-    Store.save();
-    await loadArea();
+    if (drawing) return stopDrawing();
+    drawing = true; placing = false;
+    MapView.map.dragging.disable();
+    MapView.map.getContainer().classList.add("drawing");
+    toast("Σύρε ένα ορθογώνιο στον χάρτη (έως 4 km²). Esc για ακύρωση.", "info");
     App.refresh();
+  }
+
+  function stopDrawing() {
+    drawing = false; drawStart = null;
+    if (drawRect) { drawRect.remove(); drawRect = null; }
+    MapView.map.dragging.enable();
+    MapView.map.getContainer().classList.remove("drawing");
+    App.refresh();
+  }
+
+  function bindDrawing() {
+    const map = MapView.map, el = map.getContainer();
+    const ll = e => map.mouseEventToLatLng(e);
+    el.addEventListener("pointerdown", e => {
+      if (!drawing || e.button > 0 || e.target.closest(".leaflet-control")) return;
+      e.preventDefault(); e.stopPropagation();
+      el.setPointerCapture(e.pointerId);
+      drawStart = ll(e);
+      drawRect = L.rectangle([drawStart, drawStart], { color: "#1b6ec2", weight: 2, fillOpacity: 0.08, interactive: false }).addTo(map);
+      drawRect.bindTooltip("", { permanent: true, direction: "center", className: "rect-lbl" });
+    });
+    el.addEventListener("pointermove", e => {
+      if (!drawing || !drawStart || !drawRect) return;
+      const cur = ll(e), z = rectSize(drawStart, cur), bad = z.km2 > MAX_AREA_KM2;
+      drawRect.setBounds([drawStart, cur]);
+      drawRect.setStyle({ color: bad ? "#d73027" : "#1b6ec2" });
+      drawRect.setTooltipContent(`${z.w.toFixed(0)} × ${z.h.toFixed(0)} m · ${z.km2.toFixed(2)} km²${bad ? " (> 4 km²)" : ""}`);
+    });
+    el.addEventListener("pointerup", async e => {
+      if (!drawing || !drawStart) return;
+      const a = drawStart, b = ll(e), z = rectSize(a, b);
+      drawStart = null;
+      if (drawRect) { drawRect.remove(); drawRect = null; }
+      if (z.w < MIN_SIDE || z.h < MIN_SIDE)
+        return toast(`Το ορθογώνιο είναι πολύ μικρό (${z.w.toFixed(0)} × ${z.h.toFixed(0)} m). Ελάχιστη πλευρά ${MIN_SIDE} m· σύρε ξανά.`, "warn");
+      if (z.km2 > MAX_AREA_KM2)
+        return toast(`Το ορθογώνιο είναι ${z.km2.toFixed(2)} km². Μέγιστο ${MAX_AREA_KM2} km²· σύρε μικρότερο.`, "warn");
+      if (S().seq.length && !confirm("Ο ορισμός νέας περιοχής διαγράφει τις στάσεις που έχεις βάλει. Συνέχεια;")) return stopDrawing();
+      stopDrawing();
+      S().area = { south: Math.min(a.lat, b.lat), west: Math.min(a.lng, b.lng), north: Math.max(a.lat, b.lat), east: Math.max(a.lng, b.lng) };
+      S().points = {}; S().seq = []; S().finished = false;
+      Store.save();
+      map.fitBounds([[S().area.south, S().area.west], [S().area.north, S().area.east]], { padding: [20, 20] });
+      await loadArea();
+      App.refresh();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && drawing) stopDrawing(); });
   }
 
   async function loadArea() {
@@ -62,7 +106,7 @@ const Phase1 = (() => {
   function clearArea() {
     loadGen++;
     DEM.clearBuildings(); MapView.drawBuildings();
-    $("#p1-area-status").textContent = "Δεν έχει οριστεί περιοχή. Η περιοχή πρέπει να είναι έως 4 km² (ζουμ ≥ 15).";
+    $("#p1-area-status").textContent = "Δεν έχει οριστεί περιοχή. Σχεδίασε ένα ορθογώνιο έως 4 km².";
   }
 
   async function loadBuildingsUI(force) {
@@ -314,6 +358,9 @@ const Phase1 = (() => {
   /* ---------------- Πίνακες ---------------- */
   function render() {
     const st = S(), q = st.seq;
+    $("#p1-setarea").classList.toggle("active", drawing);
+    $("#p1-setarea").textContent = drawing ? "Σύρε ορθογώνιο στον χάρτη… (Esc: ακύρωση)" :
+      st.area ? "▭ Νέα σχεδίαση περιοχής (ορθογώνιο)" : "▭ Σχεδίαση περιοχής (ορθογώνιο)";
     $("#p1-place").classList.toggle("active", placing);
     $("#p1-place").textContent = placing ? "Τοποθέτηση: ON" : "Τοποθέτηση στάσεων";
     $("#p1-lockbox").hidden = !st.finished;
@@ -346,7 +393,8 @@ const Phase1 = (() => {
 
   function hint() {
     const st = S(), q = st.seq;
-    if (!st.area) return "① Μετακίνησε τον χάρτη στην περιοχή που θέλεις και πάτα <b>«Ορισμός περιοχής»</b>.";
+    if (drawing) return "Πάτα και σύρε στον χάρτη για να σχεδιάσεις το ορθογώνιο της περιοχής (έως 4 km²).";
+    if (!st.area) return "① Βρες την περιοχή στον χάρτη, πάτα <b>«Σχεδίαση περιοχής»</b> και σύρε ένα ορθογώνιο (έως 4 km²).";
     if (st.finished) return "✔ Η όδευση είναι έτοιμη. Πήγαινε στην καρτέλα <b>2 · Έντυπο</b>.";
     if (!placing) return "② Πάτα <b>«Τοποθέτηση στάσεων»</b> και κάνε κλικ στον χάρτη με τη σειρά της όδευσης.";
     if (q.length === 0) return "Κλικ για το <b>T1</b> (γνωστό σημείο προσανατολισμού).";
@@ -363,11 +411,13 @@ const Phase1 = (() => {
   }
 
   function init() {
-    $("#p1-setarea").onclick = setAreaFromView;
+    $("#p1-setarea").onclick = startDrawing;
+    bindDrawing();
     $("#p1-search-btn").onclick = search;
     $("#p1-search").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
     $("#p1-place").onclick = () => {
       if (!S().area) return toast("Όρισε πρώτα την περιοχή μελέτης.", "warn");
+      if (drawing) stopDrawing();
       placing = !placing; App.refresh();
     };
     $("#p1-undo").onclick = undo;

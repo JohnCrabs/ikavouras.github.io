@@ -6,7 +6,7 @@
 <title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body>
 
@@ -46,8 +46,8 @@
         <input id="p1-search" placeholder="Αναζήτηση τοποθεσίας (π.χ. Μαρούσι)">
         <button id="p1-search-btn">🔍</button>
       </div>
-      <button id="p1-setarea" class="primary wide">Ορισμός περιοχής από την τρέχουσα όψη</button>
-      <p id="p1-area-status" class="muted">Δεν έχει οριστεί περιοχή. Η περιοχή πρέπει να είναι έως 4 km² (ζουμ ≥ 15).</p>
+      <button id="p1-setarea" class="primary wide">▭ Σχεδίαση περιοχής (ορθογώνιο)</button>
+      <p id="p1-area-status" class="muted">Δεν έχει οριστεί περιοχή. Σχεδίασε ένα ορθογώνιο έως 4 km².</p>
 
       <h3>Β. Στάσεις όδευσης</h3>
       <p id="p1-hint" class="hint"></p>
@@ -135,6 +135,9 @@
           <span class="row"><input id="p2-sb0" type="number" step="0.5" min="0.5"><input id="p2-sb1" type="number" step="0.5" min="0.5"></span></label>
         <label>Τυπικό σφάλμα απόστασης ±σ (mm), από – έως
           <span class="row"><input id="p2-sd0" type="number" step="0.5" min="0.5"><input id="p2-sd1" type="number" step="0.5" min="0.5"></span></label>
+        <label>Περίοδοι οριζόντιων γωνιών
+          <select id="p2-per"><option value="1">1 περίοδος (0 grad)</option><option value="2">2 περίοδοι (0, 100 grad)</option>
+            <option value="3">3 περίοδοι (0, 50, 100 grad)</option><option value="4">4 περίοδοι (0, 50, 100, 150 grad)</option></select></label>
         <label>Ύψος οργάνου Υ.Ο. (m): όρια, από – έως
           <span class="row"><input id="p2-i0" type="number" step="0.01" min="0.5" max="2.5"><input id="p2-i1" type="number" step="0.01" min="0.5" max="2.5"></span></label>
         <label>Ύψος οργάνου Υ.Ο. (m): συνήθεις τιμές, από – έως
@@ -152,7 +155,8 @@
       <div class="card">
         <h3>Λήψη εντύπου</h3>
         <div class="row">
-          <button id="p2-csv" class="primary">⬇ Έντυπο CSV (Excel)</button>
+          <button id="p2-xlsx" class="primary">⬇ Έντυπο XLSX (Excel)</button>
+          <button id="p2-csv">⬇ Έντυπο CSV</button>
           <button id="p2-print">🖨 Εκτυπώσιμο έντυπο / PDF</button>
           <label class="inline">Δεκαδικά:
             <select id="p2-dec"><option value=".">τελεία (1.234)</option><option value=",">κόμμα (1,234)</option></select></label>
@@ -163,7 +167,7 @@
         <table class="tbl" id="p2-known"><thead><tr><th>Σημείο</th><th>E (m)</th><th>N (m)</th><th>H (m)</th></tr></thead><tbody></tbody></table>
         <h3>Μετρήσεις υπαίθρου (με τη σειρά των κλικ)</h3>
         <table class="tbl" id="p2-table">
-          <thead><tr><th>Στάση</th><th>i (m)</th><th>Σκόπευση</th><th>t (m)</th><th>Hz I (grad)</th><th>Hz II (grad)</th>
+          <thead><tr><th>Στάση</th><th>i (m)</th><th>Σκόπευση</th><th>t (m)</th><th>Περ.</th><th>Hz I (grad)</th><th>Hz II (grad)</th>
             <th>V I (grad)</th><th>V II (grad)</th><th>S I (m)</th><th>S II (m)</th></tr></thead>
           <tbody></tbody>
         </table>
@@ -189,9 +193,17 @@
         <li><b>Σφάλμα σκόπευσης</b> (κολλιμασιόν): $2c = Hz_I - (Hz_{II} \mp 200^g)$. Εξαλείφεται με τον μέσο όρο των δύο θέσεων.</li>
         <li><b>Σφάλμα δείκτη</b> κατακόρυφου κύκλου: $\varepsilon = \dfrac{V_I + V_{II} - 400^g}{2}$. Εξαλείφεται με τη ζενίθια γωνία $z = \dfrac{V_I - V_{II} + 400^g}{2}$.</li>
       </ul>
+      <h3>Περίοδοι και μηδενισμός</h3>
+      <p>Σε κάθε στάση το όργανο <b>μηδενίζεται</b> στην πίσω σκόπευση: σκοπεύουμε την πίσω στάση σε Θέση I και ορίζουμε την ανάγνωση σε 0.0000<sup>g</sup>.
+      Η γωνία μετριέται σε <b>n περιόδους</b>. Σε κάθε περίοδο ο κύκλος ξεκινά από διαφορετική ανάγνωση της πίσω σκόπευσης,
+      ώστε να μοιράζονται σε όλο τον κύκλο τα σφάλματα διαιρέσεων:</p>
+      <table class="tbl" style="width:auto"><thead><tr><th>Περίοδοι</th><th>Αναγνώσεις εκκίνησης (grad)</th></tr></thead><tbody>
+        <tr><td>1</td><td>0</td></tr><tr><td>2</td><td>0, 100</td></tr><tr><td>3</td><td>0, 50, 100</td></tr><tr><td>4</td><td>0, 50, 100, 150</td></tr></tbody></table>
+      <p> Σε κάθε περίοδο: πίσω σκόπευση και εμπρός σκόπευση σε Θέση I, έπειτα εμπρός και πίσω σε Θέση II.</p>
+      $$\bar r_k = \frac{Hz_I + (Hz_{II} \mp 200^g)}{2}, \qquad \beta_k = \bar r_{k,\text{εμπρός}} - \bar r_{k,\text{πίσω}}, \qquad \beta = \frac{1}{n}\sum_{k=1}^{n} \beta_k$$
       <h3>Τι πρέπει να κάνεις</h3>
       <ol>
-        <li>Κατέβασε το έντυπο (CSV για Excel ή εκτυπώσιμο).</li>
+        <li>Κατέβασε το έντυπο (XLSX για Excel, CSV ή εκτυπώσιμο). Έχει τη διάταξη του εντύπου πολυγωνομετρίας του εργαστηρίου.</li>
         <li>Έλεγξε κάθε ζεύγος αναγνώσεων: η διαφορά $Hz_{II} - Hz_I$ πρέπει να είναι κοντά στα 200<sup>g</sup> και το άθροισμα $V_I + V_{II}$ κοντά στα 400<sup>g</sup>.</li>
         <li>Συμπλήρωσε τις στήλες υπολογισμών (r, β, z, D, Δh). Οι τύποι βρίσκονται στη θεωρία της Φάσης 3.</li>
       </ol>
@@ -209,10 +221,10 @@
       <div class="card">
         <h3>Υποβολή ανηγμένων μετρήσεων</h3>
         <ol class="steps">
-          <li>Κατέβασε το πρότυπο: <button id="p3-tpl">⬇ Πρότυπο CSV</button></li>
+          <li>Κατέβασε το πρότυπο: <button id="p3-tplx">⬇ Πρότυπο XLSX</button> <button id="p3-tpl">⬇ Πρότυπο CSV</button></li>
           <li>Συμπλήρωσε τη στήλη «Τιμή» με τις οριζόντιες γωνίες β (grad), τις οριζόντιες αποστάσεις D (m) και τις υψομετρικές διαφορές Δh (m). Μην αλλάξεις τις άλλες στήλες.</li>
-          <li>Ανέβασε το αρχείο (CSV ή TXT, με διαχωριστικό <code>;</code>, <code>,</code> ή tab):
-            <input type="file" id="p3-file" accept=".csv,.txt"> <button id="p3-submit" class="primary">Υποβολή</button></li>
+          <li>Ανέβασε το αρχείο (XLSX, ή CSV/TXT με διαχωριστικό <code>;</code>, <code>,</code> ή tab):
+            <input type="file" id="p3-file" accept=".csv,.txt,.xlsx"> <button id="p3-submit" class="primary">Υποβολή</button></li>
         </ol>
         <p class="muted small">Ανοχές: β ±1.5 cc (σωστό) / ±10 cc (μικρή απόκλιση) · D, Δh ±1.5 mm / ±5 mm. Βάρη: β 40%, D 30%, Δh 30%.</p>
       </div>
@@ -228,8 +240,10 @@
       <h3>2. Οριζόντια γωνία στη στάση</h3>
       <p>Η οριζόντια γωνία μετριέται <b>δεξιόστροφα από την πίσω προς την εμπρός σκόπευση</b>:</p>
       $$\beta = r_{\text{εμπρός}} - r_{\text{πίσω}} \quad (+400^g \text{ αν προκύψει αρνητική})$$
+      <p>Με περισσότερες περιόδους υπολογίζεις τη $\beta_k$ σε κάθε περίοδο (μέση ανηγμένη τιμή της εμπρός σκόπευσης) και η τελική γωνία είναι ο <b>γενικός μέσος όρος</b> των περιόδων.</p>
       <h3>3. Ζενίθια γωνία, οριζόντια απόσταση, υψομετρική διαφορά</h3>
       $$z = \frac{V_I - V_{II} + 400^g}{2}, \qquad \bar S = \frac{S_I + S_{II}}{2}$$
+      <p>Με n περιόδους: $z$ = μέσος όρος των ζενίθιων γωνιών των περιόδων και $\bar S$ = μέσος όρος όλων των κεκλιμένων μηκών (2n τιμές).</p>
       $$D = \bar S \sin z, \qquad \Delta h = \bar S \cos z + i - t$$
       <h3>4. Μετάβαση και επιστροφή</h3>
       <p>Κάθε πλευρά AB μετριέται δύο φορές: από το A προς το B (μετάβαση) και από το B προς το A (επιστροφή). Τελικές τιμές:</p>
@@ -255,9 +269,9 @@
       <div class="card">
         <h3>Υποβολή επίλυσης όδευσης</h3>
         <ol class="steps">
-          <li>Κατέβασε το πρότυπο: <button id="p4-tpl">⬇ Πρότυπο CSV</button></li>
+          <li>Κατέβασε το πρότυπο: <button id="p4-tplx">⬇ Πρότυπο XLSX</button> <button id="p4-tpl">⬇ Πρότυπο CSV</button></li>
           <li>Συμπλήρωσε τα σφάλματα κλεισίματος w<sub>β</sub> (cc), w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> (m) και τις τελικές συντεταγμένες E, N, H των νέων στάσεων.</li>
-          <li>Ανέβασε το αρχείο: <input type="file" id="p4-file" accept=".csv,.txt"> <button id="p4-submit" class="primary">Υποβολή</button></li>
+          <li>Ανέβασε το αρχείο: <input type="file" id="p4-file" accept=".csv,.txt,.xlsx"> <button id="p4-submit" class="primary">Υποβολή</button></li>
         </ol>
         <p class="muted small">Ανοχές: w<sub>β</sub> ±2 cc / ±10 cc · w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> ±2 mm / ±10 mm · E, N, H ±5 mm / ±20 mm. Βάρη: σφάλματα 25%, E-N 55%, H 20%.
         Η σύγκριση γίνεται με την επίλυση των <b>σωστά ανηγμένων</b> μετρήσεων του εντύπου σου.</p>
@@ -337,11 +351,14 @@
           <tbody></tbody>
         </table>
         <div class="row">
-          <button id="p5-csv">⬇ Βιβλίο ταχυμετρίας CSV</button>
-          <button id="p5-tpl">⬇ Πρότυπο αποτελεσμάτων</button>
+          <button id="p5-xlsx" class="primary">⬇ Έντυπο ταχυμετρίας XLSX</button>
+          <button id="p5-csv">⬇ Έντυπο CSV</button>
+          <button id="p5-print">🖨 Εκτυπώσιμο έντυπο / PDF</button>
+          <button id="p5-tplx">⬇ Πρότυπο αποτελεσμάτων XLSX</button>
+          <button id="p5-tpl">⬇ Πρότυπο CSV</button>
         </div>
         <h3>Γ. Υποβολή συντεταγμένων σημείων</h3>
-        <div class="row"><input type="file" id="p5-file" accept=".csv,.txt"><button id="p5-submit" class="primary">Υποβολή</button></div>
+        <div class="row"><input type="file" id="p5-file" accept=".csv,.txt,.xlsx"><button id="p5-submit" class="primary">Υποβολή</button></div>
         <p class="muted small">Ανοχές: E, N, H ±1 cm / ±3 cm. Οι στάσεις υπολογίζονται με τις συντεταγμένες της επίλυσης της Φάσης 4.</p>
         <div id="p5-result"></div>
       </div>
@@ -392,17 +409,18 @@
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="js/geo.js?v=9"></script>
-<script src="js/dem.js?v=9"></script>
-<script src="js/sim.js?v=9"></script>
-<script src="js/ui.js?v=9"></script>
-<script src="js/buildings3d.js?v=9"></script>
-<script src="js/mapview.js?v=9"></script>
-<script src="js/phase1.js?v=9"></script>
-<script src="js/phase2.js?v=9"></script>
-<script src="js/phases34.js?v=9"></script>
-<script src="js/phase5.js?v=9"></script>
-<script src="js/quadrant.js?v=9"></script>
-<script src="js/app.js?v=9"></script>
+<script src="js/geo.js?v=19"></script>
+<script src="js/dem.js?v=19"></script>
+<script src="js/sim.js?v=19"></script>
+<script src="js/ui.js?v=19"></script>
+<script src="js/xlsx.js?v=19"></script>
+<script src="js/buildings3d.js?v=19"></script>
+<script src="js/mapview.js?v=19"></script>
+<script src="js/phase1.js?v=19"></script>
+<script src="js/phase2.js?v=19"></script>
+<script src="js/phases34.js?v=19"></script>
+<script src="js/phase5.js?v=19"></script>
+<script src="js/quadrant.js?v=19"></script>
+<script src="js/app.js?v=19"></script>
 </body>
 </html>

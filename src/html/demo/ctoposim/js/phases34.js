@@ -48,7 +48,7 @@ const Grading = (() => {
     for (const l of ex.legs) R.push(["D", nm(l.from), nm(l.to), "", ""]);
     R.push(["# Υψομετρικές διαφορές Δh σε m, με τη φορά της όδευσης (μέσος όρος μετάβασης-επιστροφής)"]);
     for (const l of ex.legs) R.push(["dH", nm(l.from), nm(l.to), "", ""]);
-    return CSV.build(R);
+    return R;
   }
 
   function parse3(text) {
@@ -96,7 +96,7 @@ const Grading = (() => {
     R.push(["wb_cc", "", ""]); R.push(["wx_m", "", ""]); R.push(["wy_m", "", ""]); R.push(["wh_m", "", ""]);
     R.push(["# Τελικές (συνορθωμένες) συντεταγμένες των νέων στάσεων σε ΕΓΣΑ 87"]);
     for (const id of newStations()) { R.push(["E", nm(id), ""]); R.push(["N", nm(id), ""]); R.push(["H", nm(id), ""]); }
-    return CSV.build(R);
+    return R;
   }
 
   function grade4(file, text) {
@@ -152,8 +152,13 @@ const Grading = (() => {
   }
 
   function init() {
-    $("#p3-tpl").onclick = () => download(Phase2.filename("anigmenes_metriseis", "csv"), template3(), "text/csv;charset=utf-8");
-    $("#p4-tpl").onclick = () => download(Phase2.filename("epilysi_odeysis", "csv"), template4(), "text/csv;charset=utf-8");
+    const tpl = (sel, base, rows, sheet, widths) => {
+      $(sel).onclick = () => download(Phase2.filename(base, "csv"), CSV.build(rows()), "text/csv;charset=utf-8");
+      $(sel + "x").onclick = () => download(Phase2.filename(base, "xlsx"),
+        Sheet.toXLSX([{ name: sheet, grid: Sheet.fromRows(rows(), widths) }]));
+    };
+    tpl("#p3-tpl", "anigmenes_metriseis", template3, "Ανηγμένες μετρήσεις", [10, 12, 12, 12, 14]);
+    tpl("#p4-tpl", "epilysi_odeysis", template4, "Επίλυση όδευσης", [10, 12, 16]);
     bindUpload("#p3-file", "#p3-submit", grade3, "p3");
     bindUpload("#p4-file", "#p4-submit", grade4, "p4");
   }

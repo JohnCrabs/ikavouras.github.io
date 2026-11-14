@@ -28,21 +28,60 @@ function toast(msg, kind = "info", ms = 4500) {
 }
 
 function download(filename, text, mime = "text/plain;charset=utf-8") {
-  const blob = new Blob([text], { type: mime });
+  const blob = text instanceof Blob ? text : new Blob([text], { type: mime });
   const a = h("a", { href: URL.createObjectURL(blob), download: filename });
   document.body.append(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 
+/** διαβάζει CSV/TXT ως κείμενο· ένα .xlsx μετατρέπεται σε κείμενο με στηλοθέτες (πρώτο φύλλο) */
 function readFile(input) {
   return new Promise((res, rej) => {
     const f = input.files && input.files[0];
     if (!f) return rej(new Error("Δεν επιλέχθηκε αρχείο"));
+    const xlsx = /\.xlsx$/i.test(f.name);
     const r = new FileReader();
-    r.onload = () => res({ name: f.name, text: r.result });
+    r.onload = async () => {
+      if (!xlsx) return res({ name: f.name, text: r.result });
+      try {
+        const rows = await Sheet.readXLSX(r.result);
+        res({ name: f.name, text: rows.map(x => x.map(c => String(c).replace(/[\t\r\n]+/g, " ")).join("\t")).join("\n") });
+      } catch (e) { rej(e); }
+    };
     r.onerror = () => rej(r.error);
-    r.readAsText(f, "utf-8");
+    if (xlsx) r.readAsArrayBuffer(f); else r.readAsText(f, "utf-8");
   });
+}
+
+/** άνοιγμα εκτυπώσιμης σελίδας με ένα ή περισσότερα φύλλα (το καθένα σε νέα σελίδα) */
+function printGrids(title, grids, landscape = true) {
+  const body = grids.map((g, i) => `<section${i ? ' class="pb"' : ""}>${Sheet.toHTML(g)}</section>`).join("");
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const html = `<!DOCTYPE html><html lang="el"><head><meta charset="utf-8"><title>${esc(title)}</title>
+<style>body{font-family:Arial,Helvetica,sans-serif;margin:14px;color:#000}button{margin-bottom:10px;padding:6px 12px}
+.pb{break-before:page;page-break-before:always;margin-top:24px}${Sheet.PRINT_CSS}
+@media print{button{display:none}.pb{margin-top:0}@page{size:A4 ${landscape ? "landscape" : "portrait"};margin:9mm}}</style></head><body>
+<button onclick="print()">🖨 Εκτύπωση / PDF</button>${body}</body></html>`;
+  const w = window.open("", "_blank");
+  if (!w) return toast("Ο browser μπλόκαρε το νέο παράθυρο.", "warn");
+  w.document.write(html); w.document.close();
+}
+
+/** στοιχεία κεφαλίδας εντύπου υπαίθρου (ημερομηνία, ώρα, όργανο, παρατηρητής, καιρός) */
+function fieldMeta(created, key) {
+  const st = Store.s, d = new Date(created || Date.now());
+  const rng = RNG.make(`weather|${st.student.am}|${key}|${created}`);
+  const sky = ["Αίθριος", "Αίθριος", "Λίγες νεφώσεις", "Λίγες νεφώσεις", "Αραιές νεφώσεις", "Συννεφιά"];
+  const wind = ["νηνεμία", "ασθενής άνεμος", "ασθενής άνεμος", "μέτριος άνεμος"];
+  const pick = a => a[Math.floor(rng.next() * a.length)];
+  const T = Math.round(rng.uniform(12, 30));
+  return {
+    date: d.toLocaleDateString("el-GR"),
+    time: d.toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit", hour12: false }),
+    instrument: "Γεωδαιτικός σταθμός (CTopoSim)",
+    observer: `${st.student.name}${st.student.am ? " (" + st.student.am + ")" : ""}`,
+    weather: `${pick(sky)}, ${pick(wind)}, ${T} °C`,
+  };
 }
 
 /* ---------------- Κατάσταση εφαρμογής (localStorage) ---------------- */
@@ -52,7 +91,7 @@ const Store = (() => {
     version: 1,
     student: { name: "", am: "" },
     settings: { reduction: "k", distribution: "length", sigB: [3, 10], sigD: [1, 5], decimal: ".",
-                iRange: [1.45, 1.75], iTyp: [1.55, 1.65], tH: 1.5 },
+                iRange: [1.45, 1.75], iTyp: [1.55, 1.65], tH: 1.5, periods: 2 },
     area: null, points: {}, seq: [], finished: false, nextId: 1, seedSalt: 0,
     obs: null,
     attempts: { p3: 0, p4: 0, p5: 0 },
@@ -101,7 +140,7 @@ const CSV = (() => {
     if (!lines.length) return [];
     const first = lines.find(l => /\d/.test(l)) || lines[0];
     const count = ch => (first.match(new RegExp("\\" + ch, "g")) || []).length;
-    const delim = count("\t") ? "\t" : count(";") ? ";" : ",";
+    const delim = text.includes("\t") ? "\t" : count(";") ? ";" : ",";
     return lines.map(l => l.split(delim).map(c => c.trim().replace(/^"(.*)"$/, "$1")));
   }
   /** διαβάζει αριθμό με τελεία ή κόμμα ως δεκαδικό */

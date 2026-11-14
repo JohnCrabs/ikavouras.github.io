@@ -145,3 +145,8 @@ ul.notes { color: #8a5a00; }
 #map.leaflet-container, #map.leaflet-grab { cursor: crosshair; }
 #map.leaflet-grab:active, .leaflet-dragging #map.leaflet-grab,
 .leaflet-dragging #map .leaflet-interactive { cursor: grabbing; }
+
+/* σχεδίαση ορθογωνίου περιοχής: πάντα σταυρόνημα, χωρίς μετακίνηση του χάρτη */
+#map.drawing, #map.drawing.leaflet-grab, #map.drawing.leaflet-grab:active, .leaflet-dragging #map.drawing.leaflet-grab { cursor: crosshair; }
+.rect-lbl { background: rgba(255,255,255,.9); border: 1px solid #1b6ec2; font-weight: 600; box-shadow: none; }
+#p1-setarea.active { background: #b3261e; border-color: #b3261e; }

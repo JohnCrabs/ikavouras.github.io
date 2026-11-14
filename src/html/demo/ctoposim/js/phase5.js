@@ -98,23 +98,41 @@ const Phase5 = (() => {
   }
 
   /* ---------------- Αρχεία ---------------- */
-  function fieldBook() {
-    const st = S(), N = CSV.num, R = [["ΤΑΧΥΜΕΤΡΙΑ — CTopoSim"], ["Φοιτητής", st.student.name, "ΑΜ", st.student.am],
-      ["Μετρήσεις σε 1η θέση τηλεσκοπίου. Hz: οριζόντια ανάγνωση (grad), V: ζενίθια ανάγνωση (grad), S: κεκλιμένη απόσταση (m), t: ύψος στόχου (m)"]];
-    for (const u of st.tachy.setups) {
-      R.push([]);
-      R.push(["Στάση", nm(u.station), "i (m)", N(u.i, 3), "Μηδενισμός προς", nm(u.backsight)]);
-      R.push(["Σημείο", "Hz (grad)", "V (grad)", "S (m)", "t (m)"]);
-      R.push([nm(u.backsight) + " (μηδενισμός)", N(0, 4), "", "", ""]);
-      for (const s of u.shots) R.push([s.name, N(s.Hz, 4), N(s.V, 4), N(s.S, 3), N(s.t, 3)]);
-    }
-    return CSV.build(R);
+  /**
+   * Έντυπο ταχυμετρίας στη διάταξη του εντύπου του εργαστηρίου (ένα φύλλο ανά στάση).
+   * Συμπληρώνονται οι μετρήσεις· οι συντεταγμένες, τα k, a, D και X, Y, H μένουν για τον φοιτητή.
+   */
+  function tachyGrid(u) {
+    const st = S(), { C, Grid } = Sheet, E = () => C(null, "e");
+    const M = fieldMeta(u.created || st.obs.created, "tachy" + u.id);
+    const g = new Grid([10, 13, 13, 11, 11, 11, 11, 11, 11, 11, 10, 12]);
+    g.row([C("ΕΝΤΥΠΟ ΤΑΧΥΜΕΤΡΙΑΣ", "title", 12)], 24);
+    Sheet.metaRows(g, M, 6);
+    g.blank();
+    g.row(["ΣΤΑΣΗ (1)", "ΣΤΑΣΗ ΜΗΔΕΝΙΣΜΟΥ (2)", "ΜΗΔΕΝΙΣΜΟΣ (grad)", "X1 (m)", "Y1 (m)", "X2 (m)", "Y2 (m)",
+           "H1 (m)", "H2 (m)", "a2-1 (grad)", "k", "Υ.Ο. (m)"].map(x => C(x, "hdr")), 30);
+    g.row([C(nm(u.station), "tb"), C(nm(u.backsight), "tb"), C(0, "n4"), E(), E(), E(), E(), E(), E(), E(), E(), C(u.i, "n3")], 16);
+    g.row(["ΣΗΜΕΙΑ", "ΟΡΙΖΟΝΤΙΑ ΓΩΝΙΑ (grad)", "ΚΑΤΑΚΟΡΥΦΗ ΓΩΝΙΑ (grad)", "S (m)", "Υ. Σ. (m)", "Dορ (m)", "D_ΕΓΣΑ (m)",
+           "a1-j (grad)", "X (m)", "Y (m)", "H (m)", "Παρατηρήσεις"].map(x => C(x, "hdr")), 30);
+    for (const s of u.shots)
+      g.row([C(s.name, "tb"), C(s.Hz, "n4"), C(s.V, "n4"), C(s.S, "n3"), C(s.t, "n3"), E(), E(), E(), E(), E(), E(),
+             C((KIND[s.kind] || (s.onRoof ? "δώμα" : "έδαφος")) + (s.corner ? ", γωνία" : ""), "t")], 16);
+    for (let k = u.shots.length; k < 5; k++) g.row(Array.from({ length: 12 }, E), 16);   // λίγες κενές γραμμές, όπως στο έντυπο
+    g.blank();
+    g.row([C("Μετρήσεις σε 1η θέση τηλεσκοπίου. Οριζόντια γωνία από τον μηδενισμό προς τη στάση (2), κατακόρυφη = ζενίθια, " +
+             "S = κεκλιμένο μήκος. X = E, Y = N (ΕΓΣΑ 87).", "note", 12)]);
+    return g;
   }
+  const grids = () => S().tachy.setups.map(tachyGrid);
+  const needShots = () => {
+    if (!S().tachy.setups.length) { toast("Δεν υπάρχουν στάσεις ταχυμετρίας.", "warn"); return false; }
+    return true;
+  };
 
-  function template() {
+  function templateRows() {
     const R = [["Σημείο", "E (m)", "N (m)", "H (m)"]];
     for (const u of S().tachy.setups) for (const s of u.shots) R.push([s.name, "", "", ""]);
-    return CSV.build(R);
+    return R;
   }
 
   function grade(file, text) {
@@ -203,8 +221,13 @@ const Phase5 = (() => {
     $("#p5-undo").onclick = undoShot;
     $("#p5-del").onclick = deleteSetup;
     $("#p5-setups").onchange = e => { S().tachy.cur = +e.target.value; Store.save(); App.refresh(); };
-    $("#p5-csv").onclick = () => download(Phase2.filename("taxymetria", "csv"), fieldBook(), "text/csv;charset=utf-8");
-    $("#p5-tpl").onclick = () => download(Phase2.filename("taxymetria_apotelesmata", "csv"), template(), "text/csv;charset=utf-8");
+    $("#p5-xlsx").onclick = () => needShots() && download(Phase2.filename("entypo_taxymetrias", "xlsx"),
+      Sheet.toXLSX(S().tachy.setups.map((u, k) => ({ name: `Στάση ${k + 1} (${nm(u.station)})`, grid: tachyGrid(u) }))));
+    $("#p5-csv").onclick = () => needShots() && download(Phase2.filename("entypo_taxymetrias", "csv"), Sheet.toCSV(grids()), "text/csv;charset=utf-8");
+    $("#p5-print").onclick = () => needShots() && printGrids(`Έντυπο ταχυμετρίας — ${S().student.am}`, grids());
+    $("#p5-tpl").onclick = () => download(Phase2.filename("taxymetria_apotelesmata", "csv"), CSV.build(templateRows()), "text/csv;charset=utf-8");
+    $("#p5-tplx").onclick = () => download(Phase2.filename("taxymetria_apotelesmata", "xlsx"),
+      Sheet.toXLSX([{ name: "Αποτελέσματα", grid: Sheet.fromRows(templateRows()) }]));
     $("#p5-submit").onclick = async () => {
       try { const f = await readFile($("#p5-file")); grade(f.name, f.text); App.refresh();
             toast(`Η υποβολή καταχωρήθηκε: ${S().results.p5.score.toFixed(1)} / 100`, "ok"); }

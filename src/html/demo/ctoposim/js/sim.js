@@ -38,6 +38,10 @@ const SIM = (() => {
     return r3(Math.max(lo, Math.min(hi, v)));
   }
 
+  /** αναγνώσεις εκκίνησης (μηδενισμού) ανά πλήθος περιόδων, σε grad */
+  const PERIOD_ZEROS = { 1: [0], 2: [0, 100], 3: [0, 50, 100], 4: [0, 50, 100, 150] };
+  const periodZeros = n => PERIOD_ZEROS[Math.max(1, Math.min(4, Math.round(n || 2)))];
+
   /* ---------------- Φάση 2: παραγωγή μετρήσεων υπαίθρου ---------------- */
   function generate(st) {
     const P = id => st.points[id], seq = st.seq, L = seq.length, S = st.settings;
@@ -47,33 +51,43 @@ const SIM = (() => {
       c: rng.sign() * rng.uniform(5, 15) / 1e4,      // σφάλμα σκόπευσης (grad)
       eps: rng.sign() * rng.uniform(5, 20) / 1e4,    // σφάλμα δείκτη κατακόρυφου κύκλου (grad)
     };
+    // Σε κάθε στάση το όργανο μηδενίζεται στην πίσω σκόπευση: στην περίοδο k η ανάγνωση Θέσης I
+    // προς την πίσω σκόπευση ορίζεται ακριβώς στην τιμή του PERIOD_ZEROS (π.χ. 0, 100 για n = 2).
+    const zeros = periodZeros(S.periods), nPer = zeros.length;
     const setups = [];
     for (let j = 1; j <= L - 2; j++) {
       const A = P(seq[j]);
       const i = instrumentHeight(rng, S);
-      const omega = rng.uniform(0, 400);               // τυχαίος προσανατολισμός οριζόντιου κύκλου
-      const sights = [];
-      for (const [role, k] of [["back", j - 1], ["fwd", j + 1]]) {
+      const targets = [["back", j - 1], ["fwd", j + 1]].map(([role, k]) => {
         const Q = P(seq[k]);
         const orient = (role === "back" && j === 1) || (role === "fwd" && j === L - 2);
-        const sB = rng.uniform(S.sigB[0], S.sigB[1]) / 1e4;
-        const sD = rng.uniform(S.sigD[0], S.sigD[1]) / 1000;
-        const hz = mod(azimuth(A, Q) - omega, 400);
-        const s = { role, target: seq[k], orient,
-          HzI: r4(mod(hz + inst.c + rng.gauss(0, sB), 400)),
-          HzII: r4(mod(hz + 200 - inst.c + rng.gauss(0, sB), 400)),
-          t: null, VI: null, VII: null, SI: null, SII: null };
-        if (!orient) {
-          s.t = r3(S.tH);                                // σταθερό ύψος στόχου (Υ.Σ.)
-          const Dh = dist(A, Q) / scaleTrue(A, Q, S.reduction);
-          const dz = (Q.H + s.t) - (A.H + i) - GEO.curvRefr(Dh);
-          const z = Math.atan2(Dh, dz) / GR, Sl = Math.hypot(Dh, dz);
-          s.VI = r4(mod(z + inst.eps + rng.gauss(0, sB), 400));
-          s.VII = r4(mod(400 - z + inst.eps + rng.gauss(0, sB), 400));
-          s.SI = r3(Sl + rng.gauss(0, sD));
-          s.SII = r3(Sl + rng.gauss(0, sD));
-        }
-        sights.push(s);
+        const Dh = dist(A, Q) / scaleTrue(A, Q, S.reduction);
+        return { role, Q, id: seq[k], orient, az: azimuth(A, Q), Dh };
+      });
+      const sights = targets.map(T => ({ role: T.role, target: T.id, orient: T.orient, t: T.orient ? null : r3(S.tH), per: [] }));
+      for (let k = 0; k < nPer; k++) {
+        const zero = zeros[k];
+        let omega = null;
+        targets.forEach((T, n) => {
+          const s = sights[n];
+          const sB = rng.uniform(S.sigB[0], S.sigB[1]) / 1e4;
+          const sD = rng.uniform(S.sigD[0], S.sigD[1]) / 1000;
+          const gI = rng.gauss(0, sB), gII = rng.gauss(0, sB);
+          // μηδενισμός: ο κύκλος στρέφεται ώστε η πίσω σκόπευση (Θέση I) να διαβάζει ακριβώς «zero»
+          if (omega == null) omega = T.az + inst.c + gI - zero;
+          const hz = T.az - omega;
+          const rd = { HzI: n === 0 ? r4(zero) : r4(mod(hz + inst.c + gI, 400)),
+                       HzII: r4(mod(hz + 200 - inst.c + gII, 400)), VI: null, VII: null, SI: null, SII: null };
+          if (!T.orient) {
+            const dz = (T.Q.H + s.t) - (A.H + i) - GEO.curvRefr(T.Dh);
+            const z = Math.atan2(T.Dh, dz) / GR, Sl = Math.hypot(T.Dh, dz);
+            rd.VI = r4(mod(z + inst.eps + rng.gauss(0, sB), 400));
+            rd.VII = r4(mod(400 - z + inst.eps + rng.gauss(0, sB), 400));
+            rd.SI = r3(Sl + rng.gauss(0, sD));
+            rd.SII = r3(Sl + rng.gauss(0, sD));
+          }
+          s.per.push(rd);
+        });
       }
       setups.push({ j, station: seq[j], i, sights });
     }
@@ -81,14 +95,22 @@ const SIM = (() => {
   }
 
   /* ---------------- Φάση 3: αναγωγή μετρήσεων ---------------- */
+  /** περίοδοι μιας σκόπευσης (παλιά έργα: μία περίοδος με τα πεδία στη σκόπευση) */
+  const periodsOf = s => s.per || [s];
+  /** κυκλικός μέσος όρος γωνιών (grad), ως προς την πρώτη τιμή */
+  const circMean = a => mod(a[0] + a.reduce((sum, x) => sum + wrap(x - a[0]), 0) / a.length, 400);
+
+  /**
+   * Αναγωγή σκόπευσης: r ανά περίοδο (μέσος Θέσης I και II), z = μέσος των περιόδων,
+   * S = μέσος όλων των κεκλιμένων μηκών, D = S·sin z, Δh = S·cos z + i − t.
+   */
   function reduceSight(s, i) {
-    const hII = mod(s.HzII - 200, 400);
-    const r = mod(s.HzI + wrap(hII - s.HzI) / 2, 400);
-    const out = { r, c2: wrap(s.HzI - hII) };
-    if (s.VI != null) {
-      out.z = (s.VI - s.VII + 400) / 2;
-      out.eps = (s.VI + s.VII - 400) / 2;
-      out.S = (s.SI + s.SII) / 2;
+    const P = periodsOf(s);
+    const r = P.map(p => { const hII = mod(p.HzII - 200, 400); return mod(p.HzI + wrap(hII - p.HzI) / 2, 400); });
+    const out = { r };
+    if (P[0].VI != null) {
+      out.z = P.reduce((sum, p) => sum + (p.VI - p.VII + 400) / 2, 0) / P.length;
+      out.S = P.reduce((sum, p) => sum + p.SI + p.SII, 0) / (2 * P.length);
       out.D = out.S * Math.sin(out.z * GR);
       out.dh = out.S * Math.cos(out.z * GR) + i - s.t;
     }
@@ -102,7 +124,8 @@ const SIM = (() => {
     const betas = ups.map((u, n) => ({
       back: u.sights[0].target, station: u.station, fwd: u.sights[1].target,
       label: name(u.sights[0].target) + name(u.station) + name(u.sights[1].target),
-      value: r4(mod(red[n].fwd.r - red[n].back.r, 400)),
+      // β ανά περίοδο (ανηγμένη εμπρός διεύθυνση) και γενικός μέσος όρος των περιόδων
+      value: r4(circMean(red[n].fwd.r.map((rf, k) => mod(rf - red[n].back.r[k], 400)))),
     }));
     const legs = [];
     for (let n = 0; n < ups.length - 1; n++) {
@@ -154,7 +177,8 @@ const SIM = (() => {
   function newTachySetup(st, stationId, bsId) {
     const id = st.tachy.setups.length + 1;
     const rng = RNG.make(`tachy|${st.student.am}|${stationId}|${bsId}|${id}|${st.seedSalt || 0}`);
-    return { id, station: stationId, backsight: bsId, i: instrumentHeight(rng, st.settings), shots: [] };
+    return { id, station: stationId, backsight: bsId, i: instrumentHeight(rng, st.settings), shots: [],
+             created: new Date().toISOString() };
   }
 
   function shoot(st, setup, tgt) {
@@ -190,5 +214,5 @@ const SIM = (() => {
   }
 
   return { generate, expected, solve, reduceSight, scaleTrue, scaleSolve,
-           newTachySetup, shoot, tachyExpected, gradeItem, instrumentHeight, r3, r4 };
+           newTachySetup, shoot, tachyExpected, gradeItem, instrumentHeight, periodsOf, periodZeros, r3, r4 };
 })();
