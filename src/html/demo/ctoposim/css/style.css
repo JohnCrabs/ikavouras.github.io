@@ -100,10 +100,15 @@ ul.notes { color: #8a5a00; }
 .shot-lbl::before { display: none; }
 
 /* ---------- theory ---------- */
-.sub.theory { overflow-y: auto; }
-.theory { max-width: 900px; margin: 0 auto; padding: 16px 22px 50px; background: #fff; min-height: 100%; }
+/* position: relative ώστε τα απόλυτα τοποθετημένα στοιχεία του KaTeX να μένουν μέσα στο πλαίσιο κύλισης */
+.sub.theory { overflow-y: auto; position: relative; }
+article.theory { max-width: 1000px; margin: 0 auto; padding: 16px 22px 50px; background: #fff; min-height: 100%; }
 .theory h2 { color: #12324f; border-bottom: 2px solid var(--pri); padding-bottom: 4px; }
 .theory h3 { color: #1b4f80; margin-top: 22px; }
+.theory h4 { color: #1b4f80; margin: 18px 0 6px; font-size: 15px; }
+.theory .tbl-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.theory .tbl tr.sum td { font-weight: 700; border-top: 2px solid #9bb; }
+.rd-step { background: #eef5ff; border-left: 3px solid #1b6ec2; padding: 6px 8px; min-height: 40px; }
 .theory .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 
 /* ---------- toasts ---------- */
@@ -139,6 +144,16 @@ ul.notes { color: #8a5a00; }
 .quad-ctrl input[type=number] { width: 110px; }
 .quad-tbl td:first-child { color: #44515f; }
 .quad-tbl tr.res td { background: #fdecea; font-size: 15px; }
+/* σχήματα θεωρίας Φάσης 3 */
+.rd-lab { font-size: 13px; font-weight: 700; }
+.rd-small { font-size: 11.5px; fill: #44515f; }
+.rd-val { color: #12324f; }
+.rd-btns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.rd-inset { border: 1px solid var(--line); border-radius: 6px; background: #fff; margin: 6px 0; }
+.rd-inset-svg { width: 100%; max-width: 260px; display: block; margin: 0 auto; }
+.rd-scroll { max-height: 260px; overflow-y: auto; }
+.rd-static { border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: #fcfdfe; margin: 10px 0 14px; }
+.rd-static-svg { max-width: 640px; display: block; margin: 0 auto; cursor: default; }
 @media (max-width: 900px) { .quad { grid-template-columns: 1fr; } }
 
 /* Χάρτης: σταυρόνημα για ακριβή στόχευση· χεράκι μόνο όσο κρατιέται πατημένο το αριστερό κλικ (μετακίνηση) */

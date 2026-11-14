@@ -16,6 +16,10 @@ const Quadrant = (() => {
     4: { name: "4ο Τεταρτημόριο", signs: "+/−", add: 200, col: "#8e44ad", from: 100, lab: [cx + 150, Hh - 58], anchor: "start" },
   };
 
+  let uid = 0;
+  /** κάθε κλήση φτιάχνει ανεξάρτητο σχήμα (μπορεί να υπάρχουν πολλά στη σελίδα) */
+  function build(container) {
+  const pfx = "qd" + (++uid);
   let alpha = 65, len = 100, root, svg, els = {};
 
   const el = (tag, attrs = {}, parent = svg) => {
@@ -33,13 +37,13 @@ const Quadrant = (() => {
     return `M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${a1 - a0 > 200 ? 1 : 0} 1 ${x1},${y1} Z`;
   }
 
-  function build(container) {
+  function init(container) {
     root = container;
     root.innerHTML = "";
     root.classList.add("quad");
     svg = el("svg", { viewBox: `0 0 ${W} ${Hh}`, class: "quad-svg" }, root);
     const defs = el("defs");
-    for (const [id, c] of [["ar-n", "#12324f"], ["ar-v", "#111"]]) {
+    for (const [id, c] of [[pfx + "-ar-n", "#12324f"], [pfx + "-ar-v", "#111"]]) {
       const m = el("marker", { id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
       el("path", { d: "M0,0 L10,5 L0,10 z", fill: c }, m);
     }
@@ -61,8 +65,8 @@ const Quadrant = (() => {
     }
     el("circle", { cx, cy, r: R, fill: "none", stroke: "#333", "stroke-width": 2 });
     // άξονες
-    el("line", { x1: cx, y1: cy + R + 40, x2: cx, y2: cy - R - 52, stroke: "#12324f", "stroke-width": 2.5, "marker-end": "url(#ar-n)" });
-    el("line", { x1: cx - R - 40, y1: cy, x2: cx + R + 62, y2: cy, stroke: "#12324f", "stroke-width": 2.5, "marker-end": "url(#ar-n)" });
+    el("line", { x1: cx, y1: cy + R + 40, x2: cx, y2: cy - R - 52, stroke: "#12324f", "stroke-width": 2.5, "marker-end": `url(#${pfx}-ar-n)` });
+    el("line", { x1: cx - R - 40, y1: cy, x2: cx + R + 62, y2: cy, stroke: "#12324f", "stroke-width": 2.5, "marker-end": `url(#${pfx}-ar-n)` });
     txt(cx + 10, cy - R - 42, "y (N) · Βορράς", { class: "q-axis" });
     txt(cx + R + 66, cy - 8, "x (E)", { class: "q-axis", "text-anchor": "end" });
     txt(cx + R + 66, cy - 28, "Ανατολή", { class: "q-axis2", "text-anchor": "end" });
@@ -72,7 +76,7 @@ const Quadrant = (() => {
     txt(cx - R - 6, cy - 8, "300<tspan baseline-shift='super' font-size='10'>g</tspan>", { class: "q-deg", "text-anchor": "end" });
     txt(cx - 14, cy + 18, "A", { class: "q-pt" });
     // δυναμικά στοιχεία
-    els.arc = el("path", { fill: "none", stroke: "#c0392b", "stroke-width": 3, "marker-end": "url(#ar-v)" });
+    els.arc = el("path", { fill: "none", stroke: "#c0392b", "stroke-width": 3, "marker-end": `url(#${pfx}-ar-v)` });
     els.arcLab = txt(0, 0, "α", { class: "q-alpha", "text-anchor": "middle" });
     els.prE = el("line", { stroke: "#999", "stroke-dasharray": "5 4", "stroke-width": 1.5 });
     els.prN = el("line", { stroke: "#999", "stroke-dasharray": "5 4", "stroke-width": 1.5 });
@@ -80,7 +84,7 @@ const Quadrant = (() => {
     els.dN = el("line", { stroke: "#2980b9", "stroke-width": 6, "stroke-linecap": "round", opacity: 0.85 });
     els.dELab = txt(0, 0, "", { class: "q-dE", "text-anchor": "middle" });
     els.dNLab = txt(0, 0, "", { class: "q-dN" });
-    els.vec = el("line", { x1: cx, y1: cy, stroke: "#111", "stroke-width": 3, "marker-end": "url(#ar-v)" });
+    els.vec = el("line", { x1: cx, y1: cy, stroke: "#111", "stroke-width": 3, "marker-end": `url(#${pfx}-ar-v)` });
     el("circle", { cx, cy, r: 5, fill: "#111" });
     els.handle = el("circle", { r: 11, fill: "#ffd54f", stroke: "#111", "stroke-width": 2, class: "q-handle" });
     els.hLab = txt(0, 0, "B", { class: "q-pt" });
@@ -163,6 +167,9 @@ const Quadrant = (() => {
       <tr class="res"><td>α<sub>AB</sub></td><td><b>${g(alpha)}</b> = ${t.toFixed(4)} + ${Qq.add}</td></tr>`;
     $("#q-slider", root).value = alpha;
     if (!keepInputs) { $("#q-de", root).value = zE.toFixed(3); $("#q-dn", root).value = zN.toFixed(3); }
+  }
+
+  init(container);
   }
 
   return { build };

@@ -87,6 +87,7 @@ const Phase1 = (() => {
     const stale = () => gen !== loadGen;
     DEM.clearBuildings(); MapView.drawBuildings();
     MapView.drawArea(a);
+    showK(a);
     const st = $("#p1-area-status");
     st.textContent = "Φόρτωση DEM και κτιρίων…";
     try {
@@ -102,9 +103,23 @@ const Phase1 = (() => {
     App.refresh();
   }
 
+  /** συντελεστής κλίμακας ΕΓΣΑ 87 στο κέντρο της περιοχής (χρειάζεται στη Φάση 4) */
+  function showK(a) {
+    const box = $("#p1-area-k");
+    if (!box) return;
+    if (!a) { box.hidden = true; box.innerHTML = ""; return; }
+    const c = GEO.toEGSA((a.south + a.north) / 2, (a.west + a.east) / 2);
+    const x = (c.E - 500000) / GEO.K0, k = GEO.kPoint(c.E);
+    box.hidden = false;
+    box.innerHTML = `Συντελεστής κλίμακας ΕΓΣΑ 87 στο κέντρο της περιοχής: <b>k = ${k.toFixed(6)}</b> ` +
+      `(E ≈ ${c.E.toFixed(0)} m, ${Math.abs(x / 1000).toFixed(1)} km ${x < 0 ? "δυτικά" : "ανατολικά"} του κεντρικού μεσημβρινού). ` +
+      `Θα τον χρησιμοποιήσεις στη Φάση 4 για την αναγωγή των αποστάσεων.`;
+  }
+
   /** καμία περιοχή (π.χ. «Νέο»): ακύρωση φόρτωσης σε εξέλιξη και καθαρισμός */
   function clearArea() {
     loadGen++;
+    showK(null);
     DEM.clearBuildings(); MapView.drawBuildings();
     $("#p1-area-status").textContent = "Δεν έχει οριστεί περιοχή. Σχεδίασε ένα ορθογώνιο έως 4 km².";
   }

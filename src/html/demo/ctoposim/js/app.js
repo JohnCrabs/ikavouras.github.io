@@ -136,6 +136,8 @@ const App = (() => {
       renderMathInElement(document.body, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }],
                                            throwOnError: false });
     Quadrant.build($("#quad-widget"));
+    Quadrant.build($("#quad-widget-fp2"));
+    Reduction.build();
     afterLoad();
     const t = (location.hash || "#p1").slice(1);
     showTab(["p1", "p2", "p3", "p4", "p5", "rep"].includes(t) ? t : "p1");
