@@ -128,7 +128,7 @@ code { background: #f0f2f4; padding: 0 3px; border-radius: 3px; }
 #stMsg { color: #7ee787; }
 
 /* ---------- GCP markers ---------- */
-.gcp-icon { position: relative; }
+/* Χωρίς position εδώ: οι markers του Leaflet πρέπει να μείνουν position:absolute */
 .gcp-icon .cross { position: absolute; left: 0; top: 0; width: 22px; height: 22px; }
 .gcp-icon .cross::before, .gcp-icon .cross::after { content: ''; position: absolute; background: #e8590c; box-shadow: 0 0 0 1px #fff; }
 .gcp-icon .cross::before { left: 10px; top: 0; width: 2px; height: 22px; }
