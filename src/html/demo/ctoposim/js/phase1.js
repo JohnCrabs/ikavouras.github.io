@@ -88,6 +88,7 @@ const Phase1 = (() => {
     DEM.clearBuildings(); MapView.drawBuildings();
     MapView.drawArea(a);
     showK(a);
+    legInfo = []; draw();                // η όδευση εμφανίζεται αμέσως, πριν από τη φόρτωση DEM/κτιρίων
     const st = $("#p1-area-status");
     st.textContent = "Φόρτωση DEM και κτιρίων…";
     try {
@@ -97,6 +98,7 @@ const Phase1 = (() => {
       if (!n) toast("Δεν φορτώθηκε το DEM (σύνδεση;). Τα υψόμετρα δεν θα είναι διαθέσιμα.", "err");
     } catch (e) { toast("Σφάλμα DEM: " + e.message, "err"); }
     if (stale()) return;
+    recompute(); App.refresh();          // έλεγχος ορατότητας με το έδαφος· ξανά μετά τα κτίρια
     await loadBuildingsUI(false);
     if (stale()) return;
     recompute();

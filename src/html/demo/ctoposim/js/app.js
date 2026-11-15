@@ -40,14 +40,14 @@ const App = (() => {
   function totals() {
     const st = S();
     let total = 0;
-    for (const [k, w] of Object.entries(WEIGHTS)) if (st.results[k]) total += w * st.results[k].score / 100;
+    for (const [k, w] of Object.entries(WEIGHTS)) if (st.results[k]) total += w * Grading.finalScore(st.results[k]) / 100;
     return total;
   }
 
   function verifyCode() {
     const st = S();
     const core = JSON.stringify([st.student, st.seq.map(id => [st.points[id].E.toFixed(3), st.points[id].N.toFixed(3)]),
-      st.obs && st.obs.created, GRADED.map(k => st.results[k] && [st.results[k].score.toFixed(2), st.results[k].attempt])]);
+      st.obs && st.obs.created, GRADED.map(k => st.results[k] && [Grading.finalScore(st.results[k]).toFixed(2), st.attempts[k]])]);
     return RNG.hash(core).toString(16).toUpperCase().padStart(8, "0");
   }
 
@@ -57,7 +57,7 @@ const App = (() => {
     for (const k of GRADED) {
       const r = st.results[k];
       tb.append(h("tr", {}, h("td", {}, TITLES[k]), h("td", { class: "num" }, WEIGHTS[k] + "%"),
-        h("td", { class: "num" }, r ? r.score.toFixed(1) : "—"), h("td", { class: "num" }, st.attempts[k] || 0),
+        h("td", { class: "num" }, r ? Grading.finalScore(r).toFixed(1) : "—"), h("td", { class: "num" }, `${st.attempts[k] || 0} / ${Grading.MAX_ATTEMPTS}`),
         h("td", {}, r ? new Date(r.when).toLocaleString("el-GR") : "")));
     }
     $("#rep-total").textContent = totals().toFixed(1) + " / 100";
@@ -72,7 +72,7 @@ const App = (() => {
       `Αναγωγή αποστάσεων: ${Phase2.REDUCTION[st.settings.reduction]}`, ""];
     for (const k of GRADED) {
       const r = st.results[k];
-      lines.push(`${TITLES[k]} (βάρος ${WEIGHTS[k]}%): ${r ? r.score.toFixed(1) + " / 100, υποβολές: " + st.attempts[k] : "δεν υποβλήθηκε"}`);
+      lines.push(`${TITLES[k]} (βάρος ${WEIGHTS[k]}%): ${r ? Grading.finalScore(r).toFixed(1) + " / 100 (καλύτερη από " + st.attempts[k] + " υποβολές)" : "δεν υποβλήθηκε"}`);
     }
     lines.push("", `ΣΥΝΟΛΟ: ${totals().toFixed(1)} / 100`, `Κωδικός ελέγχου: ${verifyCode()}`);
     return lines.join("\r\n");

@@ -6,7 +6,7 @@
 <title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=33">
 </head>
 <body>
 
@@ -163,6 +163,8 @@
   <div class="sub work page">
     <div class="card" id="p2-settings">
       <h3>Ρυθμίσεις άσκησης</h3>
+      <p class="small">Προεπιλογή: <b>αναγωγή των αποστάσεων στο ΕΓΣΑ 87 με τον συντελεστή κλίμακας k</b> και <b>ισοκατανομή</b> των σφαλμάτων κλεισίματος στις πλευρές.</p>
+      <label class="inline"><input type="checkbox" id="p2-var"> Παραλλαγές επίλυσης (άλλος τρόπος αναγωγής ή κατανομής, π.χ. για άσκηση από τον διδάσκοντα)</label>
       <div class="grid2">
         <label>Αναγωγή αποστάσεων στο ΕΓΣΑ 87
           <select id="p2-red">
@@ -173,7 +175,7 @@
         <label>Κατανομή σφαλμάτων κλεισίματος
           <select id="p2-dist">
             <option value="length">Ανάλογα με τα μήκη των πλευρών</option>
-            <option value="equal">Ισοκατανομή</option>
+            <option value="equal">Ισοκατανομή σε όλες τις πλευρές</option>
           </select></label>
         <label>Τυπικό σφάλμα σκόπευσης ±σ (cc), από – έως
           <span class="row"><input id="p2-sb0" type="number" step="0.5" min="0.5"><input id="p2-sb1" type="number" step="0.5" min="0.5"></span></label>
@@ -285,7 +287,7 @@
           <li>Ανέβασε το αρχείο (XLSX, ή CSV/TXT με διαχωριστικό <code>;</code>, <code>,</code> ή tab):
             <input type="file" id="p3-file" accept=".csv,.txt,.xlsx"> <button id="p3-submit" class="primary">Υποβολή</button></li>
         </ol>
-        <p class="muted small">Ανοχές: β ±1.5 cc (σωστό) / ±10 cc (μικρή απόκλιση) · D, Δh ±1.5 mm / ±5 mm. Βάρη: β 40%, D 30%, Δh 30%.</p>
+        <p class="muted small">Ανοχές (πλήρης / μισός βαθμός): β ±10 cc / ±25 cc · D, Δh ±10 mm / ±20 mm. Βάρη: β 40%, D 30%, Δh 30%.</p>
       </div>
       <div class="card" id="p3-result"></div>
     </div>
@@ -387,10 +389,10 @@
         <h3>Υποβολή επίλυσης όδευσης</h3>
         <ol class="steps">
           <li>Κατέβασε το πρότυπο: <button id="p4-tplx">⬇ Πρότυπο XLSX</button> <button id="p4-tpl">⬇ Πρότυπο CSV</button></li>
-          <li>Συμπλήρωσε τα σφάλματα κλεισίματος w<sub>β</sub> (cc), w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> (m) και τις τελικές συντεταγμένες E, N, H των νέων στάσεων.</li>
+          <li>Συμπλήρωσε τα σφάλματα κλεισίματος w<sub>β</sub> (cc), w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> (m) και τις τελικές συντεταγμένες των νέων στάσεων, μία γραμμή ανά στάση (Σημείο, E, N, H).</li>
           <li>Ανέβασε το αρχείο: <input type="file" id="p4-file" accept=".csv,.txt,.xlsx"> <button id="p4-submit" class="primary">Υποβολή</button></li>
         </ol>
-        <p class="muted small">Ανοχές: w<sub>β</sub> ±2 cc / ±10 cc · w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> ±2 mm / ±10 mm · E, N, H ±5 mm / ±20 mm. Βάρη: σφάλματα 25%, E-N 55%, H 20%.
+        <p class="muted small">Ανοχές (πλήρης / μισός βαθμός): w<sub>β</sub> ±10 cc / ±25 cc · w<sub>x</sub>, w<sub>y</sub>, w<sub>h</sub> ±10 mm / ±20 mm · E, N, H ±20 mm / ±50 mm. Βάρη: σφάλματα 25%, E-N 55%, H 20%.
         Η σύγκριση γίνεται με την επίλυση των <b>σωστά ανηγμένων</b> μετρήσεων του εντύπου σου.</p>
       </div>
       <div class="card" id="p4-result"></div>
@@ -469,10 +471,9 @@ $$w_\beta = \alpha_{T3T4} - \alpha'_{T3T4} = 27.4678 - 27.4663 = +0.0015^g = +15
 <p>Έλεγχος: $\alpha_{T3T4}$ = 27.4678<sup>g</sup> = γνωστή τιμή ✓</p>
 <h4>Βήμα 5. Αναγωγή των αποστάσεων στο ΕΓΣΑ 87</h4>
 <p>Οι οριζόντιες αποστάσεις της Φάσης 3 είναι αποστάσεις εδάφους. Για να υπολογίσουμε συντεταγμένες στο ΕΓΣΑ 87 τις πολλαπλασιάζουμε με τον συντελεστή κλίμακας $k$ της περιοχής (εδώ $k$ = 0.9996· για την άσκησή σου δες την τιμή στη Φάση 1):</p>
-<p>Γενικά, ανάλογα με τη ρύθμιση της άσκησης (αναγράφεται στο έντυπο), η αναγωγή είναι μία από τις:</p>
-$$D' = D \quad\text{(χωρίς αναγωγή)}, \qquad D' = k\,D, \qquad D' = k\,\frac{R}{R+H_m}\,D$$
+<p>Ο $k$ υπολογίζεται από τον τύπο (τον δείχνει και η Φάση 1 για την περιοχή σου):</p>
 $$k = k_0\left(1 + \frac{x^2}{2R^2}\right), \quad x = \frac{E_m - 500\,000}{k_0}, \quad k_0 = 0.9996,\; R = 6\,371\,000\ \text{m}$$
-<p>Ο $k$ αλλάζει με την απόσταση από τον κεντρικό μεσημβρινό (E = 500 000 m). Σε μικρή περιοχή αρκεί ένας ενιαίος συντελεστής ($E_m$, $H_m$ = μέσες τιμές των T2 και T3).</p>
+<p>Ο $k$ αλλάζει με την απόσταση από τον κεντρικό μεσημβρινό (E = 500 000 m). Σε μικρή περιοχή αρκεί ένας ενιαίος συντελεστής ($E_m$ = μέση τιμή των T2 και T3).</p>
 <table class="tbl" style="width:auto"><thead><tr><th>Πλευρά</th><th>D (m)</th><th>D' = k·D (m)</th></tr></thead><tbody><tr><td>T2Σ1</td><td>138.441</td><td><b>138.386</b></td></tr><tr><td>Σ1Σ2</td><td>146.208</td><td><b>146.150</b></td></tr><tr><td>Σ2Σ3</td><td>136.607</td><td><b>136.552</b></td></tr><tr><td>Σ3T3</td><td>144.862</td><td><b>144.804</b></td></tr><tr class="sum"><td>Σ</td><td>566.118</td><td>565.892</td></tr></tbody></table>
 <h4>Βήμα 6. Μερικές συντεταγμένες Δx, Δy (1ο Θ.Π.)</h4>
 <table class="tbl" style="width:auto"><thead><tr><th>Πλευρά</th><th>α</th><th>D' (m)</th><th>Δx = D'·sin α</th><th>Δy = D'·cos α</th></tr></thead><tbody><tr><td>T2Σ1</td><td>79.6605</td><td>138.386</td><td>+131.383</td><td>+43.465</td></tr><tr><td>Σ1Σ2</td><td>135.6906</td><td>146.150</td><td>+123.778</td><td>−77.710</td></tr><tr><td>Σ2Σ3</td><td>79.4186</td><td>136.552</td><td>+129.478</td><td>+43.381</td></tr><tr><td>Σ3T3</td><td>132.7557</td><td>144.804</td><td>+126.056</td><td>−71.261</td></tr><tr class="sum"><td>Σ</td><td></td><td>565.892</td><td>+510.695</td><td>−62.125</td></tr></tbody></table>
@@ -480,10 +481,10 @@ $$k = k_0\left(1 + \frac{x^2}{2R^2}\right), \quad x = \frac{E_m - 500\,000}{k_0}
 $$w_x = (E_{T3} - E_{T2}) - \sum\Delta x = +510.687 - (+510.695) = −0.008\ \text{m}$$
 $$w_y = (N_{T3} - N_{T2}) - \sum\Delta y = −62.115 - (−62.125) = +0.010\ \text{m}$$
 $$w_s = \sqrt{w_x^2 + w_y^2} = 0.013\ \text{m}, \qquad \text{σχετικό σφάλμα} = 1 : \frac{565.892}{0.013} = 1 : 44189$$
-<p>Κατανομή ανάλογα με τα μήκη: $v_{x_i} = w_x\,D'_i / \sum D'$, $v_{y_i} = w_y\,D'_i / \sum D'$. Στρογγυλεύουμε στο mm και φροντίζουμε το άθροισμα να είναι ακριβώς $w_x$, $w_y$. Αν η άσκηση ορίζει <b>ισοκατανομή</b>, κάθε πλευρά παίρνει $w_x/m$ και $w_y/m$ ($m$ = πλήθος πλευρών).</p>
-<table class="tbl" style="width:auto"><thead><tr><th>Πλευρά</th><th>Δx</th><th>v<sub>x</sub></th><th>Δx διορθ.</th><th>Δy</th><th>v<sub>y</sub></th><th>Δy διορθ.</th></tr></thead><tbody><tr><td>T2Σ1</td><td>+131.383</td><td>−0.002</td><td><b>+131.381</b></td><td>+43.465</td><td>+0.002</td><td><b>+43.467</b></td></tr><tr><td>Σ1Σ2</td><td>+123.778</td><td>−0.002</td><td><b>+123.776</b></td><td>−77.710</td><td>+0.003</td><td><b>−77.707</b></td></tr><tr><td>Σ2Σ3</td><td>+129.478</td><td>−0.002</td><td><b>+129.476</b></td><td>+43.381</td><td>+0.002</td><td><b>+43.383</b></td></tr><tr><td>Σ3T3</td><td>+126.056</td><td>−0.002</td><td><b>+126.054</b></td><td>−71.261</td><td>+0.003</td><td><b>−71.258</b></td></tr><tr class="sum"><td>Σ</td><td>+510.695</td><td>−0.008</td><td>+510.687</td><td>−62.125</td><td>+0.010</td><td>−62.115</td></tr></tbody></table>
+<p><b>Ισοκατανομή</b> στις $m$ = 4 πλευρές: $v_{x_i} = w_x / m$, $v_{y_i} = w_y / m$. Στρογγυλεύουμε στο mm και φροντίζουμε το άθροισμα να είναι ακριβώς $w_x$, $w_y$ (το υπόλοιπο της στρογγυλοποίησης μπαίνει στη μεγαλύτερη πλευρά). Αν η άσκηση ορίζει κατανομή <b>ανάλογα με τα μήκη</b>, $v_{x_i} = w_x\,D'_i / \sum D'$ και $v_{y_i} = w_y\,D'_i / \sum D'$.</p>
+<table class="tbl" style="width:auto"><thead><tr><th>Πλευρά</th><th>Δx</th><th>v<sub>x</sub></th><th>Δx διορθ.</th><th>Δy</th><th>v<sub>y</sub></th><th>Δy διορθ.</th></tr></thead><tbody><tr><td>T2Σ1</td><td>+131.383</td><td>−0.002</td><td><b>+131.381</b></td><td>+43.465</td><td>+0.003</td><td><b>+43.468</b></td></tr><tr><td>Σ1Σ2</td><td>+123.778</td><td>−0.002</td><td><b>+123.776</b></td><td>−77.710</td><td>+0.001</td><td><b>−77.709</b></td></tr><tr><td>Σ2Σ3</td><td>+129.478</td><td>−0.002</td><td><b>+129.476</b></td><td>+43.381</td><td>+0.003</td><td><b>+43.384</b></td></tr><tr><td>Σ3T3</td><td>+126.056</td><td>−0.002</td><td><b>+126.054</b></td><td>−71.261</td><td>+0.003</td><td><b>−71.258</b></td></tr><tr class="sum"><td>Σ</td><td>+510.695</td><td>−0.008</td><td>+510.687</td><td>−62.125</td><td>+0.010</td><td>−62.115</td></tr></tbody></table>
 <h4>Βήμα 8. Συντεταγμένες (1ο Θ.Π. διαδοχικά)</h4>
-<table class="tbl" style="width:auto"><thead><tr><th>Σημείο</th><th>Δx διορθ.</th><th>Δy διορθ.</th><th>E (m)</th><th>N (m)</th></tr></thead><tbody><tr><td>T2</td><td></td><td></td><td>476650.218</td><td>4205702.447</td></tr><tr><td>Σ1</td><td>+131.381</td><td>+43.467</td><td><b>476781.599</b></td><td><b>4205745.914</b></td></tr><tr><td>Σ2</td><td>+123.776</td><td>−77.707</td><td><b>476905.375</b></td><td><b>4205668.207</b></td></tr><tr><td>Σ3</td><td>+129.476</td><td>+43.383</td><td><b>477034.851</b></td><td><b>4205711.590</b></td></tr><tr><td>T3</td><td>+126.054</td><td>−71.258</td><td><b>477160.905</b></td><td><b>4205640.332</b></td></tr></tbody></table>
+<table class="tbl" style="width:auto"><thead><tr><th>Σημείο</th><th>Δx διορθ.</th><th>Δy διορθ.</th><th>E (m)</th><th>N (m)</th></tr></thead><tbody><tr><td>T2</td><td></td><td></td><td>476650.218</td><td>4205702.447</td></tr><tr><td>Σ1</td><td>+131.381</td><td>+43.468</td><td><b>476781.599</b></td><td><b>4205745.915</b></td></tr><tr><td>Σ2</td><td>+123.776</td><td>−77.709</td><td><b>476905.375</b></td><td><b>4205668.206</b></td></tr><tr><td>Σ3</td><td>+129.476</td><td>+43.384</td><td><b>477034.851</b></td><td><b>4205711.590</b></td></tr><tr><td>T3</td><td>+126.054</td><td>−71.258</td><td><b>477160.905</b></td><td><b>4205640.332</b></td></tr></tbody></table>
 <p>Έλεγχος: καταλήξαμε στο T3 = (477160.905, 4205640.332), ίσο με τις γνωστές συντεταγμένες ✓</p>
 <h3>5. Παράδειγμα υψομετρικής όδευσης</h3>
 <p>Τα υψόμετρα των στάσεων υπολογίζονται με τις υψομετρικές διαφορές Δh της Φάσης 3 (μέσος όρος μετάβασης–επιστροφής). Γνωστά υψόμετρα: $H_{T2}$ = 152.340 m, $H_{T3}$ = 148.915 m. Η κατανομή του σφάλματος γίνεται ανάλογα με τις αποστάσεις.</p>
@@ -544,7 +545,7 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
         </div>
         <h3>Γ. Υποβολή συντεταγμένων σημείων</h3>
         <div class="row"><input type="file" id="p5-file" accept=".csv,.txt,.xlsx"><button id="p5-submit" class="primary">Υποβολή</button></div>
-        <p class="muted small">Ανοχές: E, N, H ±1 cm / ±3 cm. Οι στάσεις υπολογίζονται με τις συντεταγμένες της επίλυσης της Φάσης 4.</p>
+        <p class="muted small">Ανοχές (πλήρης / μισός βαθμός): E, N, H ±20 mm / ±50 mm. Οι στάσεις υπολογίζονται με τις συντεταγμένες της επίλυσης της Φάσης 4.</p>
         <div id="p5-result"></div>
       </div>
     </aside>
@@ -755,20 +756,20 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="js/geo.js?v=27"></script>
-<script src="js/dem.js?v=27"></script>
-<script src="js/sim.js?v=27"></script>
-<script src="js/ui.js?v=27"></script>
-<script src="js/xlsx.js?v=27"></script>
-<script src="js/buildings3d.js?v=27"></script>
-<script src="js/mapview.js?v=27"></script>
-<script src="js/phase1.js?v=27"></script>
-<script src="js/phase2.js?v=27"></script>
-<script src="js/phases34.js?v=27"></script>
-<script src="js/phase5.js?v=27"></script>
-<script src="js/phase6.js?v=27"></script>
-<script src="js/quadrant.js?v=27"></script>
-<script src="js/reduction.js?v=27"></script>
-<script src="js/app.js?v=27"></script>
+<script src="js/geo.js?v=33"></script>
+<script src="js/dem.js?v=33"></script>
+<script src="js/sim.js?v=33"></script>
+<script src="js/ui.js?v=33"></script>
+<script src="js/xlsx.js?v=33"></script>
+<script src="js/buildings3d.js?v=33"></script>
+<script src="js/mapview.js?v=33"></script>
+<script src="js/phase1.js?v=33"></script>
+<script src="js/phase2.js?v=33"></script>
+<script src="js/phases34.js?v=33"></script>
+<script src="js/phase5.js?v=33"></script>
+<script src="js/phase6.js?v=33"></script>
+<script src="js/quadrant.js?v=33"></script>
+<script src="js/reduction.js?v=33"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>

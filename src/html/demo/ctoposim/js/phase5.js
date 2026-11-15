@@ -146,14 +146,12 @@ const Phase5 = (() => {
       [["E", 0, "Συντεταγμένες"], ["N", 1, "Συντεταγμένες"], ["H", 2, "Υψόμετρα"]].forEach(([c, k, g]) => {
         const x = isFinite(v[k]) ? v[k] : null;
         items.push({ group: g, label: `${c} ${s.name} (m)`, value: x == null ? null : x.toFixed(3),
-                     status: x == null ? null : SIM.gradeItem(x - ex[c], 0.01, 0.03) });
+                     status: x == null ? null : SIM.gradeItem(x - ex[c], 0.02, 0.05) });
       });
     }
     const notes = vals.size ? [] : ["Δεν αναγνωρίστηκε κανένα σημείο. Χρησιμοποίησε το πρότυπο CSV."];
-    st.attempts.p5++;
-    st.results.p5 = { score: Grading.score(items, { "Συντεταγμένες": 70, "Υψόμετρα": 30 }), items, file,
-                      when: Date.now(), attempt: st.attempts.p5, notes };
-    Store.save();
+    Grading.commit("p5", { score: Grading.score(items, { "Συντεταγμένες": 70, "Υψόμετρα": 30 }), items, file,
+                           when: Date.now(), notes });
   }
 
   /* ---------------- Σχεδίαση/απόδοση ---------------- */
@@ -204,7 +202,7 @@ const Phase5 = (() => {
         h("td", { class: "num" }, F(s.Hz, 4)), h("td", { class: "num" }, F(s.V, 4)), h("td", { class: "num" }, F(s.S, 3)),
         h("td", { class: "num" }, F(s.t, 3))));
     }
-    Grading.renderResult($("#p5-result"), st.results.p5);
+    Grading.renderResult($("#p5-result"), st.results.p5, "p5");
     draw();
   }
 
@@ -229,6 +227,7 @@ const Phase5 = (() => {
     $("#p5-tplx").onclick = () => download(Phase2.filename("taxymetria_apotelesmata", "xlsx"),
       Sheet.toXLSX([{ name: "Αποτελέσματα", grid: Sheet.fromRows(templateRows()) }]));
     $("#p5-submit").onclick = async () => {
+      if (!Grading.canSubmit("p5")) return;
       try { const f = await readFile($("#p5-file")); grade(f.name, f.text); App.refresh();
             toast(`Η υποβολή καταχωρήθηκε: ${S().results.p5.score.toFixed(1)} / 100`, "ok"); }
       catch (e) { toast(e.message, "err"); }

@@ -90,7 +90,7 @@ const Store = (() => {
   const defaults = () => ({
     version: 1,
     student: { name: "", am: "" },
-    settings: { reduction: "k", distribution: "length", sigB: [3, 10], sigD: [1, 5], decimal: ".",
+    settings: { variants: false, reduction: "k", distribution: "equal", sigB: [3, 10], sigD: [1, 5], decimal: ".",
                 iRange: [1.45, 1.75], iTyp: [1.55, 1.65], tH: 1.5, periods: 2 },
     area: null, points: {}, seq: [], finished: false, nextId: 1, seedSalt: 0,
     obs: null,
@@ -105,6 +105,8 @@ const Store = (() => {
     const m = Object.assign(defaults(), s);
     m.settings = Object.assign(defaults().settings, s.settings || {});
     m.attempts = Object.assign(defaults().attempts, s.attempts || {});
+    // χωρίς παραλλαγές: πάντα αναγωγή με k και ισοκατανομή
+    if (!m.settings.variants) { m.settings.reduction = "k"; m.settings.distribution = "equal"; }
     m.results = Object.assign(defaults().results, s.results || {});
     return m;
   };

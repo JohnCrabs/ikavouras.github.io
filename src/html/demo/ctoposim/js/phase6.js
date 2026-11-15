@@ -274,6 +274,7 @@ const Phase6 = (() => {
     const st = S(), files = [...$("#p6-file").files];
     if (!st.geo) return toast("Δημιούργησε και κατέβασε πρώτα τον ορθοφωτοχάρτη.", "warn");
     if (!files.length) return toast("Επίλεξε αρχείο GeoTIFF ή world file.", "warn");
+    if (!Grading.canSubmit("p6")) return;
     const g = st.geo, notes = [];
     let geo = null, name = files.map(f => f.name).join(" + ");
     try {
@@ -313,10 +314,9 @@ const Phase6 = (() => {
       if (geo.crs !== 2100) notes.push("Το αρχείο δεν είναι σε ΕΓΣΑ 87 (EPSG:2100)· μετατράπηκε για τη σύγκριση. Στη γεωαναφορά όρισε ως σύστημα προορισμού το EPSG:2100.");
       st.geo.lastStudent = studC;
     } catch (e) { return toast(e.message, "err", 8000); }
-    st.attempts.p6 = (st.attempts.p6 || 0) + 1;
-    st.results.p6 = { score: Grading.score(items, { "Θέση": 85, "Σύστημα αναφοράς": 15 }), items, file: name,
-                      when: Date.now(), attempt: st.attempts.p6, notes };
-    Store.save(); App.refresh();
+    Grading.commit("p6", { score: Grading.score(items, { "Θέση": 85, "Σύστημα αναφοράς": 15 }), items, file: name,
+                           when: Date.now(), notes });
+    App.refresh();
     toast(`Η υποβολή καταχωρήθηκε: ${st.results.p6.score.toFixed(1)} / 100`, "ok");
   }
 
@@ -384,7 +384,7 @@ const Phase6 = (() => {
     if (st.geo && !lastCanvas) $("#p6-status").textContent =
       `Έχεις ήδη δημιουργήσει εικόνα (${SOURCES[st.geo.source].label}). Πάτα «Δημιουργία» για να την ξαναφτιάξεις και να την κατεβάσεις· θα είναι ίδια.`;
     if (st.geo && !busy) $("#p6-src").value = st.geo.source;
-    Grading.renderResult($("#p6-result"), st.results.p6);
+    Grading.renderResult($("#p6-result"), st.results.p6, "p6");
     drawCompare();
   }
 

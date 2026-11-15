@@ -10,13 +10,38 @@ const Grading = (() => {
   const nm = id => S().points[id].name;
   const STATUS = { 1: ["✓ σωστό", "ok"], 0.5: ["≈ μικρή απόκλιση", "warn"], 0: ["✗ λάθος", "bad"], null: ["— λείπει", "bad"] };
 
+  const MAX_ATTEMPTS = 3;
+  /** επιτρέπεται νέα υποβολή; */
+  function canSubmit(k) {
+    const n = S().attempts[k] || 0;
+    if (n >= MAX_ATTEMPTS) { toast(`Έχεις ήδη κάνει ${MAX_ATTEMPTS} υποβολές σε αυτή τη φάση. Ισχύει ο καλύτερος βαθμός σου.`, "warn", 7000); return false; }
+    return true;
+  }
+  /** καταχώριση υποβολής: κρατά την τελευταία και τον καλύτερο βαθμό */
+  function commit(k, res) {
+    const st = S(), prev = st.results[k];
+    st.attempts[k] = (st.attempts[k] || 0) + 1;
+    res.attempt = st.attempts[k];
+    const pb = prev && (prev.best || { score: prev.score, attempt: prev.attempt });
+    res.best = pb && pb.score > res.score ? pb : { score: res.score, attempt: res.attempt };
+    st.results[k] = res;
+    Store.save();
+  }
+  /** βαθμός που μετράει (ο καλύτερος) */
+  const finalScore = r => r ? (r.best ? r.best.score : r.score) : null;
+
   /** κοινή απόδοση πίνακα αποτελεσμάτων */
-  function renderResult(box, res) {
+  function renderResult(box, res, k) {
     box.innerHTML = "";
+    const n = k ? (S().attempts[k] || 0) : 0;
+    if (k) box.append(h("p", { class: "muted small" }, `Υποβολές: ${n} / ${MAX_ATTEMPTS}` +
+      (n >= MAX_ATTEMPTS ? " · δεν επιτρέπονται άλλες υποβολές." : ` · απομένουν ${MAX_ATTEMPTS - n}. Μετράει ο καλύτερος βαθμός.`)));
     if (!res) return;
     box.append(h("div", { class: "score" },
-      h("span", {}, "Βαθμός: "), h("b", {}, res.score.toFixed(1) + " / 100"),
+      h("span", {}, "Βαθμός υποβολής: "), h("b", {}, res.score.toFixed(1) + " / 100"),
       h("small", {}, ` · αρχείο «${res.file}» · ${new Date(res.when).toLocaleString("el-GR")} · υποβολή #${res.attempt}`)));
+    if (res.best && res.best.attempt !== res.attempt)
+      box.append(h("p", { class: "small" }, h("b", {}, `Καλύτερος βαθμός: ${res.best.score.toFixed(1)} / 100`), ` (υποβολή #${res.best.attempt}) — αυτός μετράει.`));
     const tb = h("tbody");
     for (const it of res.items) {
       const [txt, cls] = STATUS[it.status];
@@ -66,73 +91,85 @@ const Grading = (() => {
 
   function grade3(file, text) {
     const st = S(), ex = SIM.expected(st), vals = parse3(text), items = [];
-    const add = (group, label, key, exp, full, half, dec) => {
+    const add = (group, label, key, exp, full, half, dec, angle = false) => {
       const v = vals.has(key) ? vals.get(key) : null;
       const ok = v != null && isFinite(v);
+      const d = ok ? (angle ? ((v - exp + 600) % 400) - 200 : v - exp) : null;     // γωνίες: διαφορά mod 400
       items.push({ group, label, value: ok ? v.toFixed(dec) : null,
-                   status: ok ? SIM.gradeItem(v - exp, full, half) : null });
+                   status: ok ? SIM.gradeItem(d, full, half) : null });
     };
+    // ανοχές (πλήρης / μισός βαθμός): επιτρέπουν μικροσφάλματα στρογγυλοποίησης
     for (const b of ex.betas)
       add("Γωνίες β", `β ${b.label} (grad)`, `BETA|${nm(b.back)}|${nm(b.station)}|${nm(b.fwd)}`.toUpperCase(),
-          b.value, 0.00015, 0.0010, 4);
+          b.value, 0.0010, 0.0025, 4, true);
     for (const l of ex.legs)
-      add("Αποστάσεις D", `D ${l.label} (m)`, `D|${nm(l.from)}|${nm(l.to)}`.toUpperCase(), l.D, 0.0015, 0.005, 3);
+      add("Αποστάσεις D", `D ${l.label} (m)`, `D|${nm(l.from)}|${nm(l.to)}`.toUpperCase(), l.D, 0.010, 0.020, 3);
     for (const l of ex.legs)
-      add("Υψομ. διαφορές Δh", `Δh ${l.label} (m)`, `DH|${nm(l.from)}|${nm(l.to)}`.toUpperCase(), l.dH, 0.0015, 0.005, 3);
+      add("Υψομ. διαφορές Δh", `Δh ${l.label} (m)`, `DH|${nm(l.from)}|${nm(l.to)}`.toUpperCase(), l.dH, 0.010, 0.020, 3);
     const notes = [];
     if (!vals.size) notes.push("Δεν αναγνωρίστηκε καμία γραμμή. Χρησιμοποίησε το πρότυπο CSV.");
     const sc = score(items, { "Γωνίες β": 40, "Αποστάσεις D": 30, "Υψομ. διαφορές Δh": 30 });
-    st.attempts.p3++;
-    st.results.p3 = { score: sc, items, file, when: Date.now(), attempt: st.attempts.p3, notes };
-    Store.save();
+    commit("p3", { score: sc, items, file, when: Date.now(), notes });
   }
 
   /* ======================= ΦΑΣΗ 4 ======================= */
   const newStations = () => { const q = S().seq; return q.slice(2, q.length - 2); };
 
   function template4() {
-    const R = [["Είδος", "Σημείο", "Τιμή"]];
+    const R = [];
     R.push(["# Σφάλματα κλεισίματος: w = (τιμή από τα γνωστά σημεία) − (τιμή από τις μετρήσεις)"]);
-    R.push(["wb_cc", "", ""]); R.push(["wx_m", "", ""]); R.push(["wy_m", "", ""]); R.push(["wh_m", "", ""]);
+    R.push(["Είδος", "Τιμή"]);
+    R.push(["wb_cc", ""]); R.push(["wx_m", ""]); R.push(["wy_m", ""]); R.push(["wh_m", ""]);
     R.push(["# Τελικές (συνορθωμένες) συντεταγμένες των νέων στάσεων σε ΕΓΣΑ 87"]);
-    for (const id of newStations()) { R.push(["E", nm(id), ""]); R.push(["N", nm(id), ""]); R.push(["H", nm(id), ""]); }
+    R.push(["Σημείο", "E (m)", "N (m)", "H (m)"]);
+    for (const id of newStations()) R.push([nm(id), "", "", ""]);
     return R;
   }
 
   function grade4(file, text) {
     const st = S(), sol = SIM.solve(st, SIM.expected(st)), vals = new Map(), items = [];
+    const names = new Set(newStations().map(id => nm(id).toUpperCase().replace(/\s/g, "")));
+    const num = x => { const v = CSV.toNum(x); return v != null && isFinite(v) ? v : null; };
     for (const r of CSV.parse(text)) {
       if (!r[0] || r[0].startsWith("#")) continue;
-      vals.set((r[0] + "|" + (r[1] || "")).toUpperCase().replace(/\s/g, ""), CSV.toNum(r[2]));
+      const k0 = r[0].toUpperCase().replace(/\s/g, "");
+      if (names.has(k0)) {                                   // νέα μορφή: Σημείο; E; N; H
+        ["E", "N", "H"].forEach((c, i) => { const v = num(r[i + 1]); if (v != null) vals.set(`${c}|${k0}`, v); });
+      } else if (/^W[BXYH]_/.test(k0)) {                     // σφάλματα: τιμή στη 2η ή (παλιά μορφή) στην 3η στήλη
+        const v = num(r[1]) != null ? num(r[1]) : num(r[2]);
+        if (v != null) vals.set(k0 + "|", v);
+      } else {                                               // παλιά μορφή: Είδος; Σημείο; Τιμή
+        const v = num(r[2]);
+        if (v != null) vals.set((k0 + "|" + (r[1] || "")).toUpperCase().replace(/\s/g, ""), v);
+      }
     }
     const get = k => { const v = vals.get(k.toUpperCase()); return v != null && isFinite(v) ? v : null; };
     const add = (group, label, v, exp, full, half, dec, abs = false) => items.push({
       group, label, value: v == null ? null : v.toFixed(dec),
       status: v == null ? null : SIM.gradeItem(abs ? Math.abs(v) - Math.abs(exp) : v - exp, full, half) });
-    add("Σφάλματα κλεισίματος", "w_β (cc)", get("WB_CC|"), sol.wb * 1e4, 2, 10, 1, true);
-    add("Σφάλματα κλεισίματος", "w_x (m)", get("WX_M|"), sol.wx, 0.002, 0.010, 3, true);
-    add("Σφάλματα κλεισίματος", "w_y (m)", get("WY_M|"), sol.wy, 0.002, 0.010, 3, true);
-    add("Σφάλματα κλεισίματος", "w_h (m)", get("WH_M|"), sol.wh, 0.002, 0.010, 3, true);
+    // ανοχές: επιτρέπουν μικροσφάλματα στρογγυλοποίησης (υπολογισμός με αριθμομηχανή χειρός)
+    add("Σφάλματα κλεισίματος", "w_β (cc)", get("WB_CC|"), sol.wb * 1e4, 10, 25, 1, true);
+    add("Σφάλματα κλεισίματος", "w_x (m)", get("WX_M|"), sol.wx, 0.010, 0.020, 3, true);
+    add("Σφάλματα κλεισίματος", "w_y (m)", get("WY_M|"), sol.wy, 0.010, 0.020, 3, true);
+    add("Σφάλματα κλεισίματος", "w_h (m)", get("WH_M|"), sol.wh, 0.010, 0.020, 3, true);
     for (const id of newStations()) {
       const c = sol.coords[id], n = nm(id);
-      add("Συντεταγμένες", `E ${n} (m)`, get(`E|${n}`), c.E, 0.005, 0.020, 3);
-      add("Συντεταγμένες", `N ${n} (m)`, get(`N|${n}`), c.N, 0.005, 0.020, 3);
-      add("Υψόμετρα", `H ${n} (m)`, get(`H|${n}`), c.H, 0.005, 0.020, 3);
+      add("Συντεταγμένες", `E ${n} (m)`, get(`E|${n}`), c.E, 0.020, 0.050, 3);
+      add("Συντεταγμένες", `N ${n} (m)`, get(`N|${n}`), c.N, 0.020, 0.050, 3);
+      add("Υψόμετρα", `H ${n} (m)`, get(`H|${n}`), c.H, 0.020, 0.050, 3);
     }
     const notes = [];
     const wbS = get("WB_CC|");
-    if (wbS != null && Math.sign(wbS) !== Math.sign(sol.wb) && Math.abs(Math.abs(wbS) - Math.abs(sol.wb * 1e4)) <= 2)
+    if (wbS != null && Math.sign(wbS) !== Math.sign(sol.wb) && Math.abs(Math.abs(wbS) - Math.abs(sol.wb * 1e4)) <= 10)
       notes.push("Το μέγεθος του w_β είναι σωστό αλλά με αντίθετο πρόσημο από τη σύμβαση w = σωστή − υπολογισμένη. Έλεγξε τη φορά της διόρθωσης.");
     const sc = score(items, { "Σφάλματα κλεισίματος": 25, "Συντεταγμένες": 55, "Υψόμετρα": 20 });
-    st.attempts.p4++;
-    st.results.p4 = { score: sc, items, file, when: Date.now(), attempt: st.attempts.p4, notes,
-                      ratio: sol.ratio };
-    Store.save();
+    commit("p4", { score: sc, items, file, when: Date.now(), notes, ratio: sol.ratio });
   }
 
   /* ---------------- UI ---------------- */
   function bindUpload(inputSel, btnSel, fn, phase) {
     $(btnSel).onclick = async () => {
+      if (!canSubmit(phase)) return;
       try {
         const f = await readFile($(inputSel));
         fn(f.name, f.text);
@@ -147,8 +184,8 @@ const Grading = (() => {
     const st = S(), has = !!st.obs;
     $("#p3-locked").hidden = has; $("#p3-work").hidden = !has;
     $("#p4-locked").hidden = has; $("#p4-work").hidden = !has;
-    renderResult($("#p3-result"), st.results.p3);
-    renderResult($("#p4-result"), st.results.p4);
+    renderResult($("#p3-result"), st.results.p3, "p3");
+    renderResult($("#p4-result"), st.results.p4, "p4");
   }
 
   function init() {
@@ -163,5 +200,5 @@ const Grading = (() => {
     bindUpload("#p4-file", "#p4-submit", grade4, "p4");
   }
 
-  return { init, render, renderResult, score };
+  return { init, render, renderResult, score, canSubmit, commit, finalScore, MAX_ATTEMPTS };
 })();

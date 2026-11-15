@@ -27,8 +27,8 @@ const Phase2 = (() => {
     if (st.obs) st.seedSalt = (st.seedSalt || 0) + 1;
     readSettings();
     st.obs = SIM.generate(st);
-    st.results = { p3: null, p4: null, p5: null };
-    st.attempts = { p3: 0, p4: 0, p5: 0 };
+    st.results = { ...st.results, p3: null, p4: null, p5: null };
+    st.attempts = { ...st.attempts, p3: 0, p4: 0, p5: 0 };
     st.tachy = { setups: [], cur: null, nextP: 1 };
     Store.save();
     App.refresh();
@@ -37,8 +37,9 @@ const Phase2 = (() => {
 
   function readSettings() {
     const st = S().settings;
-    st.reduction = $("#p2-red").value;
-    st.distribution = $("#p2-dist").value;
+    st.variants = $("#p2-var").checked;
+    st.reduction = st.variants ? $("#p2-red").value : "k";
+    st.distribution = st.variants ? $("#p2-dist").value : "equal";
     const n = (sel, def) => { const v = parseFloat($(sel).value); return isFinite(v) && v > 0 ? v : def; };
     st.sigB = [n("#p2-sb0", 3), n("#p2-sb1", 10)].sort((a, b) => a - b);
     st.sigD = [n("#p2-sd0", 1), n("#p2-sd1", 5)].sort((a, b) => a - b);
@@ -138,17 +139,84 @@ const Phase2 = (() => {
   }
 
   /** φύλλο επίλυσης όδευσης (κενό, για συμπλήρωση) */
+  /** φύλλο επίλυσης όδευσης βήμα-βήμα (χωρίς τύπους: τους γράφει ο φοιτητής) */
   function solveGrid() {
-    const st = S(), { C, Grid } = Sheet, q = st.seq;
-    const g = new Grid([10, 11, 11, 11, 11, 11, 11, 9, 9, 9, 13, 13, 11]);
-    g.row([C("ΕΠΙΛΥΣΗ ΟΔΕΥΣΗΣ", "title", 13)], 22);
-    g.row([C("ΠΑΡΑΤΗΡΗΤΗΣ: " + fieldMeta(st.obs.created, "poly").observer, "meta", 13)], 18);
-    g.blank();
-    const H = ["Σημείο", "β διορθ. (grad)", "α (grad)", "D (m)", "D ΕΓΣΑ (m)", "ΔX (m)", "ΔY (m)", "vx (m)", "vy (m)", "vh (m)", "X = E (m)", "Y = N (m)", "H (m)"];
-    g.row(H.map(x => C(x, "hdr")), 30);
-    for (const id of q.slice(1, q.length - 1)) g.row([C(name(id), "tb"), ...Array.from({ length: 12 }, () => C(null, "e"))], 16);
-    g.blank();
-    g.row([C("wβ = ………… cc     wx = ………… m     wy = ………… m     ws = ………… m     1 : …………     wh = ………… m", "meta", 13)]);
+    const st = S(), { C, Grid } = Sheet, q = st.seq, L = q.length, NC = 7;
+    const g = new Grid([18, 14, 14, 14, 14, 14, 14], { landscape: false });
+    const n = id => name(id), E = () => C(null, "e"), X = () => C(null, "x");
+    const T1 = q[0], T2 = q[1], T3 = q[L - 2], T4 = q[L - 1];
+    const stations = q.slice(1, L - 1), legs = stations.slice(0, -1).map((id, k) => [id, stations[k + 1]]);
+    const hdr = (cols, ht = 30) => g.row(cols.map(x => C(x, "hdr")), ht);
+    const sec = t => { g.blank(); g.row([C(t, "sec", NC)], 22); };
+    const kv = (label, unit) => g.row([C(label, "tb", 2), E(), C(unit || "", "plain")], 18);
+    const sumRow = (k) => g.row([C("Σ", "tb"), ...Array.from({ length: k }, () => E())], 18);
+
+    g.row([C("ΕΠΙΛΥΣΗ ΕΞΑΡΤΗΜΕΝΗΣ ΟΔΕΥΣΗΣ", "title", NC)], 24);
+    g.row([C("ΠΑΡΑΤΗΡΗΤΗΣ: " + fieldMeta(st.obs.created, "poly").observer, "meta", NC)], 18);
+    g.row([C(`Όδευση: ${q.map(n).join(" → ")} · Αναγωγή αποστάσεων: ${REDUCTION[st.settings.reduction]} · ` +
+             `Κατανομή σφαλμάτων: ${DISTRIB[st.settings.distribution]}`, "note", NC)], 28);
+    g.row([C("Μετάφερε τα δεδομένα και υπολόγισε με τη σειρά των βημάτων. Τους τύπους τούς γράφεις εσύ (π.χ. στο Excel ή στο χέρι). " +
+             "Γωνίες σε grad με 4 δεκαδικά, μήκη σε m με 3 δεκαδικά, γωνιακά σφάλματα σε cc.", "note", NC)], 28);
+
+    sec("ΔΕΔΟΜΕΝΑ");
+    g.row([C("Γνωστά σημεία (ΕΓΣΑ 87)", "meta", NC)], 18);
+    hdr(["Σημείο", "E (m)", "N (m)", "H (m)"], 20);
+    for (const id of [T1, T2, T3, T4]) g.row([C(n(id), "tb"), E(), E(), E()], 18);
+    g.row([C("Οριζόντιες γωνίες (Φάση 3)", "meta", NC)], 18);
+    hdr(["Στάση", "Πίσω", "Εμπρός", "β (grad)"], 20);
+    stations.forEach((id, k) => g.row([C(n(id), "tb"), C(n(q[k]), "t"), C(n(q[k + 2]), "t"), E()], 18));
+    g.row([C("Πλευρές (Φάση 3)", "meta", NC)], 18);
+    hdr(["Πλευρά", "D (m)", "Δh (m)"], 20);
+    for (const [a, b] of legs) g.row([C(n(a) + n(b), "tb"), E(), E()], 18);
+    kv("Συντελεστής κλίμακας k", "(Φάση 1)");
+
+    sec("ΒΗΜΑ 1 · Γωνίες διεύθυνσης αρχής και τέλους (2ο Θεμελιώδες Πρόβλημα)");
+    hdr(["Πλευρά", "ΔE (m)", "ΔN (m)", "tan⁻¹(ΔE/ΔN) (grad)", "Τεταρτημόριο", "Διόρθωση (grad)", "α (grad)"]);
+    for (const [a, b] of [[T1, T2], [T3, T4]]) g.row([C(n(a) + n(b), "tb"), E(), E(), E(), E(), E(), E()], 18);
+
+    sec("ΒΗΜΑ 2 · Υπολογισμένη γωνία διεύθυνσης τέλους (3ο Θεμελιώδες Πρόβλημα)");
+    kv("Άθροισμα γωνιών Σβ", "grad"); kv("Πλήθος γωνιών n"); kv(`Υπολογισμένη α'${n(T3)}${n(T4)}`, "grad");
+
+    sec("ΒΗΜΑ 3 · Γωνιακό σφάλμα κλεισίματος και διόρθωση των γωνιών");
+    kv("Γωνιακό σφάλμα wβ", "cc"); kv("Διόρθωση ανά γωνία δβ", "cc");
+    hdr(["Στάση", "β μετρημένη (grad)", "δβ (cc)", "β διορθωμένη (grad)"]);
+    for (const id of stations) g.row([C(n(id), "tb"), E(), E(), E()], 18);
+    sumRow(3);
+
+    sec("ΒΗΜΑ 4 · Ενδιάμεσες γωνίες διεύθυνσης");
+    hdr(["Πλευρά", "α (grad)"], 20);
+    for (const [a, b] of legs) g.row([C(n(a) + n(b), "tb"), E()], 18);
+    g.row([C(`${n(T3)}${n(T4)} (έλεγχος)`, "tb"), E(), C("= γνωστή α;", "plain", 2)], 18);
+
+    sec("ΒΗΜΑ 5 · Αναγωγή των αποστάσεων στο ΕΓΣΑ 87");
+    hdr(["Πλευρά", "D (m)", "D ΕΓΣΑ (m)"], 20);
+    for (const [a, b] of legs) g.row([C(n(a) + n(b), "tb"), E(), E()], 18);
+    sumRow(2);
+
+    sec("ΒΗΜΑ 6 · Μερικές συντεταγμένες ΔX, ΔY");
+    hdr(["Πλευρά", "α (grad)", "D ΕΓΣΑ (m)", "ΔX (m)", "ΔY (m)"], 20);
+    for (const [a, b] of legs) g.row([C(n(a) + n(b), "tb"), E(), E(), E(), E()], 18);
+    g.row([C("Σ", "tb"), X(), E(), E(), E()], 18);
+
+    sec("ΒΗΜΑ 7 · Γραμμικό σφάλμα κλεισίματος και διόρθωση των ΔX, ΔY");
+    kv("wx", "m"); kv("wy", "m"); kv("ws", "m"); kv("Σχετικό σφάλμα 1 :", "");
+    hdr(["Πλευρά", "vx (m)", "vy (m)", "ΔX διορθ. (m)", "ΔY διορθ. (m)"], 20);
+    for (const [a, b] of legs) g.row([C(n(a) + n(b), "tb"), E(), E(), E(), E()], 18);
+    sumRow(4);
+
+    sec("ΒΗΜΑ 8 · Τελικές συντεταγμένες");
+    hdr(["Σημείο", "E (m)", "N (m)"], 20);
+    stations.forEach((id, k) => g.row([C(n(id) + (k === 0 ? " (αρχή)" : k === stations.length - 1 ? " (έλεγχος)" : ""), "tb"), E(), E()], 18));
+
+    sec("ΒΗΜΑ 9 · Υψομετρικό σφάλμα κλεισίματος και διόρθωση των Δh");
+    kv("ΣD", "m"); kv("ΣΔh", "m"); kv("Υψομετρικό σφάλμα wh", "m");
+    hdr(["Πλευρά", "D (m)", "Δh (m)", "vh (m)", "Δh διορθ. (m)"], 20);
+    for (const [a, b] of legs) g.row([C(n(a) + n(b), "tb"), E(), E(), E(), E()], 18);
+    sumRow(4);
+
+    sec("ΒΗΜΑ 10 · Υψόμετρα");
+    hdr(["Σημείο", "H (m)"], 20);
+    stations.forEach((id, k) => g.row([C(n(id) + (k === 0 ? " (αρχή)" : k === stations.length - 1 ? " (έλεγχος)" : ""), "tb"), E()], 18));
     return g;
   }
 
@@ -160,6 +228,7 @@ const Phase2 = (() => {
   /* ---------------- Απόδοση ---------------- */
   function render() {
     const st = S(), has = !!st.obs;
+    $("#p2-var").checked = !!st.settings.variants;
     $("#p2-red").value = st.settings.reduction;
     $("#p2-dist").value = st.settings.distribution;
     $("#p2-sb0").value = st.settings.sigB[0]; $("#p2-sb1").value = st.settings.sigB[1];
@@ -170,6 +239,7 @@ const Phase2 = (() => {
     $("#p2-t").value = st.settings.tH;
     $("#p2-per").value = st.settings.periods;
     $$("#p2-settings select, #p2-settings input").forEach(e => e.disabled = has);
+    if (!st.settings.variants) { $("#p2-red").disabled = true; $("#p2-dist").disabled = true; }
     $("#p2-gen").textContent = has ? "Νέα σειρά μετρήσεων" : "Δημιουργία μετρήσεων υπαίθρου";
     $("#p2-gen").disabled = !st.finished;
     $("#p2-out").hidden = !has;
@@ -197,6 +267,8 @@ const Phase2 = (() => {
     $("#p2-print").onclick = () => printGrids(`Έντυπο πολυγωνομετρίας — ${S().student.am}`, [formGrid(), solveGrid()]);
     $("#p2-dec").onchange = e => { S().settings.decimal = e.target.value; Store.save(); };
     // οι αλλαγές στα ύψη ισχύουν αμέσως (και για τον έλεγχο ορατότητας της Φάσης 1)
+    for (const id of ["#p2-var", "#p2-red", "#p2-dist"])
+      $(id).addEventListener("change", () => { if (S().obs) return; readSettings(); Store.save(); App.refresh(); });
     for (const id of ["#p2-i0", "#p2-i1", "#p2-it0", "#p2-it1", "#p2-t"])
       $(id).addEventListener("change", () => { if (S().obs) return; readSettings(); Store.save(); Phase1.recompute(); App.refresh(); });
   }

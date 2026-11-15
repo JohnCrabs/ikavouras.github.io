@@ -164,7 +164,8 @@ const SIM = (() => {
     for (const id of [seq[0], seq[1], seq[L - 2], seq[L - 1]]) coords[id] = { E: P(id).E, N: P(id).N, H: P(id).H };
     let E = T2.E, N = T2.N, H = T2.H;
     legs.forEach((l, k) => {
-      l.vx = wx * share(l); l.vy = wy * share(l); l.vh = wh * share(l);
+      // υψομετρική όδευση: το wh κατανέμεται πάντα ανάλογα με τις αποστάσεις
+      l.vx = wx * share(l); l.vy = wy * share(l); l.vh = wh * l.Dg / sumD;
       E += l.dx + l.vx; N += l.dy + l.vy; H += l.dH + l.vh;
       if (k < legs.length - 1) coords[l.to] = { E, N, H };
     });
