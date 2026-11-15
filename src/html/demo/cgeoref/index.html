@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CGeoRef – Γεωαναφορά εικόνων & χαρτών</title>
+  <meta name="description" content="Online γεωαναφορά εικόνων και χαρτογραφικών προϊόντων με πολλαπλούς μετασχηματισμούς, υπόλοιπα, PDF αναφορά και εξαγωγή GeoTIFF.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%232b7bb9' stroke-width='3'/><path d='M16 2v28M2 16h28' stroke='%23d9480f' stroke-width='2.5'/></svg>">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/style.css?v=1.0.5">
+</head>
+<body>
+  <!-- ===== Γραμμή εργαλείων ===== -->
+  <header id="toolbar">
+    <div class="brand"><span class="logo">⌖</span> CGeoRef</div>
+
+    <div class="tb-group">
+      <button id="btnOpen" title="Άνοιγμα εικόνας / χάρτη (PNG, JPG, TIFF, GeoTIFF, PDF…)">📂 Εικόνα</button>
+      <input type="file" id="fileImage" accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.tif,.tiff,.pdf" hidden>
+      <button id="btnDemo" title="Φόρτωση δοκιμαστικής εικόνας">🧪</button>
+    </div>
+
+    <div class="tb-group">
+      <button id="btnLoadGcp" title="Φόρτωση σημείων ελέγχου (.points QGIS, CSV, JSON έργου)">📥 GCP</button>
+      <input type="file" id="fileGcp" accept=".points,.csv,.txt,.json" hidden>
+      <button id="btnSaveGcp" title="Αποθήκευση σημείων ελέγχου">💾 GCP</button>
+    </div>
+
+    <div class="tb-group tools" id="toolGroup">
+      <button data-tool="pan" class="active" title="Μετακίνηση προβολής (P)">✋</button>
+      <button data-tool="add" title="Προσθήκη σημείου ελέγχου (A)">➕ Σημείο</button>
+      <button data-tool="move" title="Μετακίνηση σημείου (M)">✥</button>
+      <button data-tool="delete" title="Διαγραφή σημείου (D)">✖</button>
+    </div>
+
+    <div class="tb-group">
+      <button id="btnZoomImg" title="Πλήρης έκταση εικόνας">⤢</button>
+      <button id="btnZoomGcp" title="Έκταση σημείων στον χάρτη">🎯</button>
+      <label class="chk" title="Συγχρονισμός προβολής εικόνας → χάρτη"><input type="checkbox" id="chkLink"> Σύνδεση</label>
+    </div>
+
+    <div class="tb-group">
+      <button id="btnPreview" class="accent" title="Προεπισκόπηση γεωαναφοράς πάνω στο online υπόβαθρο">👁 Προεπισκόπηση</button>
+      <button id="btnExport" class="primary" title="Εκτέλεση γεωαναφοράς και εξαγωγή">▶ Γεωαναφορά</button>
+      <button id="btnSave" title="Γρήγορη αποθήκευση: GeoTIFF ή world file">💾 Αποθήκευση</button>
+      <button id="btnReport" title="Αναφορά PDF μίας σελίδας">📄 PDF</button>
+    </div>
+
+    <div class="tb-group right">
+      <button id="btnHelp" title="Οδηγίες">❔</button>
+    </div>
+  </header>
+
+  <!-- ===== Κεντρική περιοχή ===== -->
+  <main id="workspace">
+    <section id="imgPane" class="pane">
+      <div class="pane-head">
+        <span>🖼 Εικόνα</span>
+        <span id="imgInfo" class="muted">— καμία εικόνα —</span>
+        <span class="spacer"></span>
+        <label title="Κλίμακα διανυσμάτων υπολοίπων">Υπόλοιπα ×<input type="number" id="resScale" value="10" min="0" step="1"></label>
+      </div>
+      <div id="imgMap" class="map"></div>
+      <div id="dropHint" class="drop-hint">
+        <div>
+          <div class="big">⌖</div>
+          <p>Σύρετε εδώ μια εικόνα ή χάρτη<br><small>PNG · JPG · TIFF / GeoTIFF · PDF · WebP · BMP</small></p>
+          <button id="btnOpen2" class="primary">Άνοιγμα αρχείου</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="vSplit" class="splitter v" title="Αλλαγή μεγέθους"></div>
+
+    <section id="refPane" class="pane">
+      <div class="pane-head">
+        <span>🗺 Χάρτης αναφοράς</span>
+        <select id="selBasemap" title="Υπόβαθρο"></select>
+        <button id="btnCustomBase" class="small" title="Προσθήκη XYZ / WMS υποβάθρου">＋</button>
+        <button id="btnKeys" class="small" title="Κλειδιά API για υπόβαθρα (MapTiler, Thunderforest, Stadia, Mapbox…)">🔑</button>
+        <span class="spacer"></span>
+        <span id="pickHint" class="pick-hint hidden">Κάντε κλικ στον χάρτη για συντεταγμένες</span>
+      </div>
+      <div id="refMap" class="map"></div>
+      <div id="overlayCtl" class="overlay-ctl hidden">
+        <div class="oc-title">Αποτέλεσμα γεωαναφοράς <button id="btnOverlayClose" class="small" title="Αφαίρεση">✕</button></div>
+        <label>Διαφάνεια <input type="range" id="ovOpacity" min="0" max="1" step="0.05" value="0.75"></label>
+        <label>Swipe <input type="range" id="ovSwipe" min="0" max="100" step="1" value="100"></label>
+        <div class="oc-row">
+          <label class="chk"><input type="checkbox" id="ovBlink"> Αναβόσβημα</label>
+          <label class="chk"><input type="checkbox" id="ovShowGcp" checked> GCP</label>
+          <button id="ovZoom" class="small">Έκταση</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="hSplit" class="splitter h" title="Αλλαγή μεγέθους"></div>
+
+  <!-- ===== Πίνακας GCP ===== -->
+  <section id="gcpPanel">
+    <div class="gcp-head">
+      <label>Μετασχηματισμός
+        <select id="selTransform"></select>
+      </label>
+      <label id="lambdaWrap" class="hidden" title="Παράμετρος εξομάλυνσης (0 = ακριβής παρεμβολή)">λ <input type="number" id="inpLambda" value="0" min="0" step="0.001"></label>
+      <label>CRS προορισμού
+        <select id="selCrs"></select>
+      </label>
+      <button id="btnAddCrs" class="small" title="Προσθήκη CRS (EPSG ή proj4)">＋ CRS</button>
+      <span class="spacer"></span>
+      <div id="stats" class="stats"></div>
+    </div>
+    <div class="gcp-table-wrap">
+      <table id="gcpTable">
+        <thead>
+          <tr>
+            <th title="Ενεργό">✓</th><th>ID</th>
+            <th>Πηγή X</th><th>Πηγή Y</th>
+            <th>Προορ. X</th><th>Προορ. Y</th>
+            <th title="Υπόλοιπο X σε pixel">dX [px]</th><th title="Υπόλοιπο Y σε pixel">dY [px]</th>
+            <th title="Υπόλοιπο σε pixel">Υπόλ. [px]</th><th title="Υπόλοιπο σε μονάδες χάρτη">Υπόλ. [<span class="unit">m</span>]</th>
+            <th title="Σφάλμα διασταυρωμένης επικύρωσης (Leave-One-Out)">LOO [<span class="unit">m</span>]</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="gcpEmpty" class="muted empty">Δεν υπάρχουν σημεία ελέγχου. Επιλέξτε «➕ Σημείο» και κάντε κλικ στην εικόνα.</div>
+    </div>
+  </section>
+
+  <footer id="statusbar">
+    <span id="stImg">Εικόνα: –</span>
+    <span id="stMap">Χάρτης: –</span>
+    <span id="stPred">Πρόβλεψη: –</span>
+    <span class="spacer"></span>
+    <span id="stMsg"></span>
+  </footer>
+
+  <!-- ===== Παράθυρο εισαγωγής συντεταγμένων ===== -->
+  <div id="dlgPoint" class="floating hidden">
+    <div class="fl-head">Συντεταγμένες χάρτη – σημείο <b id="dpId"></b></div>
+    <div class="fl-body">
+      <p class="muted small">Πληκτρολογήστε συντεταγμένες ή κάντε <b>κλικ στον χάρτη αναφοράς</b>.</p>
+      <label>Σύστημα εισαγωγής <select id="dpCrs"></select></label>
+      <div class="row2">
+        <label><span id="dpLx">X / Ανατολ.</span><input type="text" id="dpX" autocomplete="off"></label>
+        <label><span id="dpLy">Y / Βόρ.</span><input type="text" id="dpY" autocomplete="off"></label>
+      </div>
+      <p class="muted small">Για γεωγραφικές δεκτό και ΜΜΔ, π.χ. <code>23°43'12.5"</code></p>
+    </div>
+    <div class="fl-foot">
+      <button id="dpCancel">Άκυρο</button>
+      <button id="dpOk" class="primary">OK</button>
+    </div>
+  </div>
+
+  <!-- ===== Ρυθμίσεις γεωαναφοράς / εξαγωγής ===== -->
+  <dialog id="dlgExport">
+    <form method="dialog">
+      <h3>Ρυθμίσεις γεωαναφοράς</h3>
+      <div class="grid2">
+        <label>Μετασχηματισμός <input type="text" id="exTransform" readonly></label>
+        <label>CRS προορισμού <input type="text" id="exCrs" readonly></label>
+        <label>Επαναδειγματοληψία
+          <select id="exResample">
+            <option value="nearest">Πλησιέστερος γείτονας</option>
+            <option value="bilinear" selected>Διγραμμική</option>
+            <option value="bicubic">Δικυβική</option>
+          </select>
+        </label>
+        <label>Όνομα αρχείου <input type="text" id="exName" value="georef"></label>
+        <label>Μέγεθος pixel X <input type="number" id="exResX" step="any"></label>
+        <label>Μέγεθος pixel Y <input type="number" id="exResY" step="any"></label>
+      </div>
+      <p class="muted small" id="exDims"></p>
+      <fieldset>
+        <legend>Αρχική εικόνα – χωρίς επαναδειγματοληψία (όπως το QGIS, συμβατό με CTopoSim)</legend>
+        <label class="chk"><input type="checkbox" id="exOrigTif"> GeoTIFF αρχικής εικόνας (ίδιες διαστάσεις, ModelTransformation)</label>
+        <label class="chk"><input type="checkbox" id="exWld"> World file
+          <select id="exWldExt" class="inline">
+            <option value="auto">αυτόματη επέκταση (.pgw / .jgw / .tfw)</option>
+            <option value="pgw">.pgw</option>
+            <option value="wld">.wld</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" id="exOrigPng"> Αντίγραφο αρχικής εικόνας σε PNG (για χρήση με το .pgw)</label>
+        <p class="muted small" id="exAffNote"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Επαναδειγματοληψία (βορράς πάνω)</legend>
+        <label class="chk"><input type="checkbox" id="exTif" checked> GeoTIFF (.tif, Deflate)</label>
+        <label class="chk"><input type="checkbox" id="exPng"> PNG + world file (.pgw) + .prj</label>
+        <label class="chk"><input type="checkbox" id="exKml"> KML GroundOverlay (WGS84 PNG)</label>
+      </fieldset>
+      <fieldset>
+        <legend>Λοιπά</legend>
+        <label class="chk"><input type="checkbox" id="exPoints" checked> Σημεία ελέγχου (.points QGIS)</label>
+        <label class="chk"><input type="checkbox" id="exReport"> Αναφορά PDF</label>
+        <label class="chk"><input type="checkbox" id="exLoad" checked> Φόρτωση στον χάρτη μετά την ολοκλήρωση</label>
+      </fieldset>
+      <div class="dlg-foot">
+        <button value="cancel">Άκυρο</button>
+        <button id="exGo" value="ok" class="primary">▶ Εκτέλεση</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Προσθήκη CRS ===== -->
+  <dialog id="dlgCrs">
+    <form method="dialog">
+      <h3>Προσθήκη συστήματος αναφοράς</h3>
+      <label>Κωδικός EPSG ή ορισμός proj4
+        <input type="text" id="crsInput" placeholder="π.χ. 32634 ή +proj=tmerc +lat_0=…">
+      </label>
+      <label>Όνομα (προαιρετικό) <input type="text" id="crsName"></label>
+      <p class="muted small">Οι κωδικοί EPSG ανακτώνται online από το spatialreference.org.</p>
+      <div class="dlg-foot">
+        <button value="cancel">Άκυρο</button>
+        <button id="crsOk" value="ok" class="primary">Προσθήκη</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Προσαρμοσμένο υπόβαθρο ===== -->
+  <dialog id="dlgBase">
+    <form method="dialog">
+      <h3>Προσθήκη υποβάθρου</h3>
+      <label>Τύπος
+        <select id="cbType"><option value="xyz">XYZ tiles</option><option value="wms">WMS</option></select>
+      </label>
+      <label>URL <input type="text" id="cbUrl" placeholder="https://…/{z}/{x}/{y}.png"></label>
+      <label id="cbLayersWrap">Layers (WMS) <input type="text" id="cbLayers"></label>
+      <label>Όνομα <input type="text" id="cbName" value="Προσαρμοσμένο"></label>
+      <p class="muted small">Σε GitHub Pages (https) απαιτούνται υπηρεσίες με https.</p>
+      <div class="dlg-foot">
+        <button value="cancel">Άκυρο</button>
+        <button id="cbOk" value="ok" class="primary">Προσθήκη</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Κλειδιά API ===== -->
+  <dialog id="dlgKeys" class="wide">
+    <form method="dialog">
+      <h3>🔑 Κλειδιά API υποβάθρων</h3>
+      <p class="muted small">Ορισμένοι πάροχοι απαιτούν δωρεάν ή επί πληρωμή κλειδί. Τα υπόβαθρά τους εμφανίζονται στη λίστα με 🔒 μέχρι να δοθεί κλειδί.
+        Σε δημοσιευμένη σελίδα (GitHub Pages) περιορίστε το κλειδί στο domain σας από τον λογαριασμό του παρόχου.</p>
+      <div id="keysList"></div>
+      <fieldset>
+        <legend>Αποθήκευση</legend>
+        <label class="chk"><input type="checkbox" id="keysRemember" checked> Αποθήκευση των κλειδιών σε αυτόν τον browser (localStorage)</label>
+        <p class="muted small">Τα κλειδιά μένουν μόνο σε αυτόν τον υπολογιστή, ως απλό κείμενο, και δεν στέλνονται πουθενά εκτός από τον αντίστοιχο πάροχο.
+          Χωρίς την επιλογή, ισχύουν μόνο μέχρι να κλείσει η καρτέλα. Μην την ενεργοποιείτε σε κοινόχρηστο υπολογιστή.</p>
+        <div class="row-btns">
+          <button type="button" id="keysExport" class="small">Εξαγωγή σε αρχείο</button>
+          <button type="button" id="keysImport" class="small">Εισαγωγή από αρχείο</button>
+          <input type="file" id="keysFile" accept=".json" hidden>
+          <button type="button" id="keysClear" class="small danger">Διαγραφή όλων</button>
+        </div>
+      </fieldset>
+      <div class="dlg-foot">
+        <button value="cancel">Άκυρο</button>
+        <button id="keysOk" value="ok" class="primary">Αποθήκευση</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== PDF σελίδα ===== -->
+  <dialog id="dlgPdf">
+    <form method="dialog">
+      <h3>Φόρτωση PDF</h3>
+      <div class="grid2">
+        <label>Σελίδα <input type="number" id="pdfPage" value="1" min="1"></label>
+        <label>Ανάλυση (DPI) <input type="number" id="pdfDpi" value="200" min="50" max="600" step="10"></label>
+      </div>
+      <div class="dlg-foot">
+        <button value="cancel">Άκυρο</button>
+        <button value="ok" class="primary">Φόρτωση</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Βοήθεια ===== -->
+  <dialog id="dlgHelp" class="wide">
+    <form method="dialog">
+      <h3>CGeoRef – Οδηγίες</h3>
+      <ol class="help">
+        <li><b>Φορτώστε εικόνα</b> (📂 ή σύρσιμο): PNG, JPG, TIFF/GeoTIFF, PDF (επιλογή σελίδας/DPI).</li>
+        <li>Επιλέξτε <b>CRS προορισμού</b> (π.χ. ΕΓΣΑ87 – EPSG:2100) και <b>μετασχηματισμό</b>.</li>
+        <li>Με το εργαλείο <b>➕ Σημείο</b> (πλήκτρο A) κάντε κλικ στην εικόνα. Στο παράθυρο που εμφανίζεται
+          πληκτρολογήστε συντεταγμένες ή <b>κάντε κλικ στον χάρτη αναφοράς</b> για σκόπευση πάνω στο υπόβαθρο.</li>
+        <li>Μόλις υπάρχουν αρκετά σημεία, υπολογίζονται αυτόματα τα <b>υπόλοιπα</b> (dX, dY, συνολικό, RMSE) και το σφάλμα
+          <b>διασταυρωμένης επικύρωσης LOO</b>. Οι κόκκινες γραμμές στην εικόνα δείχνουν τα διανύσματα υπολοίπων.</li>
+        <li>Μετά από αρκετά σημεία, η θέση νέου σημείου <b>προτείνεται</b> αυτόματα (πρόβλεψη).</li>
+        <li><b>👁 Προεπισκόπηση</b>: η γεωαναφερμένη εικόνα τοποθετείται στο online υπόβαθρο, με διαφάνεια, swipe και αναβόσβημα για οπτικό έλεγχο.</li>
+        <li><b>▶ Γεωαναφορά</b>: εξαγωγή GeoTIFF, PNG+world file, .points, KML. <b>📄 PDF</b>: αναφορά μίας σελίδας.</li>
+      </ol>
+      <h4>Μετασχηματισμοί</h4>
+      <div id="helpTransforms"></div>
+      <h4>Συντομεύσεις</h4>
+      <p class="small">A: προσθήκη · P: μετακίνηση προβολής · M: μετακίνηση σημείου · D: διαγραφή · Esc: ακύρωση · Del: διαγραφή επιλεγμένου</p>
+      <div class="dlg-foot"><button value="ok" class="primary">Κλείσιμο</button></div>
+    </form>
+  </dialog>
+
+  <!-- ===== Πρόοδος ===== -->
+  <div id="progress" class="hidden">
+    <div class="pg-box">
+      <div id="pgText">Επεξεργασία…</div>
+      <div class="pg-bar"><div id="pgFill"></div></div>
+    </div>
+  </div>
+  <div id="toast" class="hidden"></div>
+
+  <!-- Βιβλιοθήκες -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/proj4@2.12.1/dist/proj4.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+  <!-- Εφαρμογή -->
+  <script src="js/linalg.js?v=1.0.5"></script>
+  <script src="js/transforms.js?v=1.0.5"></script>
+  <script src="js/crs.js?v=1.0.5"></script>
+  <script src="js/apikeys.js?v=1.0.5"></script>
+  <script src="js/basemaps.js?v=1.0.5"></script>
+  <script src="js/imageLoader.js?v=1.0.5"></script>
+  <script src="js/warp.js?v=1.0.5"></script>
+  <script src="js/geotiffWriter.js?v=1.0.5"></script>
+  <script src="js/gcpio.js?v=1.0.5"></script>
+  <script src="js/report.js?v=1.0.5"></script>
+  <script src="js/app.js?v=1.0.5"></script>
+</body>
+</html>
