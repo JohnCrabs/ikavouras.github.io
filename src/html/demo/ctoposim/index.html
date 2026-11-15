@@ -6,7 +6,7 @@
 <title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="css/style.css?v=25">
+<link rel="stylesheet" href="css/style.css?v=27">
 </head>
 <body>
 
@@ -31,6 +31,7 @@
   <button data-tab="p3">3 · Ανηγμένες μετρήσεις</button>
   <button data-tab="p4">4 · Επίλυση όδευσης</button>
   <button data-tab="p5">5 · Ταχυμετρία</button>
+  <button data-tab="p6">6 · Γεωαναφορά</button>
   <button data-tab="rep">Βαθμολογία</button>
 </nav>
 
@@ -630,6 +631,106 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
   </div>
 </section>
 
+<!-- ============================ ΦΑΣΗ 6 ============================ -->
+<section class="tab" id="tab-p6" hidden>
+  <div class="subtabs"><button data-sub="work" class="active">Εργασία</button><button data-sub="theory">Θεωρία</button></div>
+  <div class="sub work page">
+    <p id="p6-locked" class="lockbox">🔒 Όρισε πρώτα την περιοχή μελέτης στην καρτέλα 1.</p>
+    <div id="p6-work" hidden>
+      <div class="card">
+        <h3>Α. Ο ορθοφωτοχάρτης της περιοχής σου</h3>
+        <p>Η εφαρμογή φτιάχνει ένα <b>απόσπασμα ορθοφωτοχάρτη</b> της περιοχής μελέτης, με σταυρονήματα ΕΓΣΑ 87 ανά 100 m. Η εικόνα είναι PNG <b>χωρίς γεωαναφορά</b>
+        και έχει μια παραμόρφωση (κλίμακα, και στη δορυφορική εικόνα και στροφή) που είναι διαφορετική για κάθε φοιτητή.</p>
+        <div class="row">
+          <label>Πηγή εικόνας <select id="p6-src"></select></label>
+          <button id="p6-gen" class="primary">🛰 Δημιουργία ορθοφωτοχάρτη</button>
+          <button id="p6-dl" disabled>⬇ Λήψη PNG</button>
+        </div>
+        <p id="p6-status" class="hint"></p>
+        <canvas id="p6-prev" class="p6-prev" hidden></canvas>
+        <p class="muted small">Αν η μία πηγή δεν φορτώνει ή δεν έχει καλή εικόνα στην περιοχή σου, δοκίμασε την άλλη. Αν αλλάξεις πηγή, η υποβολή συγκρίνεται με τη νέα εικόνα.</p>
+      </div>
+      <div class="card">
+        <h3>Β. Γεωαναφορά (π.χ. στο QGIS)</h3>
+        <ol class="steps">
+          <li>Άνοιξε το <b>Georeferencer</b> (Layer → Georeferencer) και φόρτωσε το PNG.</li>
+          <li>Όρισε <b>τουλάχιστον 4 σημεία ελέγχου</b> πάνω σε σταυρονήματα, κατά προτίμηση κοντά στις γωνίες, και γράψε τις συντεταγμένες E, N από το περιθώριο.</li>
+          <li>Στις ρυθμίσεις: τύπος μετασχηματισμού <b>Affine</b>, σύστημα προορισμού <b>EPSG:2100 (ΕΓΣΑ 87)</b>. Έλεγξε τα υπόλοιπα (residuals) των σημείων.</li>
+          <li>Εκτέλεσε τη γεωαναφορά: προκύπτει GeoTIFF. Εναλλακτικά, επίλεξε «Create world file only» για να πάρεις world file (.pgw).</li>
+          <li>Προαιρετικός έλεγχος: φόρτωσε από κάτω ένα υπόβαθρο (π.χ. WMS του Κτηματολογίου) και δες αν τα κτίρια ταιριάζουν.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Γ. Υποβολή</h3>
+        <div class="row"><input type="file" id="p6-file" accept=".tif,.tiff,.pgw,.pngw,.wld,.jgw,.tfw,.tifw" multiple><button id="p6-submit" class="primary">Υποβολή</button></div>
+        <p class="muted small">Ανέβασε το <b>GeoTIFF</b> που έβγαλε το QGIS ή το <b>world file</b> (.pgw/.wld). Ανοχές θέσης: ±1 m για πλήρη βαθμό, ±5 m για μισό.
+        Βάρη: θέση 85%, σύστημα αναφοράς ΕΓΣΑ 87 15%.</p>
+        <div id="p6-result"></div>
+        <canvas id="p6-cmp" class="p6-cmp" hidden></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="sub theory" hidden>
+    <article class="theory">
+      <h2>Φάση 6 — Γεωαναφορά ορθοφωτοχάρτη</h2>
+      <p><b>Γεωαναφορά</b> είναι η αντιστοίχιση κάθε pixel μιας εικόνας σε συντεταγμένες ενός συστήματος αναφοράς (εδώ ΕΓΣΑ 87).
+      Ένα σκαναρισμένο απόσπασμα χάρτη ή ορθοφωτογραφίας, ή μια εικόνα που κατέβηκε από μια υπηρεσία χωρίς γεωαναφορά, έχει μόνο <b>συντεταγμένες εικόνας</b> (στήλη, γραμμή).
+      Για να τη χρησιμοποιήσουμε μαζί με τις μετρήσεις μας (στάσεις, σημεία λεπτομερειών) πρέπει να βρούμε τον μετασχηματισμό εικόνα → ΕΓΣΑ 87.</p>
+
+      <h3>1. Ορθοφωτοχάρτης και αεροφωτογραφία</h3>
+      <p>Η απλή <b>αεροφωτογραφία</b> είναι κεντρική προβολή: η κλίμακα αλλάζει από σημείο σε σημείο, λόγω της κλίσης της μηχανής και του αναγλύφου (τα ψηλά σημεία και οι στέγες «μετατοπίζονται» ακτινικά).
+      Ο <b>ορθοφωτοχάρτης</b> έχει διορθωθεί με ψηφιακό μοντέλο εδάφους, ώστε να είναι <b>ορθή προβολή</b> με σταθερή κλίμακα, όπως ένας χάρτης.
+      Γι' αυτό η σχέση ανάμεσα στην εικόνα ενός ορθοφωτοχάρτη και στο ΕΓΣΑ 87 είναι <b>επίπεδος γραμμικός μετασχηματισμός</b>, και αρκεί ο αφινικός.
+      Οι παραμορφώσεις που πρέπει να διορθώσουμε προέρχονται από τη σάρωση ή την εξαγωγή της εικόνας: στροφή, διαφορετική κλίμακα στους δύο άξονες, μικρή λοξότητα.</p>
+
+      <h3>2. Συντεταγμένες εικόνας</h3>
+      <p>Η εικόνα έχει αρχή την <b>πάνω αριστερή</b> γωνία. Ο άξονας x (στήλη) αυξάνεται προς τα δεξιά και ο άξονας y (γραμμή) <b>προς τα κάτω</b>, αντίθετα από τον άξονα N.
+      Γι' αυτό, σε μια εικόνα με τον Βορρά προς τα πάνω, ο συντελεστής που πολλαπλασιάζει τη γραμμή στον τύπο του N είναι <b>αρνητικός</b> (ίσος με −μέγεθος pixel). Είναι από τα πιο συνηθισμένα λάθη.</p>
+
+      <h3>3. Ο αφινικός μετασχηματισμός</h3>
+      $$\boxed{\,E = a\,x + b\,y + c, \qquad N = d\,x + e\,y + f\,}$$
+      <p>Έχει <b>6 παραμέτρους</b>. Οι $c$, $f$ είναι οι συντεταγμένες της αρχής της εικόνας και οι $a, b, d, e$ περιγράφουν στροφή, κλίμακες και λοξότητα. Σε μορφή πινάκων:</p>
+      $$\begin{bmatrix} E \\ N \end{bmatrix} = \underbrace{\begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}}_{\text{στροφή}}
+        \underbrace{\begin{bmatrix} s_x & k \\ 0 & s_y \end{bmatrix}}_{\text{κλίμακες, λοξότητα}} \begin{bmatrix} x \\ -y \end{bmatrix} + \begin{bmatrix} c \\ f \end{bmatrix}$$
+      <p>Οι 6 παράμετροι αντιστοιχούν σε 2 μετατοπίσεις, 1 στροφή, 2 κλίμακες και 1 διάτμηση. Ειδικές περιπτώσεις:</p>
+      <ul>
+        <li><b>Μετασχηματισμός ομοιότητας</b> (Helmert, 4 παράμετροι): $s_x = s_y$ και $k = 0$. Διατηρεί τα σχήματα.</li>
+        <li><b>Μόνο κλίμακες και μετατόπιση</b> (4 παράμετροι): $\theta = 0$, $k = 0$, $s_x \ne s_y$. Είναι η τυπική παραμόρφωση κλίμακας ενός αποσπάσματος του Κτηματολογίου.</li>
+      </ul>
+      <p>Στο σχήμα μπορείς να αλλάξεις κάθε συνιστώσα και να δεις τις 6 παραμέτρους και το world file που προκύπτει:</p>
+      <div id="ph6-affine"></div>
+
+      <h3>4. Σημεία ελέγχου και ελάχιστα τετράγωνα</h3>
+      <p>Για να βρούμε τις παραμέτρους χρησιμοποιούμε <b>σημεία ελέγχου</b> (Ground Control Points): σημεία που αναγνωρίζουμε στην εικόνα και των οποίων ξέρουμε τις συντεταγμένες.
+      Εδώ είναι τα σταυρονήματα, με E, N γραμμένα στο περιθώριο. Κάθε σημείο δίνει 2 εξισώσεις, άρα <b>τα 3 σημεία είναι το ελάχιστο</b> για 6 αγνώστους.
+      Με 3 σημεία όμως η λύση είναι ακριβής και <b>δεν υπάρχει κανένας έλεγχος</b>: ένα λάθος κλικ περνά απαρατήρητο. Γι' αυτό παίρνουμε τουλάχιστον 4, καλύτερα 6 ή περισσότερα,
+      κοντά στις γωνίες και καλά κατανεμημένα, και λύνουμε με <b>ελάχιστα τετράγωνα</b>:</p>
+      $$\begin{bmatrix} E_1 \\ \vdots \\ E_n \end{bmatrix} = \begin{bmatrix} x_1 & y_1 & 1 \\ \vdots & \vdots & \vdots \\ x_n & y_n & 1 \end{bmatrix} \begin{bmatrix} a \\ b \\ c \end{bmatrix} + \mathbf{v}_E
+        \quad\Longrightarrow\quad \begin{bmatrix} a \\ b \\ c \end{bmatrix} = (\mathbf{A}^T\mathbf{A})^{-1}\mathbf{A}^T\mathbf{E}$$
+      <p>και αντίστοιχα για τα $d, e, f$ από τα N. Τα <b>υπόλοιπα</b> $v_{E_i}$, $v_{N_i}$ δείχνουν πόσο απέχει κάθε σημείο από τη λύση. Το συνολικό μέτρο ποιότητας είναι το</p>
+      $$\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(v_{E_i}^2 + v_{N_i}^2\right)}, \qquad \sigma_0 = \sqrt{\frac{\sum (v_E^2 + v_N^2)}{2n - 6}}$$
+      <p>Ένα σημείο με πολύ μεγαλύτερο υπόλοιπο από τα άλλα είναι πιθανότατα λάθος κλικ ή λάθος πληκτρολόγηση συντεταγμένης: διόρθωσέ το ή βγάλ' το από τη λύση.
+      Ένα σημείο που <b>δεν</b> μπαίνει στη λύση και ελέγχεται μόνο στο τέλος λέγεται <b>σημείο ελέγχου</b> (check point) και δίνει ανεξάρτητη εκτίμηση της ακρίβειας.</p>
+      <div id="ph6-gcp"></div>
+
+      <h3>5. Πώς αποθηκεύεται η γεωαναφορά</h3>
+      <ul>
+        <li><b>PNG/JPEG</b>: δεν περιέχουν γεωαναφορά. Μια εικόνα που φορτώνεται σε μια υπηρεσία χωρίς συνοδευτικό αρχείο δεν «ξέρει» πού βρίσκεται.</li>
+        <li><b>World file</b> (.pgw για PNG, .jgw για JPEG, .tfw για TIFF, ή .wld): απλό κείμενο 6 γραμμών με τις παραμέτρους με τη σειρά <b>a, d, b, e, c', f'</b>.
+          Τα $c'$, $f'$ αναφέρονται στο <b>κέντρο</b> του πάνω αριστερού pixel: $c' = c + a/2 + b/2$, $f' = f + d/2 + e/2$. Το σύστημα αναφοράς δεν γράφεται μέσα: το δηλώνουμε χωριστά.</li>
+        <li><b>GeoTIFF</b>: TIFF με ειδικά tags (ModelTiepoint, ModelPixelScale ή ModelTransformation, και GeoKeys με τον κωδικό EPSG). Περιέχει μαζί την εικόνα, τον μετασχηματισμό και το σύστημα αναφοράς.</li>
+      </ul>
+      <p>Το QGIS (Georeferencer) με μετασχηματισμό Affine συνήθως <b>ξαναδειγματοληπτεί</b> την εικόνα σε νέο GeoTIFF με τον Βορρά προς τα πάνω (warp).
+      Η εικόνα έχει τότε άλλο μέγεθος, και τα κενά γύρω της είναι «χωρίς δεδομένα». Με την επιλογή «Create world file only» κρατά την αρχική εικόνα και γράφει μόνο το world file.</p>
+
+      <h3>6. Πώς βαθμολογείται</h3>
+      <p>Ο προσομοιωτής ξέρει τον ακριβή μετασχηματισμό της δικής σου εικόνας. Εφαρμόζει τον δικό σου μετασχηματισμό στις τέσσερις γωνίες και στο κέντρο της εικόνας και μετρά την απόσταση από τη σωστή θέση.
+      Αν το GeoTIFF έχει ξαναδειγματοληπτηθεί, συγκρίνει την έκτασή του (ελάχιστο και μέγιστο E, N). Πλήρης βαθμός για απόκλιση έως 1 m, μισός έως 5 m.
+      Με μέγεθος pixel ≈ 0.5 m και 4–6 καλά σημεία ελέγχου, η απόκλιση πρέπει να είναι μερικά εκατοστά έως μισό μέτρο.</p>
+    </article>
+  </div>
+</section>
+
 <!-- ============================ ΒΑΘΜΟΛΟΓΙΑ ============================ -->
 <section class="tab" id="tab-rep" hidden>
   <div class="sub work page">
@@ -654,19 +755,20 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="js/geo.js?v=25"></script>
-<script src="js/dem.js?v=25"></script>
-<script src="js/sim.js?v=25"></script>
-<script src="js/ui.js?v=25"></script>
-<script src="js/xlsx.js?v=25"></script>
-<script src="js/buildings3d.js?v=25"></script>
-<script src="js/mapview.js?v=25"></script>
-<script src="js/phase1.js?v=25"></script>
-<script src="js/phase2.js?v=25"></script>
-<script src="js/phases34.js?v=25"></script>
-<script src="js/phase5.js?v=25"></script>
-<script src="js/quadrant.js?v=25"></script>
-<script src="js/reduction.js?v=25"></script>
-<script src="js/app.js?v=25"></script>
+<script src="js/geo.js?v=27"></script>
+<script src="js/dem.js?v=27"></script>
+<script src="js/sim.js?v=27"></script>
+<script src="js/ui.js?v=27"></script>
+<script src="js/xlsx.js?v=27"></script>
+<script src="js/buildings3d.js?v=27"></script>
+<script src="js/mapview.js?v=27"></script>
+<script src="js/phase1.js?v=27"></script>
+<script src="js/phase2.js?v=27"></script>
+<script src="js/phases34.js?v=27"></script>
+<script src="js/phase5.js?v=27"></script>
+<script src="js/phase6.js?v=27"></script>
+<script src="js/quadrant.js?v=27"></script>
+<script src="js/reduction.js?v=27"></script>
+<script src="js/app.js?v=27"></script>
 </body>
 </html>

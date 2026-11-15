@@ -94,8 +94,9 @@ const Store = (() => {
                 iRange: [1.45, 1.75], iTyp: [1.55, 1.65], tH: 1.5, periods: 2 },
     area: null, points: {}, seq: [], finished: false, nextId: 1, seedSalt: 0,
     obs: null,
-    attempts: { p3: 0, p4: 0, p5: 0 },
-    results: { p3: null, p4: null, p5: null },
+    attempts: { p3: 0, p4: 0, p5: 0, p6: 0 },
+    results: { p3: null, p4: null, p5: null, p6: null },
+    geo: null,
     tachy: { setups: [], cur: null, nextP: 1 },
   });
   let state = defaults();
@@ -103,6 +104,8 @@ const Store = (() => {
   const merge = s => {
     const m = Object.assign(defaults(), s);
     m.settings = Object.assign(defaults().settings, s.settings || {});
+    m.attempts = Object.assign(defaults().attempts, s.attempts || {});
+    m.results = Object.assign(defaults().results, s.results || {});
     return m;
   };
   function load() {

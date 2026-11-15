@@ -165,3 +165,9 @@ article.theory { max-width: 1000px; margin: 0 auto; padding: 16px 22px 50px; bac
 #map.drawing, #map.drawing.leaflet-grab, #map.drawing.leaflet-grab:active, .leaflet-dragging #map.drawing.leaflet-grab { cursor: crosshair; }
 .rect-lbl { background: rgba(255,255,255,.9); border: 1px solid #1b6ec2; font-weight: 600; box-shadow: none; }
 #p1-setarea.active { background: #b3261e; border-color: #b3261e; }
+
+/* Φάση 6 */
+.p6-prev { display: block; max-width: 100%; border: 1px solid var(--line); margin: 8px 0; background: #eee; }
+.p6-cmp { display: block; max-width: 100%; border: 1px solid var(--line); border-radius: 6px; margin-top: 10px; background: #fcfdfe; }
+.rd-pre { background: #f6f8fa; border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-size: 12px; margin: 4px 0; }
+.rd-chk { font-size: 13px; margin-right: 6px; }

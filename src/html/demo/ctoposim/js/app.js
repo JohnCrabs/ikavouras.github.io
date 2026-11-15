@@ -26,14 +26,16 @@ const App = (() => {
 
   function refresh() {
     const st = S();
-    const lock = { p2: !st.finished, p3: !st.obs, p4: !st.obs, p5: !st.obs };
+    const lock = { p2: !st.finished, p3: !st.obs, p4: !st.obs, p5: !st.obs, p6: !st.area };
     $$("#tabs button").forEach(b => b.classList.toggle("locked", !!lock[b.dataset.tab]));
-    Phase1.render(); Phase2.render(); Grading.render(); Phase5.render(); renderReport();
+    Phase1.render(); Phase2.render(); Grading.render(); Phase5.render(); Phase6.render(); renderReport();
   }
 
   /* ---------------- Βαθμολογία ---------------- */
-  const WEIGHTS = { p3: 30, p4: 40, p5: 30 };
-  const TITLES = { p3: "Φάση 3 · Ανηγμένες μετρήσεις", p4: "Φάση 4 · Επίλυση όδευσης", p5: "Φάση 5 · Ταχυμετρία" };
+  const WEIGHTS = { p3: 25, p4: 35, p5: 25, p6: 15 };
+  const TITLES = { p3: "Φάση 3 · Ανηγμένες μετρήσεις", p4: "Φάση 4 · Επίλυση όδευσης", p5: "Φάση 5 · Ταχυμετρία",
+                   p6: "Φάση 6 · Γεωαναφορά ορθοφωτοχάρτη" };
+  const GRADED = Object.keys(WEIGHTS);
 
   function totals() {
     const st = S();
@@ -45,14 +47,14 @@ const App = (() => {
   function verifyCode() {
     const st = S();
     const core = JSON.stringify([st.student, st.seq.map(id => [st.points[id].E.toFixed(3), st.points[id].N.toFixed(3)]),
-      st.obs && st.obs.created, ["p3", "p4", "p5"].map(k => st.results[k] && [st.results[k].score.toFixed(2), st.results[k].attempt])]);
+      st.obs && st.obs.created, GRADED.map(k => st.results[k] && [st.results[k].score.toFixed(2), st.results[k].attempt])]);
     return RNG.hash(core).toString(16).toUpperCase().padStart(8, "0");
   }
 
   function renderReport() {
     const st = S(), tb = $("#rep-table tbody");
     tb.innerHTML = "";
-    for (const k of ["p3", "p4", "p5"]) {
+    for (const k of GRADED) {
       const r = st.results[k];
       tb.append(h("tr", {}, h("td", {}, TITLES[k]), h("td", { class: "num" }, WEIGHTS[k] + "%"),
         h("td", { class: "num" }, r ? r.score.toFixed(1) : "—"), h("td", { class: "num" }, st.attempts[k] || 0),
@@ -68,7 +70,7 @@ const App = (() => {
       `Φοιτητής: ${st.student.name}`, `ΑΜ: ${st.student.am}`, `Ημερομηνία: ${new Date().toLocaleString("el-GR")}`,
       `Όδευση: ${[...st.seq].map(id => st.points[id].name).join(" → ")}`,
       `Αναγωγή αποστάσεων: ${Phase2.REDUCTION[st.settings.reduction]}`, ""];
-    for (const k of ["p3", "p4", "p5"]) {
+    for (const k of GRADED) {
       const r = st.results[k];
       lines.push(`${TITLES[k]} (βάρος ${WEIGHTS[k]}%): ${r ? r.score.toFixed(1) + " / 100, υποβολές: " + st.attempts[k] : "δεν υποβλήθηκε"}`);
     }
@@ -112,7 +114,7 @@ const App = (() => {
   function init() {
     Store.load();
     MapView.init();
-    Phase1.init(); Phase2.init(); Grading.init(); Phase5.init();
+    Phase1.init(); Phase2.init(); Grading.init(); Phase5.init(); Phase6.init();
 
     $$("#tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
     $$(".tab").forEach(sec => $$(".subtabs button", sec).forEach(b => b.onclick = () => showSub(sec, b.dataset.sub)));
@@ -140,7 +142,7 @@ const App = (() => {
     Reduction.build();
     afterLoad();
     const t = (location.hash || "#p1").slice(1);
-    showTab(["p1", "p2", "p3", "p4", "p5", "rep"].includes(t) ? t : "p1");
+    showTab(["p1", "p2", "p3", "p4", "p5", "p6", "rep"].includes(t) ? t : "p1");
   }
 
   return { init, refresh, showTab };

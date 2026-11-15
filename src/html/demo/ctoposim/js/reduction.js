@@ -1391,11 +1391,192 @@ const Reduction = (() => {
     upd();
   }
 
+  /* =====================================================================
+     ΦΑΣΗ 6: αφινικός μετασχηματισμός και σημεία ελέγχου
+     ===================================================================== */
+
+  /** κοινό: σχέδιο «εικόνας» (πλαίσιο, σταυρονήματα, ένα σπίτι) σε συντεταγμένες εικόνας 0..400 × 0..300 */
+  const IMG_W = 400, IMG_H = 300;
+  function imageShapes() {
+    const sh = [{ t: "rect", p: [[0, 0], [IMG_W, 0], [IMG_W, IMG_H], [0, IMG_H]] }];
+    for (let x = 50; x < IMG_W; x += 100) for (let y = 50; y < IMG_H; y += 100) sh.push({ t: "cross", c: [x, y] });
+    sh.push({ t: "house", p: [[210, 170], [290, 170], [290, 240], [210, 240]] }, { t: "house", p: [[210, 170], [250, 135], [290, 170]] });
+    return sh;
+  }
+
+  /* ---------- αφινικός μετασχηματισμός ---------- */
+  function buildAffine(root) {
+    root.innerHTML = ""; root.classList.add("quad");
+    const W = 600, H = 460;
+    const S = makeSvg(root, W, H);
+    const g = S.el("g");
+    const st = { th: 8, sx: 1.0, sy: 0.96, sh: 0.0, tx: 0, ty: 0 };
+    const sTh = slider("Στροφή θ:", -30, 30, 0.5, st.th, "°");
+    const sSx = slider("Κλίμακα στον x (s<sub>x</sub>):", 0.7, 1.3, 0.01, st.sx);
+    sSx.lab.firstChild.replaceWith(h("span", { html: "Κλίμακα κατά x (s<sub>x</sub>):" }));
+    const sSy = slider("", 0.7, 1.3, 0.01, st.sy);
+    sSy.lab.firstChild.replaceWith(h("span", { html: "Κλίμακα κατά y (s<sub>y</sub>):" }));
+    const sSh = slider("Διάτμηση (λοξότητα) k:", -0.3, 0.3, 0.01, st.sh);
+    const sTx = slider("Μετατόπιση ΔE:", -60, 60, 1, st.tx, "m");
+    const sTy = slider("Μετατόπιση ΔN:", -60, 60, 1, st.ty, "m");
+    const out = h("tbody"), wf = h("pre", { class: "rd-pre" });
+    root.append(h("div", { class: "quad-panel" },
+      h("div", { class: "quad-ctrl" }, sTh.lab, sSx.lab, sSy.lab, sSh.lab, sTx.lab, sTy.lab),
+      h("table", { class: "tbl quad-tbl" }, out),
+      h("p", { class: "small" }, h("b", {}, "World file (.pgw) αυτού του μετασχηματισμού:")), wf,
+      h("p", { class: "muted small" }, "Οι 6 παράμετροι a…f είναι συνδυασμός 2 μετατοπίσεων, 1 στροφής, 2 κλιμάκων και 1 διάτμησης. ",
+        "Με s", h("sub", {}, "x"), " = s", h("sub", {}, "y"), " και k = 0 ο μετασχηματισμός γίνεται μετασχηματισμός ομοιότητας (4 παράμετροι).")));
+    for (const [s, k] of [[sTh, "th"], [sSx, "sx"], [sSy, "sy"], [sSh, "sh"], [sTx, "tx"], [sTy, "ty"]]) s.inp.oninput = () => { st[k] = +s.inp.value; upd(); };
+    const E0 = 480400, N0 = 4203300, PIX = 0.5;              // βασικό μέγεθος pixel
+    const cx = 300, cy = 230, K = 1.6;                       // σχεδίαση χάρτη: px ανά m
+    function upd() {
+      const th = st.th * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+      // εικόνα (x δεξιά, y κάτω) → ΕΓΣΑ: [E;N] = R(θ)·[[sx, k],[0, sy]]·[x·pix; −y·pix] + t
+      const M = [c * st.sx, c * st.sh - s * st.sy, s * st.sx, s * st.sh + c * st.sy];
+      const a = M[0] * PIX, b = -M[1] * PIX, d = M[2] * PIX, e = -M[3] * PIX;
+      const cE = E0 - (a * IMG_W + b * IMG_H) / 2 + st.tx, cN = N0 - (d * IMG_W + e * IMG_H) / 2 + st.ty;
+      const T = (x, y) => [a * x + b * y + cE, d * x + e * y + cN];
+      const toS = ([E, N]) => [cx + (E - E0) * K, cy - (N - N0) * K];
+      g.innerHTML = "";
+      const el = (n, at_) => S.el(n, at_, g);
+      // άξονες χάρτη
+      for (let v = -150; v <= 150; v += 50) {
+        el("line", { x1: cx + v * K, y1: 20, x2: cx + v * K, y2: H - 30, stroke: "#eef1f5" });
+        el("line", { x1: 20, y1: cy - v * K, x2: W - 20, y2: cy - v * K, stroke: "#eef1f5" });
+      }
+      el("line", { x1: 30, y1: H - 40, x2: 30, y2: 30, stroke: COL.dark, "stroke-width": 1.5, "marker-end": S.mk.dark });
+      el("line", { x1: 30, y1: H - 40, x2: 120, y2: H - 40, stroke: COL.dark, "stroke-width": 1.5, "marker-end": S.mk.dark });
+      S.txt(36, 40, "N", { class: "q-axis" }, g); S.txt(118, H - 48, "E", { class: "q-axis", "text-anchor": "end" }, g);
+      // αρχική εικόνα (χωρίς παραμόρφωση) με διακεκομμένη
+      const T0 = (x, y) => [PIX * x + E0 - PIX * IMG_W / 2, -PIX * y + N0 + PIX * IMG_H / 2];
+      const path = (P, f) => "M" + P.map(q => toS(f(...q)).join(",")).join(" L") + " Z";
+      const base = imageShapes()[0].p;
+      el("path", { d: path(base, T0), fill: "none", stroke: "#aaa", "stroke-width": 1.2, "stroke-dasharray": "5 4" });
+      // μετασχηματισμένη εικόνα
+      for (const sh of imageShapes()) {
+        if (sh.t === "rect") el("path", { d: path(sh.p, T), fill: "#eaf2fb", "fill-opacity": 0.8, stroke: COL.blue, "stroke-width": 2 });
+        else if (sh.t === "house") el("path", { d: path(sh.p, T), fill: "#f3d7b6", stroke: COL.brown, "stroke-width": 1.5 });
+        else { const [x, y] = sh.c;
+          for (const [p, q] of [[[x - 10, y], [x + 10, y]], [[x, y - 10], [x, y + 10]]]) { const A = toS(T(...p)), B = toS(T(...q));
+            el("line", { x1: A[0], y1: A[1], x2: B[0], y2: B[1], stroke: "#111", "stroke-width": 2 }); } }
+      }
+      // άξονες της εικόνας: x (στήλη) και y (γραμμή, προς τα κάτω)
+      const o = toS(T(0, 0)), ax = toS(T(90, 0)), ay = toS(T(0, 90));
+      el("line", { x1: o[0], y1: o[1], x2: ax[0], y2: ax[1], stroke: COL.red, "stroke-width": 2.5, "marker-end": S.mk.red });
+      el("line", { x1: o[0], y1: o[1], x2: ay[0], y2: ay[1], stroke: COL.green, "stroke-width": 2.5, "marker-end": S.mk.green });
+      S.txt(ax[0] + 4, ax[1] - 4, "x (στήλη)", { class: "rd-lab", fill: COL.red }, g);
+      S.txt(ay[0] + 4, ay[1] + 12, "y (γραμμή)", { class: "rd-lab", fill: COL.green }, g);
+      el("circle", { cx: o[0], cy: o[1], r: 4, fill: "#111" });
+      S.txt(o[0] - 6, o[1] - 6, "(0, 0)", { class: "rd-small", "text-anchor": "end" }, g);
+      for (const [s, k, d_] of [[sTh, "th", 1], [sSx, "sx", 2], [sSy, "sy", 2], [sSh, "sh", 2], [sTx, "tx", 0], [sTy, "ty", 0]]) s.out.textContent = st[k].toFixed(d_);
+      const f4 = x => x.toFixed(4);
+      out.innerHTML = `
+        <tr><td colspan="2">E = a·x + b·y + c, &nbsp; N = d·x + e·y + f</td></tr>
+        <tr><td>a, b</td><td>${f4(a)}, ${f4(b)}</td></tr>
+        <tr><td>d, e</td><td>${f4(d)}, ${f4(e)}</td></tr>
+        <tr><td>c, f</td><td>${cE.toFixed(3)}, ${cN.toFixed(3)}</td></tr>
+        <tr><td>Μέγεθος pixel κατά x, y</td><td>${Math.hypot(a, d).toFixed(3)} m, ${Math.hypot(b, e).toFixed(3)} m</td></tr>`;
+      wf.textContent = [a, d, b, e, cE + a / 2 + b / 2, cN + d / 2 + e / 2].map((v, i) => i < 4 ? v.toFixed(10) : v.toFixed(4)).join("\n");
+    }
+    upd();
+  }
+
+  /* ---------- σημεία ελέγχου, ελάχιστα τετράγωνα, υπόλοιπα ---------- */
+  function buildGCP(root) {
+    root.innerHTML = ""; root.classList.add("quad");
+    const W = 560, H = 440, ox = 60, oy = 40, Ks = 1.1;           // εικόνα 400×300 σχεδιάζεται ×1.1
+    const S = makeSvg(root, W, H);
+    const g = S.el("g");
+    // κρυφός «αληθής» μετασχηματισμός εικόνας → ΕΓΣΑ
+    const th = 0.12, sc = 0.5;
+    const TT = [sc * Math.cos(th), sc * Math.sin(th), 0, sc * Math.sin(th), -sc * Math.cos(th), 0];
+    TT[2] = 480500 - (TT[0] * 200 + TT[1] * 150); TT[5] = 4203350 - (TT[3] * 200 + TT[4] * 150);
+    // σταυρονήματα σε στρογγυλές συντεταγμένες· η θέση τους στην εικόνα βγαίνει από τον αντίστροφο
+    const gcp = [[480430, 4203395], [480570, 4203395], [480570, 4203305], [480430, 4203305], [480500, 4203350]]
+      .map(([E, N], i) => ({ id: i + 1, E, N, x: 0, y: 0, mx: 0, my: 0 }));
+    const Ti = inv6(TT);
+    gcp.forEach(p => { [p.x, p.y] = applyA6(Ti, p.E, p.N); p.mx = p.x; p.my = p.y; });
+    gcp[1].mx += 6; gcp[1].my -= 4;                                // ένα «κακό» κλικ
+    const st = { use: [true, true, true, true, true], X: 40 };
+    const out = h("tbody"), res = h("p", { class: "small rd-step" });
+    const chk = gcp.map((p, i) => { const c = h("input", { type: "checkbox", checked: true }); c.onchange = () => { st.use[i] = c.checked; upd(); }; return h("label", { class: "rd-chk" }, c, " Σ" + p.id); });
+    root.append(h("div", { class: "quad-panel" },
+      h("div", { class: "rd-btns" }, h("span", { class: "small" }, "Σημεία στη λύση: "), ...chk),
+      h("div", { class: "rd-btns" },
+        h("button", { onclick: () => { gcp.forEach(p => { p.mx = p.x; p.my = p.y; }); upd(); } }, "Ακριβή κλικ"),
+        h("button", { onclick: () => { gcp.forEach(p => { p.mx = p.x + gauss() * 1.2; p.my = p.y + gauss() * 1.2; }); upd(); } }, "Τυχαία μικρά σφάλματα")),
+      res, h("table", { class: "tbl quad-tbl" },
+        h("thead", {}, h("tr", {}, ...["Σημ.", "E", "N", "v_E (m)", "v_N (m)", "|v| (m)"].map(s => h("th", {}, s)))), out),
+      h("p", { class: "muted small" }, "Σύρε τις κόκκινες κουκκίδες: είναι το σημείο όπου «έκανες κλικ» για κάθε σταυρόνημα. ",
+        "Τα βέλη δείχνουν τα υπόλοιπα (μεγεθυμένα ×", String(st.X), "). Με 3 σημεία τα υπόλοιπα είναι πάντα μηδέν: δεν υπάρχει κανένας έλεγχος.")));
+    let drag = null;
+    const toImg = (x, y) => [(x - ox) / Ks, (y - oy) / Ks];
+    S.svg.addEventListener("pointerdown", ev => {
+      const [x, y] = toImg(...S.pt(ev));
+      let best = null, bd = 25;
+      gcp.forEach(p => { const d = Math.hypot(p.mx - x, p.my - y); if (d < bd) { bd = d; best = p; } });
+      if (best) { drag = best; S.svg.setPointerCapture(ev.pointerId); }
+    });
+    S.svg.addEventListener("pointermove", ev => { if (!drag) return; const [x, y] = toImg(...S.pt(ev)); drag.mx = x; drag.my = y; upd(); });
+    S.svg.addEventListener("pointerup", () => drag = null);
+    function upd() {
+      const used = gcp.filter((_, i) => st.use[i]);
+      g.innerHTML = "";
+      const el = (n, a_) => S.el(n, a_, g), P = (x, y) => [ox + x * Ks, oy + y * Ks];
+      el("rect", { x: ox, y: oy, width: IMG_W * Ks, height: IMG_H * Ks, fill: "#eef3ea", stroke: "#666", "stroke-width": 1.5 });
+      S.txt(ox, oy - 10, "Εικόνα (pixel)", { class: "rd-small" }, g);
+      for (const p of gcp) {
+        const [x, y] = P(p.x, p.y);
+        for (const [w, c] of [[3.5, "#000"], [1.3, "#fff"]]) el("path", { d: `M${x - 12},${y} L${x + 12},${y} M${x},${y - 12} L${x},${y + 12}`, stroke: c, "stroke-width": w });
+        S.txt(x + 8, y + 22, `Σ${p.id} (${p.E}, ${p.N})`, { class: "rd-small" }, g);
+      }
+      let A = null;
+      const rows = [];
+      if (used.length >= 3) {
+        // ελάχιστα τετράγωνα: (x_κλικ, y_κλικ) → (E, N)
+        A = lsq6(used.map(p => [p.mx, p.my]), used.map(p => [p.E, p.N]));
+      }
+      let s2 = 0;
+      for (const [i, p] of gcp.entries()) {
+        const [mx, my] = P(p.mx, p.my);
+        if (A) {
+          const [Ec, Nc] = applyA6(A, p.mx, p.my), vE = p.E - Ec, vN = p.N - Nc;
+          if (st.use[i]) s2 += vE * vE + vN * vN;
+          // βέλος υπολοίπου στην εικόνα: κατεύθυνση (vE, vN) → pixel με τον αντίστροφο
+          const Ai = inv6(A), [qx, qy] = applyA6(Ai, Ec + vE * st.X, Nc + vN * st.X), [ex, ey] = P(qx, qy);
+          if (Math.hypot(vE, vN) > 1e-6) el("line", { x1: mx, y1: my, x2: ex, y2: ey, stroke: st.use[i] ? COL.orange : "#999", "stroke-width": 2, "marker-end": st.use[i] ? S.mk.orange : S.mk.grey });
+          rows.push(h("tr", { class: st.use[i] ? "" : "muted" }, h("td", {}, "Σ" + p.id + (st.use[i] ? "" : " (έλεγχος)")), h("td", {}, String(p.E)), h("td", {}, String(p.N)),
+            h("td", {}, vE.toFixed(3)), h("td", {}, vN.toFixed(3)), h("td", {}, Math.hypot(vE, vN).toFixed(3))));
+        }
+        el("circle", { cx: mx, cy: my, r: 6, fill: st.use[i] ? COL.red : "#bbb", stroke: "#111", "stroke-width": 1.2, class: "q-handle" });
+      }
+      out.innerHTML = ""; rows.forEach(r => out.append(r));
+      const n = used.length, rmse = n ? Math.sqrt(s2 / n) : 0, sigma0 = n > 3 ? Math.sqrt(s2 / (2 * n - 6)) : null;
+      res.innerHTML = n < 3 ? "Χρειάζονται τουλάχιστον 3 σημεία (6 εξισώσεις για 6 αγνώστους)." :
+        `Σημεία: <b>${n}</b> · εξισώσεις ${2 * n}, άγνωστοι 6, πλεονάζουσες <b>${2 * n - 6}</b> · RMSE = <b>${rmse.toFixed(3)} m</b>` +
+        (sigma0 != null ? ` · σ<sub>0</sub> = ${sigma0.toFixed(3)} m` : " (χωρίς πλεονάζουσες: κανένας έλεγχος)");
+    }
+    upd();
+  }
+  function applyA6(A, x, y) { return [A[0] * x + A[1] * y + A[2], A[3] * x + A[4] * y + A[5]]; }
+  function inv6(A) { const [a, b, c, d, e, f] = A, D = a * e - b * d; return [e / D, -b / D, (b * f - c * e) / D, -d / D, a / D, (c * d - a * f) / D]; }
+  function lsq6(src, dst) {
+    const N = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], bx = [0, 0, 0], by = [0, 0, 0];
+    src.forEach(([x, y], i) => { const r = [x, y, 1];
+      for (let p = 0; p < 3; p++) { for (let q = 0; q < 3; q++) N[p][q] += r[p] * r[q]; bx[p] += r[p] * dst[i][0]; by[p] += r[p] * dst[i][1]; } });
+    const sol = b => { const M = N.map((r, i) => [...r, b[i]]);
+      for (let c = 0; c < 3; c++) { let p = c; for (let r = c + 1; r < 3; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r; [M[c], M[p]] = [M[p], M[c]];
+        for (let r = 0; r < 3; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k < 4; k++) M[r][k] -= f * M[c][k]; } }
+      return [M[0][3] / M[0][0], M[1][3] / M[1][1], M[2][3] / M[2][2]]; };
+    return [...sol(bx), ...sol(by)];
+  }
+
   function build() {
     const map = { "red-field": buildField, "red-faces": buildFaces, "red-zero": buildZero, "red-zenith": buildZenith, "red-obstacle": buildObstacle,
                   "ty-polar": buildPolar, "ty-height": buildTHeight, "ty-curv": buildCurv, "ty-sketch": buildSketch,
                   "fp-1": buildFP1, "fp-2": buildFP2, "fp-3": buildFP3, "ex-trav": buildTravEx,
-                  "ph1-types": buildTypes, "ph1-scale": buildScale, "ph1-center": buildCenter, "ph1-los": buildLos };
+                  "ph1-types": buildTypes, "ph1-scale": buildScale, "ph1-center": buildCenter, "ph1-los": buildLos,
+                  "ph6-affine": buildAffine, "ph6-gcp": buildGCP };
     for (const [id, fn] of Object.entries(map)) { const c = document.getElementById(id); if (c) fn(c); }
   }
 
