@@ -11,6 +11,8 @@
 const Phase6 = (() => {
   const S = () => Store.s;
   const GRID = 100;                                  // σταυρονήματα ανά 100 m
+  const N_DEF = 3, N_MIN = 2, N_MAX = 15;             // σταυρονήματα ανά πλευρά (προεπιλογή 3 × 3)
+  const nCross = () => Math.max(N_MIN, Math.min(N_MAX, Math.round(S().geoN || N_DEF)));
   const TOL = [1, 5];                                // ανοχές θέσης (m): πλήρης / μισός βαθμός
 
   const SOURCES = {
@@ -69,10 +71,16 @@ const Phase6 = (() => {
   function layout(source) {
     const st = S(), a = st.area;
     const cs = [[a.south, a.west], [a.south, a.east], [a.north, a.west], [a.north, a.east]].map(([la, lo]) => GEO.toEGSA(la, lo));
-    const E0 = Math.floor(Math.min(...cs.map(c => c.E)) / 10) * 10, E1 = Math.ceil(Math.max(...cs.map(c => c.E)) / 10) * 10;
-    const N0 = Math.floor(Math.min(...cs.map(c => c.N)) / 10) * 10, N1 = Math.ceil(Math.max(...cs.map(c => c.N)) / 10) * 10;
-    const pix = Math.max(0.5, Math.ceil(Math.max(E1 - E0, N1 - N0) / 3000 / 0.05) * 0.05);
-    const ML = 120, MR = 50, MT = 130, MB = 120;
+    // έκταση: n × n σταυρονήματα ανά GRID m, με κέντρο την περιοχή μελέτης και μισό διάστημα περιθώριο
+    const n = nCross();
+    const cE = (Math.min(...cs.map(c => c.E)) + Math.max(...cs.map(c => c.E))) / 2;
+    const cN = (Math.min(...cs.map(c => c.N)) + Math.max(...cs.map(c => c.N))) / 2;
+    const fE = Math.round((cE - (n - 1) * GRID / 2) / GRID) * GRID, fN = Math.round((cN - (n - 1) * GRID / 2) / GRID) * GRID;
+    const E0 = fE - GRID / 2, E1 = fE + (n - 1) * GRID + GRID / 2;
+    const N0 = fN - GRID / 2, N1 = fN + (n - 1) * GRID + GRID / 2;
+    // μέγεθος pixel 0.25–0.5 m, ώστε ο χάρτης να έχει τουλάχιστον ~1000 pixel πλάτος
+    const pix = Math.max(0.25, Math.min(0.5, Math.round(n * GRID / 1000 / 0.05) * 0.05));
+    const ML = 120, MR = 50, MT = 140, MB = 160;
     const mapW = Math.round((E1 - E0) / pix), mapH = Math.round((N1 - N0) / pix);
     const sheet = { ML, MT, mapW, mapH, W: ML + mapW + MR, H: MT + mapH + MB };
     // φύλλο (u, v) → ΕΓΣΑ 87
@@ -94,7 +102,7 @@ const Phase6 = (() => {
     const W = Math.ceil(Math.max(...pts.map(p => p[0])) - minX + 2 * pad), H = Math.ceil(Math.max(...pts.map(p => p[1])) - minY + 2 * pad);
     // αληθής μετασχηματισμός: εικόνα (x, y, γωνία pixel) → ΕΓΣΑ 87
     const T = compA(sheetToEN, invA(L));
-    return { source, E0, E1, N0, N1, pix, sheet, sheetToEN, L, W, H, T, th, sx, sy, sh };
+    return { source, n, E0, E1, N0, N1, pix, sheet, sheetToEN, L, W, H, T, th, sx, sy, sh };
   }
 
   /* ---------------- λήψη πλακιδίων ---------------- */
@@ -197,12 +205,24 @@ const Phase6 = (() => {
     }
     // τίτλος και υπόμνημα
     ctx.fillStyle = "#000"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-    ctx.font = "700 26px Arial"; ctx.fillText("ΑΠΟΣΠΑΣΜΑ ΟΡΘΟΦΩΤΟΧΑΡΤΗ — ΕΓΣΑ 87", ML, 42);
+    // κείμενο που αναδιπλώνεται στο πλάτος του χάρτη
+    const wrap = (text, x, y, maxW, lh) => {
+      let line = "", yy = y;
+      for (const w of text.split(" ")) {
+        const t = line ? line + " " + w : w;
+        if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line, x, yy); line = w; yy += lh; } else line = t;
+      }
+      if (line) ctx.fillText(line, x, yy);
+      return yy;
+    };
+    const tw = mapW;
+    ctx.font = `700 ${Math.min(26, Math.max(18, tw / 26))}px Arial`;
+    wrap("ΑΠΟΣΠΑΣΜΑ ΟΡΘΟΦΩΤΟΧΑΡΤΗ — ΕΓΣΑ 87", ML, 42, tw, 28);
     ctx.font = "15px Arial";
-    ctx.fillText(`Φοιτητής: ${st.student.name || "—"} (ΑΜ ${st.student.am || "—"}) · CTopoSim · Σταυρονήματα ανά ${GRID} m`, ML, 66);
+    wrap(`Φοιτητής: ${st.student.name || "—"} (ΑΜ ${st.student.am || "—"}) · CTopoSim · Σταυρονήματα ${G.n} × ${G.n} ανά ${GRID} m`, ML, 70, tw, 18);
     const yb = MT + mapH + 58;
-    ctx.fillText(src.attr, ML, yb + 40);
-    ctx.fillText("Τα σταυρονήματα είναι σε συντεταγμένες ΕΓΣΑ 87 (E, N σε m). Η εικόνα δεν περιέχει γεωαναφορά.", ML, yb + 62);
+    const y2 = wrap(src.attr, ML, yb + 40, tw, 19);
+    wrap("Τα σταυρονήματα είναι σε συντεταγμένες ΕΓΣΑ 87 (E, N σε m). Η εικόνα δεν περιέχει γεωαναφορά.", ML, y2 + 22, tw, 19);
     // κλίμακα γραφική
     const L100 = 100 / G.pix;
     ctx.fillRect(ML, yb, L100 / 2, 8); ctx.strokeRect(ML, yb, L100, 8);
@@ -347,8 +367,10 @@ const Phase6 = (() => {
     if (!st.student.am) return toast("Συμπλήρωσε πρώτα τον ΑΜ σου (πάνω δεξιά): η εικόνα είναι προσωπική.", "warn");
     if (busy) return;
     const source = $("#p6-src").value;
-    if (st.geo && st.geo.source !== source && st.results.p6 &&
-        !confirm("Η νέα πηγή δίνει διαφορετική εικόνα. Η επόμενη υποβολή θα συγκριθεί με τη νέα εικόνα. Συνέχεια;")) return;
+    st.geoN = Math.max(N_MIN, Math.min(N_MAX, parseInt($("#p6-n").value, 10) || N_DEF));
+    $("#p6-n").value = st.geoN;
+    if (st.geo && (st.geo.source !== source || (st.geo.n || 0) !== st.geoN) && st.results.p6 &&
+        !confirm("Η νέα πηγή ή το νέο πλήθος σταυρονημάτων δίνει διαφορετική εικόνα. Η επόμενη υποβολή θα συγκριθεί με τη νέα εικόνα. Συνέχεια;")) return;
     busy = true; $("#p6-gen").disabled = true;
     const stat = $("#p6-status");
     try {
@@ -356,7 +378,7 @@ const Phase6 = (() => {
       const r = await render(source, (d, n) => stat.textContent = `Λήψη πλακιδίων ${d}/${n}…`);
       lastCanvas = r.canvas;
       const G = r.G;
-      st.geo = { source, W: G.W, H: G.H, T: G.T, pix: G.pix, z: r.z, created: new Date().toISOString(),
+      st.geo = { source, n: G.n, W: G.W, H: G.H, T: G.T, pix: G.pix, z: r.z, created: new Date().toISOString(),
                  bbox: [G.E0, G.N0, G.E1, G.N1] };
       Store.save();
       const pv = $("#p6-prev"), sc = Math.min(1, 520 / G.W);
@@ -384,6 +406,7 @@ const Phase6 = (() => {
     if (st.geo && !lastCanvas) $("#p6-status").textContent =
       `Έχεις ήδη δημιουργήσει εικόνα (${SOURCES[st.geo.source].label}). Πάτα «Δημιουργία» για να την ξαναφτιάξεις και να την κατεβάσεις· θα είναι ίδια.`;
     if (st.geo && !busy) $("#p6-src").value = st.geo.source;
+    if (!busy) $("#p6-n").value = nCross();
     Grading.renderResult($("#p6-result"), st.results.p6, "p6");
     drawCompare();
   }

@@ -6,7 +6,7 @@
 <title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="css/style.css?v=33">
+<link rel="stylesheet" href="css/style.css?v=35">
 </head>
 <body>
 
@@ -640,10 +640,11 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
     <div id="p6-work" hidden>
       <div class="card">
         <h3>Α. Ο ορθοφωτοχάρτης της περιοχής σου</h3>
-        <p>Η εφαρμογή φτιάχνει ένα <b>απόσπασμα ορθοφωτοχάρτη</b> της περιοχής μελέτης, με σταυρονήματα ΕΓΣΑ 87 ανά 100 m. Η εικόνα είναι PNG <b>χωρίς γεωαναφορά</b>
+        <p>Η εφαρμογή φτιάχνει ένα <b>απόσπασμα ορθοφωτοχάρτη</b> της περιοχής μελέτης, με σταυρονήματα ΕΓΣΑ 87 ανά 100 m. Ο χάρτης έχει κέντρο την περιοχή μελέτης και μέγεθος ανάλογο με το πλήθος των σταυρονημάτων (προεπιλογή 3 × 3, δηλαδή 300 × 300 m). Η εικόνα είναι PNG <b>χωρίς γεωαναφορά</b>
         και έχει μια παραμόρφωση (κλίμακα, και στη δορυφορική εικόνα και στροφή) που είναι διαφορετική για κάθε φοιτητή.</p>
         <div class="row">
           <label>Πηγή εικόνας <select id="p6-src"></select></label>
+          <label>Σταυρονήματα <input type="number" id="p6-n" min="2" max="15" step="1" value="3" style="width:60px"> × ίδια (ανά 100 m, έως 15 × 15)</label>
           <button id="p6-gen" class="primary">🛰 Δημιουργία ορθοφωτοχάρτη</button>
           <button id="p6-dl" disabled>⬇ Λήψη PNG</button>
         </div>
@@ -756,20 +757,20 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="js/geo.js?v=33"></script>
-<script src="js/dem.js?v=33"></script>
-<script src="js/sim.js?v=33"></script>
-<script src="js/ui.js?v=33"></script>
-<script src="js/xlsx.js?v=33"></script>
-<script src="js/buildings3d.js?v=33"></script>
-<script src="js/mapview.js?v=33"></script>
-<script src="js/phase1.js?v=33"></script>
-<script src="js/phase2.js?v=33"></script>
-<script src="js/phases34.js?v=33"></script>
-<script src="js/phase5.js?v=33"></script>
-<script src="js/phase6.js?v=33"></script>
-<script src="js/quadrant.js?v=33"></script>
-<script src="js/reduction.js?v=33"></script>
-<script src="js/app.js?v=33"></script>
+<script src="js/geo.js?v=35"></script>
+<script src="js/dem.js?v=35"></script>
+<script src="js/sim.js?v=35"></script>
+<script src="js/ui.js?v=35"></script>
+<script src="js/xlsx.js?v=35"></script>
+<script src="js/buildings3d.js?v=35"></script>
+<script src="js/mapview.js?v=35"></script>
+<script src="js/phase1.js?v=35"></script>
+<script src="js/phase2.js?v=35"></script>
+<script src="js/phases34.js?v=35"></script>
+<script src="js/phase5.js?v=35"></script>
+<script src="js/phase6.js?v=35"></script>
+<script src="js/quadrant.js?v=35"></script>
+<script src="js/reduction.js?v=35"></script>
+<script src="js/app.js?v=35"></script>
 </body>
 </html>
