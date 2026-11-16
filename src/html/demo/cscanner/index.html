@@ -87,14 +87,23 @@
           <option value="landscape">Οριζόντιο</option>
         </select>
       </div>
-      <div id="cropStage" class="crop-stage">
-        <img id="cropImage" alt="Προς περικοπή εικόνα">
-        <svg id="cropOverlaySvg" class="crop-overlay-svg">
-          <path id="cropShade" class="crop-shade" fill-rule="evenodd"></path>
-          <polygon id="cropFrame" class="crop-frame"></polygon>
-          <polygon id="cropPolygon" class="crop-polygon"></polygon>
-        </svg>
-        <div id="cropHandles"></div>
+      <div class="crop-zoombar">
+        <button id="cropZoomOut" class="icon-btn" type="button" title="Σμίκρυνση">−</button>
+        <span id="cropZoomLabel" class="crop-zoom-label">100%</span>
+        <button id="cropZoomIn" class="icon-btn" type="button" title="Μεγέθυνση">+</button>
+        <button id="cropZoomFit" class="btn crop-zoom-fit" type="button">Προσαρμογή</button>
+        <span class="hint">Ροδέλα ή διπλό κλικ για ζουμ · σύρσιμο σε κενό σημείο για μετακίνηση</span>
+      </div>
+      <div id="cropViewport" class="crop-viewport">
+        <div id="cropStage" class="crop-stage">
+          <img id="cropImage" alt="Προς περικοπή εικόνα">
+          <svg id="cropOverlaySvg" class="crop-overlay-svg">
+            <path id="cropShade" class="crop-shade" fill-rule="evenodd"></path>
+            <polygon id="cropFrame" class="crop-frame"></polygon>
+            <polygon id="cropPolygon" class="crop-polygon"></polygon>
+          </svg>
+          <div id="cropHandles"></div>
+        </div>
       </div>
       <div class="crop-actions">
         <button id="cropResetBtn" class="btn" type="button">Επαναφορά</button>

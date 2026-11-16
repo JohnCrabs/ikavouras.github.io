@@ -32,6 +32,15 @@
   const cancelBtn = document.getElementById("cropCancelBtn");
   const resetBtn = document.getElementById("cropResetBtn");
   const stepInfo = document.getElementById("cropStepInfo");
+  const viewport = document.getElementById("cropViewport");
+  const zoomInBtn = document.getElementById("cropZoomIn");
+  const zoomOutBtn = document.getElementById("cropZoomOut");
+  const zoomFitBtn = document.getElementById("cropZoomFit");
+  const zoomLabel = document.getElementById("cropZoomLabel");
+
+  const ZOOM_MIN = 1;
+  const ZOOM_MAX = 10;
+  const ZOOM_STEP = 1.25;
 
   let resolver = null;
   let srcW = 0;
@@ -40,6 +49,16 @@
   let pad = 0; // display px of free margin around the image (frame corners may go there)
   let dispW = 0;
   let dispH = 0;
+
+  // Zoom: the viewport keeps the "fit" size; the stage inside it grows by `zoom` and is panned.
+  let baseS = 1; // display px per natural px at zoom 1
+  let basePad = 0;
+  let vpW = 0;
+  let vpH = 0;
+  let zoom = 1;
+  let panX = 0;
+  let panY = 0;
+  let panDrag = null; // {x, y, panX, panY}
 
   let state = null; // {mode, quad[4], polygon[], frame[4], orientation}
   let drag = null; // {kind: 'q'|'p'|'f', index, dx, dy} (dx/dy: grab offset, natural px)
@@ -258,12 +277,22 @@
 
   function layout() {
     const availW = Math.min(window.innerWidth * 0.9, 1400) - 40;
-    const availH = Math.max(window.innerHeight - 340, 240);
-    pad = Math.round(Math.min(availW, availH) * 0.1);
-    const s = Math.min((availW - 2 * pad) / srcW, (availH - 2 * pad) / srcH, 3);
-    dispW = Math.max(1, Math.round(srcW * s));
-    dispH = Math.max(1, Math.round(srcH * s));
-    scale = srcW / dispW;
+    const availH = Math.max(window.innerHeight - 380, 240);
+    basePad = Math.round(Math.min(availW, availH) * 0.1);
+    baseS = Math.min((availW - 2 * basePad) / srcW, (availH - 2 * basePad) / srcH, 3);
+    vpW = Math.round(srcW * baseS + 2 * basePad);
+    vpH = Math.round(srcH * baseS + 2 * basePad);
+    viewport.style.width = vpW + "px";
+    viewport.style.height = vpH + "px";
+    applyZoom();
+  }
+
+  function applyZoom() {
+    const s = baseS * zoom;
+    dispW = srcW * s;
+    dispH = srcH * s;
+    pad = basePad * zoom;
+    scale = 1 / s;
     const stageW = dispW + 2 * pad;
     const stageH = dispH + 2 * pad;
     stage.style.width = stageW + "px";
@@ -273,12 +302,85 @@
     img.style.top = pad + "px";
     img.style.width = dispW + "px";
     img.style.height = dispH + "px";
+
+    // Keep the stage covering the viewport.
+    panX = Math.min(0, Math.max(vpW - stageW, panX));
+    panY = Math.min(0, Math.max(vpH - stageH, panY));
+    stage.style.left = panX + "px";
+    stage.style.top = panY + "px";
+
+    zoomLabel.textContent = Math.round(zoom * 100) + "%";
+    zoomOutBtn.disabled = zoom <= ZOOM_MIN;
+    zoomInBtn.disabled = zoom >= ZOOM_MAX;
+    viewport.classList.toggle("zoomed", zoom > ZOOM_MIN);
+    if (state) updatePositions();
+  }
+
+  /** Zooms keeping the point at viewport coords (vx, vy) fixed on screen. */
+  function zoomAt(newZoom, vx, vy) {
+    newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
+    if (newZoom === zoom) return;
+    const nx = (vx - panX - pad) * scale;
+    const ny = (vy - panY - pad) * scale;
+    zoom = newZoom;
+    const s = baseS * zoom;
+    const p = basePad * zoom;
+    panX = vx - (nx * s + p);
+    panY = vy - (ny * s + p);
+    applyZoom();
+  }
+
+  function viewportPoint(e) {
+    const r = viewport.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  zoomInBtn.addEventListener("click", () => zoomAt(zoom * ZOOM_STEP, vpW / 2, vpH / 2));
+  zoomOutBtn.addEventListener("click", () => zoomAt(zoom / ZOOM_STEP, vpW / 2, vpH / 2));
+  zoomFitBtn.addEventListener("click", () => zoomAt(ZOOM_MIN, vpW / 2, vpH / 2));
+
+  viewport.addEventListener("wheel", (e) => {
+    if (modal.hidden) return;
+    e.preventDefault();
+    const v = viewportPoint(e);
+    zoomAt(zoom * (e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP), v.x, v.y);
+  }, { passive: false });
+
+  viewport.addEventListener("dblclick", (e) => {
+    if (e.target.closest(".crop-handle")) return;
+    const v = viewportPoint(e);
+    zoomAt(zoom * 2, v.x, v.y);
+  });
+
+  // Pan: drag on an empty area (left button, when zoomed in), or middle button anywhere.
+  viewport.addEventListener("pointerdown", (e) => {
+    const onHandle = e.target.closest(".crop-handle");
+    if ((onHandle && e.button === 0) || e.button === 2) return;
+    if (zoom <= ZOOM_MIN && e.button === 0) return;
+    e.preventDefault();
+    panDrag = { x: e.clientX, y: e.clientY, panX, panY };
+    viewport.classList.add("panning");
+    window.addEventListener("pointermove", onPanMove);
+    window.addEventListener("pointerup", onPanUp);
+  });
+
+  function onPanMove(e) {
+    if (!panDrag) return;
+    panX = panDrag.panX + (e.clientX - panDrag.x);
+    panY = panDrag.panY + (e.clientY - panDrag.y);
+    applyZoom();
+  }
+
+  function onPanUp() {
+    panDrag = null;
+    viewport.classList.remove("panning");
+    window.removeEventListener("pointermove", onPanMove);
+    window.removeEventListener("pointerup", onPanUp);
   }
 
   window.addEventListener("resize", () => {
     if (modal.hidden || !state) return;
     layout();
-    updatePositions();
   });
 
   /**
@@ -310,6 +412,9 @@
 
       modal.hidden = false;
       img.src = rawCanvas.toDataURL("image/jpeg", 0.85);
+      zoom = 1;
+      panX = 0;
+      panY = 0;
       layout();
       syncModeUi();
       rebuildHandles();

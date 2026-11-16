@@ -257,12 +257,28 @@ main {
 .crop-step { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
 .crop-modal-inner .hint { max-width: 640px; text-align: center; }
 
-.crop-stage {
+.crop-viewport {
   position: relative;
-  margin: 10px 0;
-  touch-action: none;
+  overflow: hidden;
+  margin: 6px 0 10px;
   flex-shrink: 0;
   border-radius: 6px;
+  background: #d5d9df;
+  touch-action: none;
+}
+.crop-viewport.zoomed { cursor: grab; }
+.crop-viewport.panning { cursor: grabbing; }
+.crop-zoombar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.crop-zoombar .hint { margin: 0 0 0 6px; }
+.crop-zoombar .icon-btn:disabled { opacity: 0.4; cursor: default; }
+.crop-zoom-label { min-width: 48px; text-align: center; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.crop-zoombar .crop-zoom-fit { padding: 5px 10px; font-size: 0.82rem; background: #eef0f3; }
+
+.crop-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  touch-action: none;
   background-color: #e8ebef;
   background-image:
     linear-gradient(45deg, #dde1e6 25%, transparent 25%, transparent 75%, #dde1e6 75%),
