@@ -6,7 +6,7 @@
 <title>CTopoSim — Προσομοιωτής Πολυγωνομετρίας &amp; Ταχυμετρίας</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="css/style.css?v=36">
+<link rel="stylesheet" href="css/style.css?v=43">
 </head>
 <body>
 
@@ -657,7 +657,7 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
         <ol class="steps">
           <li>Άνοιξε το <b>Georeferencer</b> (Layer → Georeferencer) και φόρτωσε το PNG.</li>
           <li>Όρισε <b>τουλάχιστον 4 σημεία ελέγχου</b> πάνω σε σταυρονήματα, κατά προτίμηση κοντά στις γωνίες, και γράψε τις συντεταγμένες E, N από το περιθώριο.</li>
-          <li>Στις ρυθμίσεις: τύπος μετασχηματισμού <b>Affine</b>, σύστημα προορισμού <b>EPSG:2100 (ΕΓΣΑ 87)</b>. Έλεγξε τα υπόλοιπα (residuals) των σημείων.</li>
+          <li>Στις ρυθμίσεις: τύπος μετασχηματισμού <b>Polynomial 1</b> (είναι ο αφινικός· <b>όχι</b> «Linear», που δεν επιτρέπει στροφή), σύστημα προορισμού <b>EPSG:2100 (ΕΓΣΑ 87)</b>. Έλεγξε τα υπόλοιπα (residuals): πρέπει να είναι λίγα pixel. Υπόλοιπα δεκάδων ή εκατοντάδων pixel σημαίνουν λάθος μετασχηματισμό ή λάθος συντεταγμένες σε κάποιο σημείο.</li>
           <li>Εκτέλεσε τη γεωαναφορά: προκύπτει GeoTIFF. Εναλλακτικά, επίλεξε «Create world file only» για να πάρεις world file (.pgw).</li>
           <li>Προαιρετικός έλεγχος: φόρτωσε από κάτω ένα υπόβαθρο (π.χ. WMS του Κτηματολογίου) και δες αν τα κτίρια ταιριάζουν.</li>
         </ol>
@@ -665,9 +665,10 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
       <div class="card">
         <h3>Γ. Υποβολή</h3>
         <div class="row"><input type="file" id="p6-file" accept=".tif,.tiff,.pgw,.pngw,.wld,.jgw,.tfw,.tifw" multiple><button id="p6-submit" class="primary">Υποβολή</button></div>
-        <p class="muted small">Ανέβασε το <b>GeoTIFF</b> που έβγαλε το QGIS ή το <b>world file</b> (.pgw/.wld). Ανοχές θέσης: ±1 m για πλήρη βαθμό, ±5 m για μισό.
+        <p class="muted small">Ανέβασε το <b>GeoTIFF</b> που έβγαλε το QGIS ή το <b>world file</b> (.pgw/.wld). Ανοχές θέσης: ±0.125 m για πλήρη βαθμό, ±0.25 m για μισό· πάνω από 0.25 m το σημείο δεν παίρνει βαθμό. Η εφαρμογή εντοπίζει κάθε σταυρόνημα μέσα στο GeoTIFF σου και μετρά πόσο απέχει από τη σωστή του θέση, άρα ελέγχεται πόσο καλά «κουμπώνει» η εικόνα σε όλη την περιοχή, όποια σημεία ελέγχου κι αν χρησιμοποίησες.
         Βάρη: θέση 85%, σύστημα αναφοράς ΕΓΣΑ 87 15%.</p>
         <div id="p6-result"></div>
+        <p id="p6-sub-status" class="muted small"></p>
         <canvas id="p6-cmp" class="p6-cmp" hidden></canvas>
       </div>
     </div>
@@ -722,7 +723,7 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
           Τα $c'$, $f'$ αναφέρονται στο <b>κέντρο</b> του πάνω αριστερού pixel: $c' = c + a/2 + b/2$, $f' = f + d/2 + e/2$. Το σύστημα αναφοράς δεν γράφεται μέσα: το δηλώνουμε χωριστά.</li>
         <li><b>GeoTIFF</b>: TIFF με ειδικά tags (ModelTiepoint, ModelPixelScale ή ModelTransformation, και GeoKeys με τον κωδικό EPSG). Περιέχει μαζί την εικόνα, τον μετασχηματισμό και το σύστημα αναφοράς.</li>
       </ul>
-      <p>Το QGIS (Georeferencer) με μετασχηματισμό Affine συνήθως <b>ξαναδειγματοληπτεί</b> την εικόνα σε νέο GeoTIFF με τον Βορρά προς τα πάνω (warp).
+      <p>Το QGIS (Georeferencer) με μετασχηματισμό Polynomial 1 (αφινικό) συνήθως <b>ξαναδειγματοληπτεί</b> την εικόνα σε νέο GeoTIFF με τον Βορρά προς τα πάνω (warp).
       Η εικόνα έχει τότε άλλο μέγεθος, και τα κενά γύρω της είναι «χωρίς δεδομένα». Με την επιλογή «Create world file only» κρατά την αρχική εικόνα και γράφει μόνο το world file.</p>
 
       <h3>6. Πώς βαθμολογείται</h3>
@@ -757,20 +758,20 @@ $$v_{h_i} = w_h\,\frac{D_i}{\sum D}, \qquad H_{i+1} = H_i + \Delta h_i + v_{h_i}
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<script src="js/geo.js?v=36"></script>
-<script src="js/dem.js?v=36"></script>
-<script src="js/sim.js?v=36"></script>
-<script src="js/ui.js?v=36"></script>
-<script src="js/xlsx.js?v=36"></script>
-<script src="js/buildings3d.js?v=36"></script>
-<script src="js/mapview.js?v=36"></script>
-<script src="js/phase1.js?v=36"></script>
-<script src="js/phase2.js?v=36"></script>
-<script src="js/phases34.js?v=36"></script>
-<script src="js/phase5.js?v=36"></script>
-<script src="js/phase6.js?v=36"></script>
-<script src="js/quadrant.js?v=36"></script>
-<script src="js/reduction.js?v=36"></script>
-<script src="js/app.js?v=36"></script>
+<script src="js/geo.js?v=43"></script>
+<script src="js/dem.js?v=43"></script>
+<script src="js/sim.js?v=43"></script>
+<script src="js/ui.js?v=43"></script>
+<script src="js/xlsx.js?v=43"></script>
+<script src="js/buildings3d.js?v=43"></script>
+<script src="js/mapview.js?v=43"></script>
+<script src="js/phase1.js?v=43"></script>
+<script src="js/phase2.js?v=43"></script>
+<script src="js/phases34.js?v=43"></script>
+<script src="js/phase5.js?v=43"></script>
+<script src="js/phase6.js?v=43"></script>
+<script src="js/quadrant.js?v=43"></script>
+<script src="js/reduction.js?v=43"></script>
+<script src="js/app.js?v=43"></script>
 </body>
 </html>

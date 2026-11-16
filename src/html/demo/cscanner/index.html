@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CScanner</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>📄 CScanner</h1>
+  <p class="tagline">Μετατροπή φωτογραφιών εγγράφων σε PDF σαν σκάνερ — όλα τοπικά, χωρίς upload</p>
+</header>
+
+<main>
+  <section class="panel" id="upload-panel">
+    <h2>1. Προσθήκη σελίδων</h2>
+    <div id="dropzone" class="dropzone">
+      <p>Σύρετε εικόνες εδώ ή</p>
+      <label class="btn btn-primary" for="fileInput">Επιλογή αρχείων</label>
+      <input type="file" id="fileInput" accept="image/*,.tif,.tiff" multiple hidden>
+      <p class="hint">PNG, JPEG, TIFF, WEBP, BMP, GIF</p>
+    </div>
+
+    <div class="default-mode-row">
+      <label for="defaultColorMode">Προεπιλεγμένος τρόπος σάρωσης για νέες σελίδες:</label>
+      <select id="defaultColorMode">
+        <option value="color">Έγχρωμο</option>
+        <option value="grayscale">Grayscale (Κλίμακα του γκρι)</option>
+        <option value="bw">Ασπρόμαυρο (Κείμενο)</option>
+      </select>
+    </div>
+    <div class="default-mode-row">
+      <label class="checkbox-label">
+        <input type="checkbox" id="autoCropToggle" checked>
+        Ορισμός πλαισίου σελίδας κατά την προσθήκη — αφαιρεί τραπέζι/φόντο από τη φωτογραφία
+      </label>
+    </div>
+  </section>
+
+  <section class="panel" id="pages-panel">
+    <h2>2. Σελίδες <span id="pageCount" class="count-badge">0</span></h2>
+    <p class="hint">Σύρετε τις σελίδες για αλλαγή σειράς. Κάθε σελίδα μπορεί να έχει το δικό της χρώμα.</p>
+    <ul id="pageList" class="page-list"></ul>
+    <p id="emptyHint" class="hint empty-hint">Δεν έχουν προστεθεί σελίδες ακόμα.</p>
+    <button id="clearAllBtn" class="btn btn-danger" hidden>Καθαρισμός όλων</button>
+  </section>
+
+  <section class="panel" id="output-panel">
+    <h2>3. Δημιουργία PDF</h2>
+    <div class="form-row">
+      <label for="filenameInput">Όνομα αρχείου:</label>
+      <div class="filename-wrap">
+        <input type="text" id="filenameInput" placeholder="scan-001" value="scan-001">
+        <span class="suffix">.pdf</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <label for="pageSizeSelect">Μέγεθος σελίδας:</label>
+      <select id="pageSizeSelect">
+        <option value="a4" selected>A4</option>
+        <option value="letter">Letter</option>
+        <option value="original">Ίδιο με την εικόνα</option>
+      </select>
+    </div>
+    <button id="generateBtn" class="btn btn-primary btn-large" disabled>Δημιουργία PDF</button>
+    <p id="statusMsg" class="status-msg"></p>
+  </section>
+
+  <div id="cropModal" class="crop-modal" hidden>
+    <div class="crop-modal-inner">
+      <h3>Ορισμός πλαισίου σελίδας <span id="cropStepInfo" class="crop-step"></span></h3>
+      <div class="segmented" role="group" aria-label="Τρόπος περικοπής">
+        <button id="cropModeQuad" type="button" class="active">4 γωνίες</button>
+        <button id="cropModePoly" type="button">Πολύγωνο → A4</button>
+      </div>
+      <p id="cropHintQuad" class="hint">Σύρετε τις 4 γωνίες ώστε να περικλείουν ακριβώς τη σελίδα. Ό,τι μείνει εκτός πλαισίου (τραπέζι, αντικείμενα) θα αφαιρεθεί και η σελίδα θα ευθυγραμμιστεί σαν να σαρώθηκε επίπεδη.</p>
+      <p id="cropHintPoly" class="hint" hidden>
+        <span class="legend legend-poly"></span> <b>Πολύγωνο</b>: περικλείει το ορατό μέρος της σελίδας. Σύρετε ένα <b>+</b> για νέο σημείο· διπλό κλικ ή δεξί κλικ σε σημείο για διαγραφή.<br>
+        <span class="legend legend-frame"></span> <b>Πλαίσιο A4</b> (↖ ↗ ↘ ↙): οι πραγματικές γωνίες του φύλλου, ακόμα και αν βγαίνουν έξω από την εικόνα. Το αποτέλεσμα γίνεται A4 και ό,τι είναι εκτός πολυγώνου γίνεται λευκό φόντο.
+      </p>
+      <div id="cropOrientationRow" class="crop-orientation" hidden>
+        <label for="cropOrientation">Προσανατολισμός A4:</label>
+        <select id="cropOrientation">
+          <option value="auto">Αυτόματο</option>
+          <option value="portrait">Κατακόρυφο</option>
+          <option value="landscape">Οριζόντιο</option>
+        </select>
+      </div>
+      <div id="cropStage" class="crop-stage">
+        <img id="cropImage" alt="Προς περικοπή εικόνα">
+        <svg id="cropOverlaySvg" class="crop-overlay-svg">
+          <path id="cropShade" class="crop-shade" fill-rule="evenodd"></path>
+          <polygon id="cropFrame" class="crop-frame"></polygon>
+          <polygon id="cropPolygon" class="crop-polygon"></polygon>
+        </svg>
+        <div id="cropHandles"></div>
+      </div>
+      <div class="crop-actions">
+        <button id="cropResetBtn" class="btn" type="button">Επαναφορά</button>
+        <button id="cropCancelBtn" class="btn" type="button" hidden>Άκυρο</button>
+        <button id="cropSkipBtn" class="btn" type="button">Χρήση ολόκληρης εικόνας</button>
+        <button id="cropApplyBtn" class="btn btn-primary" type="button">Εφαρμογή περικοπής</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="adjustModal" class="crop-modal" hidden>
+    <div class="crop-modal-inner adjust-inner">
+      <h3>Ρυθμίσεις εικόνας <span id="adjustPageName" class="crop-step"></span></h3>
+      <div class="adjust-layout">
+        <div class="adjust-preview">
+          <canvas id="adjustCanvas"></canvas>
+        </div>
+        <div class="adjust-controls">
+          <label class="adjust-field">
+            <span>Τρόπος σάρωσης</span>
+            <select id="adjustColorMode">
+              <option value="color">Έγχρωμο</option>
+              <option value="grayscale">Grayscale</option>
+              <option value="bw">Ασπρόμαυρο (Κείμενο)</option>
+            </select>
+          </label>
+          <div id="adjustThresholdRow" class="adjust-field">
+            <span>Κατώφλι <output id="adjust-threshold-value"></output></span>
+            <input type="range" id="adjust-threshold" min="0" max="255" step="1">
+            <small class="hint">Μεγαλύτερη τιμή → περισσότερα σημεία γίνονται μαύρα.</small>
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="adjustAutoLevels">
+            Αυτόματη βελτίωση (επίπεδα)
+          </label>
+          <div class="adjust-field">
+            <span>Φωτεινότητα <output id="adjust-brightness-value"></output></span>
+            <input type="range" id="adjust-brightness" min="-100" max="100" step="1">
+          </div>
+          <div class="adjust-field">
+            <span>Αντίθεση <output id="adjust-contrast-value"></output></span>
+            <input type="range" id="adjust-contrast" min="-100" max="100" step="1">
+          </div>
+          <div class="adjust-field">
+            <span>Ευκρίνεια <output id="adjust-sharpen-value"></output></span>
+            <input type="range" id="adjust-sharpen" min="0" max="100" step="1">
+          </div>
+          <button id="adjustCompareBtn" class="btn" type="button">Κρατήστε πατημένο για την αρχική</button>
+        </div>
+      </div>
+      <div class="crop-actions">
+        <button id="adjustResetBtn" class="btn" type="button">Επαναφορά</button>
+        <button id="adjustCancelBtn" class="btn" type="button">Άκυρο</button>
+        <button id="adjustApplyAllBtn" class="btn" type="button" title="Εφαρμόζει τον τρόπο σάρωσης και τις ρυθμίσεις σε όλες τις σελίδες και στις σελίδες που θα προστεθούν">Εφαρμογή σε όλες</button>
+        <button id="adjustApplyBtn" class="btn btn-primary" type="button">Εφαρμογή</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel" id="preview-panel" hidden>
+    <h2>4. Προεπισκόπηση & Αποθήκευση</h2>
+    <div class="preview-frame-wrap">
+      <iframe id="pdfPreview" title="Προεπισκόπηση PDF"></iframe>
+    </div>
+    <a id="downloadLink" class="btn btn-primary btn-large" download>⬇ Λήψη PDF</a>
+  </section>
+</main>
+
+<footer class="app-footer">
+  © 2026 Ioannis A. Kavouras. All rights reserved.
+</footer>
+
+<script src="js/vendor/pako.min.js"></script>
+<script src="js/vendor/UTIF.js"></script>
+<script src="js/vendor/pdf-lib.min.js"></script>
+<script src="js/perspective.js"></script>
+<script src="js/cropper.js"></script>
+<script src="js/adjust.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

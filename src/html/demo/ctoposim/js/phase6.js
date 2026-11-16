@@ -17,7 +17,7 @@ const Phase6 = (() => {
     const p = PAPERS.find(([, x, y]) => a <= x && b <= y); return p ? p[0] : "μεγαλύτερο από A0"; };
   const N_DEF = 3, N_MIN = 2, N_MAX = 15;             // σταυρονήματα ανά πλευρά (προεπιλογή 3 × 3)
   const nCross = () => Math.max(N_MIN, Math.min(N_MAX, Math.round(S().geoN || N_DEF)));
-  const TOL = [1, 5];                                // ανοχές θέσης (m): πλήρης / μισός βαθμός
+  const TOL = [0.125, 0.25];                          // ανοχές θέσης (m): πλήρης / μισός βαθμός
 
   const SOURCES = {
     esri: {
@@ -305,6 +305,97 @@ const Phase6 = (() => {
     throw new Error(`Άγνωστο σύστημα αναφοράς (EPSG:${crs}). Χρησιμοποίησε ΕΓΣΑ 87 (EPSG:2100).`);
   }
 
+  /* ---------------- pixel του GeoTIFF και αντιστοίχιση σταυρονημάτων ---------------- */
+  let gtLoading = null;
+  function loadGeoTIFFLib() {
+    if (window.GeoTIFF) return Promise.resolve(window.GeoTIFF);
+    return gtLoading = gtLoading || new Promise((res, rej) => {
+      const sc = document.createElement("script");
+      sc.src = "https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js";
+      sc.onload = () => window.GeoTIFF ? res(window.GeoTIFF) : rej(new Error("Δεν φορτώθηκε η βιβλιοθήκη ανάγνωσης GeoTIFF."));
+      sc.onerror = () => { gtLoading = null; rej(new Error("Δεν φορτώθηκε η βιβλιοθήκη ανάγνωσης GeoTIFF (χρειάζεται σύνδεση στο διαδίκτυο).")); };
+      document.head.append(sc);
+    });
+  }
+  /** εικόνα GeoTIFF → γκρι τόνοι (Float32Array) */
+  async function tiffGray(buf) {
+    const GT = await loadGeoTIFFLib();
+    const img = await (await GT.fromArrayBuffer(buf)).getImage();
+    const w = img.getWidth(), h = img.getHeight(), spp = img.getSamplesPerPixel();
+    const r = await img.readRasters({ samples: spp >= 3 ? [0, 1, 2] : [0] });
+    const g = new Float32Array(w * h);
+    if (r.length >= 3) for (let i = 0; i < g.length; i++) g[i] = (r[0][i] + r[1][i] + r[2][i]) / 3;
+    else for (let i = 0; i < g.length; i++) g[i] = r[0][i];
+    return { w, h, g };
+  }
+  function canvasGray(cv) {
+    const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data, g = new Float32Array(cv.width * cv.height);
+    for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = (d[j] + d[j + 1] + d[j + 2]) / 3;
+    return { w: cv.width, h: cv.height, g };
+  }
+  /** διγραμμική παρεμβολή (x, y σε συντεταγμένες γωνίας pixel) */
+  function bil(I, x, y) {
+    const u = x - 0.5, v = y - 0.5, i = Math.floor(u), j = Math.floor(v);
+    if (i < 0 || j < 0 || i >= I.w - 1 || j >= I.h - 1) return NaN;
+    const a = u - i, b = v - j, o = j * I.w + i, g = I.g;
+    return (g[o] * (1 - a) + g[o + 1] * a) * (1 - b) + (g[o + I.w] * (1 - a) + g[o + I.w + 1] * a) * b;
+  }
+  /**
+   * Βρίσκει κάθε σταυρόνημα μέσα στην εικόνα του φοιτητή (που έχει ξαναδειγματοληπτηθεί).
+   * Για κάθε σταυρόνημα φτιάχνεται από την αρχική εικόνα το «πρότυπο» που θα έπρεπε να υπάρχει εκεί
+   * αν η γεωαναφορά ήταν τέλεια, και αναζητείται με κανονικοποιημένη συσχέτιση (NCC) μέσα σε ±8 m.
+   * Η μετατόπιση που βρίσκεται είναι το σφάλμα της γεωαναφοράς σε εκείνο το σημείο.
+   */
+  async function matchCrosses(O, Sg, Mx, g, onProg) {
+    const Q = compA(invA(g.T), Mx), Mi = invA(Mx), ps = Math.hypot(Mx[0], Mx[3]);
+    const R = Math.max(12, Math.min(60, Math.round(6 / ps))), SR = Math.max(10, Math.min(120, Math.round(8 / ps)));
+    const D = 2 * R + 1, [E0, N0, E1, N1] = g.bbox, out = [], list = [];
+    for (let E = E0 + GRID / 2; E < E1; E += GRID) for (let N = N0 + GRID / 2; N < N1; N += GRID) list.push([E, N]);
+    for (let c = 0; c < list.length; c++) {
+      const [E, N] = list[c], [qx, qy] = applyA(Mi, E, N);
+      const cx = Math.floor(qx), cy = Math.floor(qy);              // κέντρο στο κοντινότερο pixel της εικόνας του φοιτητή
+      const tpl = new Float32Array(D * D); let bad = false;
+      for (let j = -R; j <= R && !bad; j++) for (let i = -R; i <= R; i++) {
+        const v = bil(O, ...applyA(Q, cx + i + 0.5, cy + j + 0.5));
+        if (isNaN(v)) { bad = true; break; } tpl[(j + R) * D + i + R] = v;
+      }
+      const ncc = (sx, sy, st) => {
+        let n = 0, sw = 0, sww = 0, swt = 0, stt = 0, s_t = 0;
+        for (let j = -R; j <= R; j += st) {
+          const row = cy + j + sy; if (row < 0 || row >= Sg.h) return -2;
+          for (let i = -R; i <= R; i += st) {
+            const col = cx + i + sx; if (col < 0 || col >= Sg.w) return -2;
+            const w = Sg.g[row * Sg.w + col], t = tpl[(j + R) * D + i + R];
+            n++; sw += w; sww += w * w; swt += w * t; s_t += t; stt += t * t;
+          }
+        }
+        const cov = swt - sw * s_t / n, vw = sww - sw * sw / n, vt = stt - s_t * s_t / n;
+        return vw > 1e-6 && vt > 1e-6 ? cov / Math.sqrt(vw * vt) : -2;
+      };
+      let best = -2, bx = 0, by = 0;
+      if (!bad) {
+        for (let sy = -SR; sy <= SR; sy += 2) for (let sx = -SR; sx <= SR; sx += 2) {        // αδρή αναζήτηση
+          const v = ncc(sx, sy, 3); if (v > best) { best = v; bx = sx; by = sy; }
+        }
+        const cx0 = bx, cy0 = by; best = -2;
+        for (let sy = cy0 - 3; sy <= cy0 + 3; sy++) for (let sx = cx0 - 3; sx <= cx0 + 3; sx++) {   // λεπτή
+          const v = ncc(sx, sy, 1); if (v > best) { best = v; bx = sx; by = sy; }
+        }
+      }
+      let rec = { E, N, ok: false, c: +best.toFixed(3) };
+      if (best > 0.75) {
+        const par = (a, b, c2) => { const d = a - 2 * b + c2; return d < 0 ? Math.max(-0.5, Math.min(0.5, 0.5 * (a - c2) / d)) : 0; };
+        const fx = bx + par(ncc(bx - 1, by, 1), best, ncc(bx + 1, by, 1));
+        const fy = by + par(ncc(bx, by - 1, 1), best, ncc(bx, by + 1, 1));
+        const [e0, n0] = applyA(Mx, cx + 0.5, cy + 0.5), [e1, n1] = applyA(Mx, cx + 0.5 + fx, cy + 0.5 + fy);
+        rec = { E, N, ok: true, c: +best.toFixed(3), dE: +(e1 - e0).toFixed(3), dN: +(n1 - n0).toFixed(3) };
+      }
+      out.push(rec);
+      if (onProg && c % 3 === 2) { onProg(c + 1, list.length); await new Promise(r => setTimeout(r, 0)); }
+    }
+    return out;
+  }
+
   /* ---------------- βαθμολόγηση ---------------- */
   async function submit() {
     const st = S(), files = [...$("#p6-file").files];
@@ -312,68 +403,143 @@ const Phase6 = (() => {
     if (!files.length) return toast("Επίλεξε αρχείο GeoTIFF ή world file.", "warn");
     if (!Grading.canSubmit("p6")) return;
     const g = st.geo, notes = [];
-    let geo = null, name = files.map(f => f.name).join(" + ");
+    let geo = null, name = files.map(f => f.name).join(" + "), tifBuf = null;
+    const stat = $("#p6-sub-status");
     try {
       const tif = files.find(f => /\.tiff?$/i.test(f.name)), wf = files.find(f => /\.(pgw|pngw|wld|jgw|tfw|tifw)$/i.test(f.name));
-      if (tif && !wf) geo = parseGeoTIFF(await tif.arrayBuffer());
+      if (tif && !wf) { tifBuf = await tif.arrayBuffer(); geo = parseGeoTIFF(tifBuf); }
       else if (wf) {
         geo = parseWorld(await wf.text());
         geo.W = g.W; geo.H = g.H;
         if (tif) { const t = parseGeoTIFF(await tif.arrayBuffer(), true); geo.W = t.W; geo.H = t.H; }
       } else throw new Error("Αναγνωρίζονται αρχεία .tif/.tiff (GeoTIFF) ή world file (.pgw, .wld, .jgw, .tfw).");
     } catch (e) { return toast(e.message, "err", 8000); }
-    let items = [];
+    const items = [];
+    $("#p6-submit").disabled = true;
     try {
-      const corners = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
-      const tr = (M, x, y) => toEGSA(...applyA(M, x, y), geo.crs);
-      const truthC = corners(g.W, g.H).map(([x, y]) => applyA(g.T, x, y));
-      const same = Math.abs(geo.W - g.W) <= 1 && Math.abs(geo.H - g.H) <= 1;
-      const studC = corners(geo.W, geo.H).map(([x, y]) => tr(geo.M, x, y));
-      const lbl = ["πάνω αριστερά", "πάνω δεξιά", "κάτω δεξιά", "κάτω αριστερά"];
-      if (same) {
-        truthC.forEach((t, i) => { const d = Math.hypot(studC[i][0] - t[0], studC[i][1] - t[1]);
-          items.push({ group: "Θέση", label: `Γωνία εικόνας ${lbl[i]} (απόκλιση m)`, value: d.toFixed(2), status: SIM.gradeItem(d, TOL[0], TOL[1]) }); });
-        const tc = applyA(g.T, g.W / 2, g.H / 2), sc = tr(geo.M, geo.W / 2, geo.H / 2), d = Math.hypot(sc[0] - tc[0], sc[1] - tc[1]);
-        items.push({ group: "Θέση", label: "Κέντρο εικόνας (απόκλιση m)", value: d.toFixed(2), status: SIM.gradeItem(d, TOL[0], TOL[1]) });
-      } else {
-        // GeoTIFF που ξαναδειγματοληπτήθηκε (warp): σύγκριση της έκτασης
-        notes.push("Η εικόνα σου έχει ξαναδειγματοληπτηθεί (άλλο μέγεθος από το αρχικό), οπότε συγκρίνεται η έκταση (bounding box) με τη σωστή.");
-        const bb = P => [Math.min(...P.map(p => p[0])), Math.max(...P.map(p => p[0])), Math.min(...P.map(p => p[1])), Math.max(...P.map(p => p[1]))];
-        const tb = bb(truthC), sb = bb(studC), nm = ["E ελάχιστο", "E μέγιστο", "N ελάχιστο", "N μέγιστο"];
-        tb.forEach((t, i) => { const d = Math.abs(sb[i] - t);
-          items.push({ group: "Θέση", label: `Όριο έκτασης ${nm[i]} (απόκλιση m)`, value: d.toFixed(2), status: SIM.gradeItem(d, TOL[0], TOL[1]) }); });
-        const d = Math.hypot((sb[0] + sb[1] - tb[0] - tb[1]) / 2, (sb[2] + sb[3] - tb[2] - tb[3]) / 2);
-        items.push({ group: "Θέση", label: "Κέντρο έκτασης (απόκλιση m)", value: d.toFixed(2), status: SIM.gradeItem(d, TOL[0], TOL[1]) });
+      // μετασχηματισμός pixel του αρχείου → ΕΓΣΑ 87 (σε άλλο σύστημα: τοπική αφινική προσέγγιση)
+      let Mx = geo.M;
+      if (geo.crs !== 2100) {
+        const src = [], dst = [];
+        for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) {
+          const x = geo.W * i / 4, y = geo.H * j / 4; src.push([x, y]); dst.push(toEGSA(...applyA(geo.M, x, y), geo.crs));
+        }
+        Mx = fitAffine(src, dst);
       }
+      const same = Math.abs(geo.W - g.W) <= 1 && Math.abs(geo.H - g.H) <= 1;
+      const [E0, N0, E1, N1] = g.bbox;
+      let errs;
+      if (same) {
+        // ίδια pixel με την αρχική εικόνα: το σφάλμα υπολογίζεται απευθείας σε κάθε σταυρόνημα
+        const Ti = invA(g.T); errs = [];
+        for (let E = E0 + GRID / 2; E < E1; E += GRID) for (let N = N0 + GRID / 2; N < N1; N += GRID) {
+          const [sE, sN] = applyA(Mx, ...applyA(Ti, E, N));
+          errs.push({ E, N, ok: true, dE: +(sE - E).toFixed(3), dN: +(sN - N).toFixed(3) });
+        }
+      } else {
+        // GeoTIFF του QGIS (Βορράς προς τα πάνω): εντοπισμός κάθε σταυρονήματος μέσα στην εικόνα
+        if (!lastCanvas || lastCanvas._key !== g.created) {
+          stat.textContent = "Ανακατασκευή της αρχικής εικόνας για τον έλεγχο…";
+          st.geoN = g.n || st.geoN;
+          const r = await render(g.source, (d, n) => stat.textContent = `Ανακατασκευή της αρχικής εικόνας: πλακίδια ${d}/${n}…`);
+          lastCanvas = r.canvas; lastCanvas._key = g.created;
+        }
+        stat.textContent = "Ανάγνωση του GeoTIFF…";
+        const Sg = await tiffGray(tifBuf), O = canvasGray(lastCanvas);
+        errs = await matchCrosses(O, Sg, Mx, g, (d, n) => stat.textContent = `Έλεγχος σταυρονημάτων ${d}/${n}…`);
+      }
+      const okE = errs.filter(e => e.ok), dist = e => e.ok ? Math.hypot(e.dE, e.dN) : Infinity;
+      if (!okE.length) throw new Error("Δεν βρέθηκε κανένα σταυρόνημα κοντά στη θέση του (±8 m). Η γεωαναφορά απέχει πολύ από τη σωστή θέση ή το αρχείο δεν είναι η εικόνα σου.");
+      const eMin = Math.min(...errs.map(e => e.E)), eMax = Math.max(...errs.map(e => e.E));
+      const nMin = Math.min(...errs.map(e => e.N)), nMax = Math.max(...errs.map(e => e.N));
+      [[eMin, nMax], [eMax, nMax], [eMax, nMin], [eMin, nMin]].forEach(([E, N]) => {
+        const e = errs.find(q => q.E === E && q.N === N), d = dist(e);
+        items.push({ group: "Θέση", label: `Σταυρόνημα ${E.toFixed(0)}, ${N.toFixed(0)} (απόκλιση m)`,
+                     value: isFinite(d) ? d.toFixed(2) : "δεν βρέθηκε", status: isFinite(d) ? SIM.gradeItem(d, TOL[0], TOL[1]) : 0 });
+      });
+      const rms = Math.sqrt(okE.reduce((t, e) => t + e.dE * e.dE + e.dN * e.dN, 0) / okE.length);
+      const mx = Math.max(...errs.map(dist));
+      items.push({ group: "Θέση", label: `Μέση τετραγωνική απόκλιση σε ${okE.length} σταυρονήματα (m)`, value: rms.toFixed(2), status: SIM.gradeItem(rms, TOL[0], TOL[1]) });
+      items.push({ group: "Θέση", label: "Μέγιστη απόκλιση σταυρονήματος (m)", value: isFinite(mx) ? mx.toFixed(2) : "> 8", status: isFinite(mx) ? SIM.gradeItem(mx, TOL[0], TOL[1]) : 0 });
+      if (okE.length < errs.length) notes.push(`${errs.length - okE.length} από ${errs.length} σταυρονήματα δεν εντοπίστηκαν στην εικόνα σου (απέχουν πάνω από 8 m ή δεν είναι ορατά).`);
       items.push({ group: "Σύστημα αναφοράς", label: `Σύστημα αρχείου: EPSG:${geo.crs}`, value: geo.crs === 2100 ? "ΕΓΣΑ 87" : "άλλο",
                    status: geo.crs === 2100 ? 1 : 0.5 });
       if (geo.crs !== 2100) notes.push("Το αρχείο δεν είναι σε ΕΓΣΑ 87 (EPSG:2100)· μετατράπηκε για τη σύγκριση. Στη γεωαναφορά όρισε ως σύστημα προορισμού το EPSG:2100.");
-      st.geo.lastStudent = studC;
+      st.geo.lastErrs = errs; delete st.geo.lastStudent;
     } catch (e) { return toast(e.message, "err", 8000); }
+    finally { stat.textContent = ""; $("#p6-submit").disabled = false; }
     Grading.commit("p6", { score: Grading.score(items, { "Θέση": 85, "Σύστημα αναφοράς": 15 }), items, file: name,
                            when: Date.now(), notes });
     App.refresh();
     toast(`Η υποβολή καταχωρήθηκε: ${st.results.p6.score.toFixed(1)} / 100`, "ok");
   }
 
-  /** σύγκριση αποτυπώματος: σωστό (πράσινο) και του φοιτητή (κόκκινο) */
+  /** σύγκριση πάνω στον χάρτη: σωστά σταυρονήματα (+) και θέση τους στη γεωαναφορά του φοιτητή (●), σφάλματα μεγεθυμένα */
+  let thumbImg = null, thumbSrc = null;
   function drawCompare() {
     const cv = $("#p6-cmp"), g = S().geo;
     if (!cv) return;
-    cv.hidden = !(g && g.lastStudent);
-    if (cv.hidden) return;
-    const ctx = cv.getContext("2d"), W = cv.width = 460, H = cv.height = 340;
-    const tru = [[0, 0], [g.W, 0], [g.W, g.H], [0, g.H]].map(([x, y]) => applyA(g.T, x, y)), stu = g.lastStudent;
-    const all = [...tru, ...stu], mE = Math.min(...all.map(p => p[0])), xE = Math.max(...all.map(p => p[0]));
-    const mN = Math.min(...all.map(p => p[1])), xN = Math.max(...all.map(p => p[1]));
-    const k = Math.min((W - 40) / (xE - mE), (H - 60) / (xN - mN)), X = p => [20 + (p[0] - mE) * k, H - 40 - (p[1] - mN) * k];
-    ctx.clearRect(0, 0, W, H);
-    const poly = (P, c, dash) => { ctx.setLineDash(dash); ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.beginPath(); P.map(X).forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath(); ctx.stroke(); };
-    poly(tru, "#1a9850", []); poly(stu, "#d73027", [6, 4]); ctx.setLineDash([]);
-    const dmax = Math.max(...tru.map((t, i) => stu[i] ? Math.hypot(stu[i][0] - t[0], stu[i][1] - t[1]) : 0));
-    ctx.fillStyle = "#333"; ctx.font = "12px system-ui";
-    ctx.fillText("— σωστή θέση   - - η γεωαναφορά σου", 20, H - 14);
-    ctx.fillText(`Μέγιστη απόκλιση γωνίας ≈ ${dmax.toFixed(2)} m`, 20, 18);
+    const errs = g && g.lastErrs;
+    cv.hidden = !errs;
+    if (!errs) return;
+    if (g.thumb && thumbSrc !== g.thumb) {                   // υπόβαθρο: σμίκρυνση της αρχικής εικόνας
+      thumbSrc = g.thumb; thumbImg = new Image(); thumbImg.onload = () => drawCompare(); thumbImg.src = g.thumb;
+    }
+    const [E0, N0, E1, N1] = g.bbox, side = 12, top = 30, bot = 74;
+    const W = cv.width = 560, k = (W - 2 * side) / (E1 - E0), H = cv.height = Math.round(top + (N1 - N0) * k + bot);
+    const X = (E, N) => [side + (E - E0) * k, top + (N1 - N) * k];
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.save(); ctx.beginPath(); ctx.rect(side, top, W - 2 * side, (N1 - N0) * k); ctx.clip();
+    ctx.fillStyle = "#d9d9d9"; ctx.fillRect(side, top, W - 2 * side, (N1 - N0) * k);
+    if (thumbImg && thumbImg.complete && thumbImg.naturalWidth) {
+      const Sx = [k, 0, side - E0 * k, 0, -k, top + N1 * k], ts = thumbImg.naturalWidth / g.W;
+      const A = compA(Sx, compA(g.T, [1 / ts, 0, 0, 0, 1 / ts, 0]));
+      ctx.setTransform(A[0], A[3], A[1], A[4], A[2], A[5]); ctx.drawImage(thumbImg, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(side, top, W - 2 * side, (N1 - N0) * k);
+    }
+    ctx.restore();
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.strokeRect(side, top, W - 2 * side, (N1 - N0) * k);
+    // μεγέθυνση: ο κύκλος της ανοχής μισού βαθμού ≈ 30% του διαστήματος των σταυρονημάτων
+    const MAG = Math.max(10, Math.round(0.3 * GRID / TOL[1] / 10) * 10), r1 = TOL[0] * MAG * k, r2 = TOL[1] * MAG * k;
+    const lab = errs.length <= 36;
+    for (const e of errs) {
+      const [x, y] = X(e.E, e.N);
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([4, 3]); ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.beginPath(); ctx.arc(x, y, r2, 0, 2 * Math.PI); ctx.stroke();
+      ctx.setLineDash([]); ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.beginPath(); ctx.arc(x, y, r1, 0, 2 * Math.PI); ctx.stroke();
+      for (const [w, c] of [[3.2, "#000"], [1.4, "#fff"]]) {
+        ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x - 7, y); ctx.lineTo(x + 7, y); ctx.moveTo(x, y - 7); ctx.lineTo(x, y + 7); ctx.stroke();
+      }
+      ctx.font = "700 12px system-ui"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      if (!e.ok) { ctx.fillStyle = "#d73027"; ctx.fillText("δεν βρέθηκε", x + 8, y - 10); continue; }
+      const d = Math.hypot(e.dE, e.dN), col = d <= TOL[0] ? "#1a9850" : d <= TOL[1] ? "#f39c12" : "#d73027";
+      let vx = e.dE * MAG * k, vy = -e.dN * MAG * k; const L = Math.hypot(vx, vy), Lmax = r2 * 1.5;
+      if (L > Lmax) { vx *= Lmax / L; vy *= Lmax / L; }
+      ctx.strokeStyle = "#000"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + vx, y + vy); ctx.stroke();
+      ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + vx, y + vy); ctx.stroke();
+      ctx.fillStyle = col; ctx.strokeStyle = "#000"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(x + vx, y + vy, 5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+      if (lab) {
+        const t = d.toFixed(2) + " m" + (L > Lmax ? " ›" : ""), tx = x + 9, ty = y + r2 + 9;
+        ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.strokeText(t, x, ty);
+        ctx.fillStyle = "#fff"; ctx.fillText(t, x, ty);
+      }
+    }
+    // τίτλος και υπόμνημα
+    const okE = errs.filter(e => e.ok), rms = okE.length ? Math.sqrt(okE.reduce((t, e) => t + e.dE * e.dE + e.dN * e.dN, 0) / okE.length) : NaN;
+    ctx.fillStyle = "#222"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.font = "600 13px system-ui";
+    ctx.fillText(`Σωστή θέση σταυρονήματος (+) και θέση στη γεωαναφορά σου (●) · σφάλματα ×${MAG}`, side, 19);
+    const yb = top + (N1 - N0) * k;
+    ctx.font = "12px system-ui";
+    ctx.fillText(`Κύκλοι ανοχής: ${TOL[0]} m συνεχής (πλήρης βαθμός) · ${TOL[1]} m διακεκομμένος (μισός).`, side, yb + 18);
+    const leg = [["#1a9850", `≤ ${TOL[0]} m`], ["#f39c12", `≤ ${TOL[1]} m`], ["#d73027", `> ${TOL[1]} m`]];
+    let lx = side;
+    for (const [c, t] of leg) {
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(lx + 5, yb + 36, 5, 0, 2 * Math.PI); ctx.fill(); ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = "#222"; ctx.fillText(t, lx + 14, yb + 40); lx += 100;
+    }
+    ctx.fillText(`Μέση τετραγωνική απόκλιση ${isFinite(rms) ? rms.toFixed(2) : "—"} m σε ${okE.length} σταυρονήματα.`, side, yb + 60);
   }
 
   /* ---------------- UI ---------------- */
@@ -394,8 +560,12 @@ const Phase6 = (() => {
       const r = await render(source, (d, n) => stat.textContent = `Λήψη πλακιδίων ${d}/${n}…`);
       lastCanvas = r.canvas;
       const G = r.G;
+      const tc = document.createElement("canvas"), ts = Math.min(1, 900 / G.W);
+      tc.width = Math.round(G.W * ts); tc.height = Math.round(G.H * ts);
+      tc.getContext("2d").drawImage(r.canvas, 0, 0, tc.width, tc.height);
       st.geo = { source, n: G.n, p: G.p, scale: G.scale, W: G.W, H: G.H, T: G.T, pix: G.pix, z: r.z, created: new Date().toISOString(),
-                 bbox: [G.E0, G.N0, G.E1, G.N1] };
+                 bbox: [G.E0, G.N0, G.E1, G.N1], thumb: tc.toDataURL("image/jpeg", 0.72) };
+      lastCanvas._key = st.geo.created;
       Store.save();
       const pv = $("#p6-prev"), sc = Math.min(1, 520 / G.W);
       pv.width = Math.round(G.W * sc); pv.height = Math.round(G.H * sc);
