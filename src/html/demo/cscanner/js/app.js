@@ -28,6 +28,8 @@
   const previewPanel = document.getElementById("preview-panel");
   const pdfPreview = document.getElementById("pdfPreview");
   const downloadLink = document.getElementById("downloadLink");
+  const ocrToggle = document.getElementById("ocrToggle");
+  const ocrLangSelect = document.getElementById("ocrLangSelect");
 
   const THUMB_MAX = 160;
   const MAX_DIMENSION = 2800; // clamp very large source photos for performance/size
@@ -128,6 +130,8 @@
     const crop = page.crop;
     if (!crop) {
       page.baseCanvas = page.rawCanvas;
+    } else if (crop.mode === "curve") {
+      page.baseCanvas = Dewarp.warpCurved(page.rawCanvas, crop.top, crop.bottom, MAX_DIMENSION);
     } else if (crop.mode === "polygon") {
       page.baseCanvas = Perspective.warpPerspective(page.rawCanvas, crop.frame, MAX_DIMENSION, {
         aspect: "a4",
@@ -449,9 +453,39 @@
       const { PDFDocument } = PDFLib;
       const pdfDoc = await PDFDocument.create();
       const sizeMode = pageSizeSelect.value;
+      const useOcr = ocrToggle.checked;
+      const total = pages.length;
+      let ocrFont = null;
+      let pageNo = 0;
+
+      if (useOcr) {
+        setStatus("Φόρτωση OCR (την πρώτη φορά μπορεί να αργήσει)...");
+        try {
+          await Ocr.prepare(ocrLangSelect.value, (m) => {
+            if (m.status && typeof m.progress === "number" && m.status !== "recognizing text") {
+              setStatus(`Φόρτωση OCR: ${m.status} ${Math.round(m.progress * 100)}%`);
+            }
+          });
+        } catch (err) {
+          throw new Error("δεν ήταν δυνατή η φόρτωση του OCR (χρειάζεται σύνδεση στο internet). " + err.message);
+        }
+        ocrFont = await Ocr.embedFont(pdfDoc);
+      }
 
       for (const page of pages) {
+        pageNo++;
         const canvas = processedCanvas(page);
+        let words = null;
+        if (useOcr) {
+          setStatus(`Αναγνώριση κειμένου: σελίδα ${pageNo}/${total}...`);
+          words = await Ocr.recognize(canvas, (m) => {
+            if (m.status === "recognizing text") {
+              setStatus(`Αναγνώριση κειμένου: σελίδα ${pageNo}/${total} — ${Math.round(m.progress * 100)}%`);
+            }
+          });
+        } else if (total > 1) {
+          setStatus(`Δημιουργία PDF: σελίδα ${pageNo}/${total}...`);
+        }
         const image = await canvasToEmbeddedImage(pdfDoc, canvas, page.colorMode);
 
         let pageW, pageH;
@@ -467,12 +501,9 @@
         const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
         const drawW = canvas.width * scale;
         const drawH = canvas.height * scale;
-        pdfPage.drawImage(image, {
-          x: (pageW - drawW) / 2,
-          y: (pageH - drawH) / 2,
-          width: drawW,
-          height: drawH,
-        });
+        const place = { x: (pageW - drawW) / 2, y: (pageH - drawH) / 2, width: drawW, height: drawH };
+        pdfPage.drawImage(image, place);
+        if (words) Ocr.addTextLayer(pdfPage, ocrFont, words, canvas.width, canvas.height, place);
       }
 
       const pdfBytes = await pdfDoc.save();

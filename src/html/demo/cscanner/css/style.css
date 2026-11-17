@@ -216,7 +216,9 @@ main {
   font-size: 0.95rem;
 }
 .filename-wrap .suffix { padding: 9px 10px; color: var(--muted); background: #f1f3f5; }
-#pageSizeSelect { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
+#pageSizeSelect, #ocrLangSelect { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
+.form-row .checkbox-label { min-width: 0; }
+.ocr-hint { margin-top: -4px; }
 
 .status-msg { font-size: 0.88rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
 .status-msg.error { color: var(--danger); }
@@ -253,6 +255,7 @@ main {
   flex-direction: column;
   align-items: center;
 }
+.crop-modal-inner > * { flex-shrink: 0; } /* scroll the modal instead of squashing its rows */
 .crop-modal-inner h3 { margin: 0 0 6px; display: flex; gap: 8px; align-items: baseline; }
 .crop-step { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
 .crop-modal-inner .hint { max-width: 640px; text-align: center; }
@@ -391,6 +394,16 @@ main {
 }
 .segmented button + button { border-left: 1px solid var(--border); }
 .segmented button.active { background: var(--primary); color: #fff; }
+
+/* Curve mode */
+.crop-curve-mode .crop-polygon { stroke: #7c3aed; fill: rgba(124, 58, 237, 0.08); }
+.crop-handle.handle-curve { background: #7c3aed; width: 20px; height: 20px; margin-left: -10px; margin-top: -10px; }
+.crop-handle.handle-mid-curve { color: #7c3aed; border-color: #7c3aed; }
+.crop-curve-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 720px; }
+.crop-curve-row .btn { padding: 6px 12px; font-size: 0.85rem; background: #ede9fe; color: #5b21b6; }
+.crop-curve-row .hint { margin: 0; }
+.hint.error { color: var(--danger); }
+.hint.success { color: #15803d; }
 
 .legend { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; }
 .legend-poly { background: #16a34a; }

@@ -63,6 +63,18 @@
         <option value="original">Ίδιο με την εικόνα</option>
       </select>
     </div>
+    <div class="form-row">
+      <label class="checkbox-label">
+        <input type="checkbox" id="ocrToggle">
+        Αναγνώριση κειμένου (OCR) — αναζητήσιμο PDF
+      </label>
+      <select id="ocrLangSelect" title="Γλώσσα κειμένου">
+        <option value="ell+eng" selected>Ελληνικά + Αγγλικά</option>
+        <option value="ell">Ελληνικά</option>
+        <option value="eng">Αγγλικά</option>
+      </select>
+    </div>
+    <p class="hint ocr-hint">Η αναγνώριση γίνεται τοπικά στον browser. Την πρώτη φορά κατεβαίνουν οι βιβλιοθήκες OCR (~10 MB, χρειάζεται internet)· μετά μένουν στην cache.</p>
     <button id="generateBtn" class="btn btn-primary btn-large" disabled>Δημιουργία PDF</button>
     <p id="statusMsg" class="status-msg"></p>
   </section>
@@ -73,12 +85,20 @@
       <div class="segmented" role="group" aria-label="Τρόπος περικοπής">
         <button id="cropModeQuad" type="button" class="active">4 γωνίες</button>
         <button id="cropModePoly" type="button">Πολύγωνο → A4</button>
+        <button id="cropModeCurve" type="button">Καμπύλη σελίδα</button>
       </div>
       <p id="cropHintQuad" class="hint">Σύρετε τις 4 γωνίες ώστε να περικλείουν ακριβώς τη σελίδα. Ό,τι μείνει εκτός πλαισίου (τραπέζι, αντικείμενα) θα αφαιρεθεί και η σελίδα θα ευθυγραμμιστεί σαν να σαρώθηκε επίπεδη.</p>
       <p id="cropHintPoly" class="hint" hidden>
         <span class="legend legend-poly"></span> <b>Πολύγωνο</b>: περικλείει το ορατό μέρος της σελίδας. Σύρετε ένα <b>+</b> για νέο σημείο· διπλό κλικ ή δεξί κλικ σε σημείο για διαγραφή.<br>
         <span class="legend legend-frame"></span> <b>Πλαίσιο A4</b> (↖ ↗ ↘ ↙): οι πραγματικές γωνίες του φύλλου, ακόμα και αν βγαίνουν έξω από την εικόνα. Το αποτέλεσμα γίνεται A4 και ό,τι είναι εκτός πολυγώνου γίνεται λευκό φόντο.
       </p>
+      <p id="cropHintCurve" class="hint" hidden>
+        Για σελίδες που καμπυλώνουν (π.χ. βιβλίο κοντά στη ράχη). Βάλτε τις 4 <b>γωνίες</b> στις γωνίες της σελίδας και τα <b>ενδιάμεσα σημεία</b> πάνω στην πάνω και την κάτω άκρη ώστε να ακολουθούν την καμπύλη. Σύρετε ένα <b>+</b> για νέο σημείο· διπλό ή δεξί κλικ σε σημείο για διαγραφή.
+      </p>
+      <div id="cropCurveRow" class="crop-curve-row" hidden>
+        <button id="cropAutoCurveBtn" class="btn" type="button">Αυτόματη ανίχνευση από το κείμενο</button>
+        <span id="cropCurveStatus" class="hint"></span>
+      </div>
       <div id="cropOrientationRow" class="crop-orientation" hidden>
         <label for="cropOrientation">Προσανατολισμός A4:</label>
         <select id="cropOrientation">
@@ -180,8 +200,10 @@
 <script src="js/vendor/UTIF.js"></script>
 <script src="js/vendor/pdf-lib.min.js"></script>
 <script src="js/perspective.js"></script>
+<script src="js/dewarp.js"></script>
 <script src="js/cropper.js"></script>
 <script src="js/adjust.js"></script>
+<script src="js/ocr.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
