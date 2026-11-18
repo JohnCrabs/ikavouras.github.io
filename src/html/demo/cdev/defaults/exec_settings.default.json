@@ -1,0 +1,154 @@
+{
+  "$schema": "../schema/exec_settings.schema.json",
+  "version": 1,
+  "pathMode": "relative",
+  "toolsDir": "tools",
+  "outDir": "build",
+  "encoding": "utf-8",
+  "env": {
+    "PYTHONIOENCODING": "utf-8",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "path": [],
+  "tools": {
+    "gcc": "gcc",
+    "g++": "g++",
+    "python": { "windows": "python", "default": "python3" },
+    "pythonBase": { "windows": "python", "default": "python3" },
+    "java": "java",
+    "javac": "javac",
+    "rustc": "rustc",
+    "cargo": "cargo",
+    "node": "node",
+    "go": "go",
+    "dotnet": "dotnet",
+    "php": "php",
+    "ruby": "ruby",
+    "lua": "lua",
+    "bash": "bash"
+  },
+  "languages": {
+    "c": {
+      "label": "C",
+      "extensions": [".c"],
+      "tools": ["gcc"],
+      "build": "${gcc} -g -Wall -o ${outFile} ${file}",
+      "run": "${outFile}",
+      "check": "${gcc} -fsyntax-only -Wall -fdiagnostics-parseable-fixits -fno-diagnostics-color -I${srcDir} ${file}"
+    },
+    "cpp": {
+      "label": "C++",
+      "extensions": [".cpp", ".cc", ".cxx", ".c++"],
+      "tools": ["g++"],
+      "build": "${g++} -std=c++20 -g -Wall -o ${outFile} ${file}",
+      "run": "${outFile}",
+      "check": "${g++} -std=c++20 -fsyntax-only -Wall -fdiagnostics-parseable-fixits -fno-diagnostics-color -I${srcDir} ${file}"
+    },
+    "python": {
+      "label": "Python",
+      "extensions": [".py", ".pyw"],
+      "tools": ["python"],
+      "browserRuntime": "pyodide",
+      "run": "${python} -u ${file}",
+      "check": "${python} ${runnerDir}/pycheck.py ${file}",
+      "setup": "${pythonBase} -m venv .venv"
+    },
+    "java": {
+      "label": "Java",
+      "extensions": [".java"],
+      "tools": ["javac", "java"],
+      "build": "${javac} -encoding UTF-8 -d ${outDir} ${file}",
+      "run": "${java} -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -cp ${outDir} ${fileBase}",
+      "check": "${javac} -encoding UTF-8 -Xlint:all -d ${tmpDir} ${file}"
+    },
+    "rust-cargo": {
+      "label": "Rust (Cargo)",
+      "extensions": [".rs"],
+      "requires": "Cargo.toml",
+      "tools": ["cargo"],
+      "build": "${cargo} build",
+      "run": "${cargo} run --quiet",
+      "buildBeforeRun": false,
+      "check": "${cargo} check --message-format=short",
+      "checkOnSaved": true,
+      "test": "${cargo} test"
+    },
+    "rust": {
+      "label": "Rust",
+      "extensions": [".rs"],
+      "tools": ["rustc"],
+      "build": "${rustc} --edition 2021 --error-format=short -o ${outFile} ${file}",
+      "run": "${outFile}",
+      "check": "${rustc} --edition 2021 --error-format=short --emit=metadata --out-dir ${tmpDir} ${file}"
+    },
+    "javascript": {
+      "label": "JavaScript (Node)",
+      "extensions": [".js", ".mjs", ".cjs"],
+      "tools": ["node"],
+      "browserRuntime": "js",
+      "run": "${node} ${file}"
+    },
+    "typescript": {
+      "label": "TypeScript (Node)",
+      "extensions": [".ts", ".mts"],
+      "tools": ["node"],
+      "run": "${node} --experimental-strip-types ${file}"
+    },
+    "go": {
+      "label": "Go",
+      "extensions": [".go"],
+      "tools": ["go"],
+      "build": "${go} build -o ${outFile} ${file}",
+      "run": "${go} run ${file}",
+      "buildBeforeRun": false,
+      "check": "${go} vet ${file}"
+    },
+    "csharp": {
+      "label": "C# (.NET)",
+      "extensions": [".cs"],
+      "requires": "*.csproj",
+      "tools": ["dotnet"],
+      "build": "${dotnet} build",
+      "run": "${dotnet} run",
+      "buildBeforeRun": false
+    },
+    "php": {
+      "label": "PHP",
+      "extensions": [".php"],
+      "tools": ["php"],
+      "run": "${php} ${file}",
+      "check": "${php} -l ${file}"
+    },
+    "ruby": {
+      "label": "Ruby",
+      "extensions": [".rb"],
+      "tools": ["ruby"],
+      "run": "${ruby} ${file}",
+      "check": "${ruby} -wc ${file}"
+    },
+    "lua": {
+      "label": "Lua",
+      "extensions": [".lua"],
+      "tools": ["lua"],
+      "run": "${lua} ${file}"
+    },
+    "shell": {
+      "label": "Shell",
+      "extensions": [".sh"],
+      "tools": ["bash"],
+      "run": "${bash} ${file}"
+    },
+    "batch": {
+      "label": "Batch",
+      "extensions": [".bat", ".cmd"],
+      "tools": [],
+      "run": "call ${file}"
+    },
+    "html": {
+      "label": "HTML",
+      "extensions": [".html", ".htm"],
+      "tools": [],
+      "preview": true
+    }
+  }
+}

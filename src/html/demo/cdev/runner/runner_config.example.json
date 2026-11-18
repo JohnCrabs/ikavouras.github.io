@@ -1,0 +1,8 @@
+{
+  "root": "workspace",
+  "port": 8787,
+  "token": null,
+  "uiUrl": "https://YOUR-USER.github.io/CDev/",
+  "allowOrigins": [],
+  "serveUi": true
+}

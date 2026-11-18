@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CDev Editor</title>
+  <meta name="description" content="Lightweight online code editor that runs your code with your own local compilers.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233b82f6'/%3E%3Cpath d='M12 10l-6 6 6 6M20 10l6 6-6 6' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand" title="CDev"><span class="logo">&lt;/&gt;</span> CDev</div>
+    <div class="tb-group">
+      <button class="tb" id="btn-open" title="Open a local folder (browser file access)">📂 <span>Open folder</span></button>
+      <button class="tb" id="btn-new-project" title="Create a new project">✨ <span>New project</span></button>
+      <button class="tb" id="btn-save" title="Save (Ctrl+S)">💾 <span>Save</span></button>
+    </div>
+    <div class="tb-group">
+      <button class="tb run" id="btn-run" title="Run (F5)">▶ <span>Run</span></button>
+      <button class="tb" id="btn-build" title="Build (Ctrl+Shift+B)">🔨 <span>Build</span></button>
+      <button class="tb" id="btn-check" title="Check for errors">✔ <span>Check</span></button>
+      <button class="tb danger" id="btn-stop" title="Stop the running process" disabled>■ <span>Stop</span></button>
+      <button class="tb" id="btn-setup" title="Run the project's setup command (e.g. create venv)">⚙ <span>Setup</span></button>
+    </div>
+    <div class="spacer"></div>
+    <div class="tb-group">
+      <button class="tb" id="btn-download-runner" title="Download the local runner (needed to run compilers)">⬇ <span>Download runner</span></button>
+      <button class="tb pill" id="btn-runner" title="Local runner connection"><span class="dot"></span> <span id="runner-label">Runner: off</span></button>
+      <button class="tb" id="btn-ai" title="Toggle AI assistant (Ctrl+Shift+A)">🤖 <span>AI</span></button>
+      <button class="tb icon" id="btn-settings" title="Editor & AI settings">⚙️</button>
+      <button class="tb icon" id="btn-theme" title="Toggle light/dark">🌓</button>
+      <button class="tb icon" id="btn-help" title="Help">?</button>
+    </div>
+  </header>
+
+  <main id="layout">
+    <aside id="sidebar">
+      <div class="side-head">
+        <span class="side-title" id="ws-name">WORKSPACE</span>
+        <div class="side-actions">
+          <button class="ib" id="btn-new-file" title="New file">＋📄</button>
+          <button class="ib" id="btn-new-folder" title="New folder">＋📁</button>
+          <button class="ib" id="btn-refresh" title="Refresh">⟳</button>
+          <button class="ib" id="btn-project-settings" title="Open exec_settings.json of the current project">🛠</button>
+        </div>
+      </div>
+      <div id="tree" tabindex="0"></div>
+    </aside>
+    <div class="resizer v" data-resize="sidebar"></div>
+
+    <section id="center">
+      <div id="tabs"></div>
+      <div id="editor-wrap">
+        <div id="editor"></div>
+        <div id="welcome"></div>
+      </div>
+      <div class="resizer h" data-resize="panel"></div>
+      <div id="panel">
+        <div class="panel-tabs">
+          <button class="ptab active" data-ptab="console">Console</button>
+          <button class="ptab" data-ptab="problems">Problems <span class="badge" id="problems-count">0</span></button>
+          <button class="ptab" data-ptab="preview">Preview</button>
+          <div class="spacer"></div>
+          <span class="panel-info" id="proc-info"></span>
+          <button class="ib" id="btn-clear-console" title="Clear console">🧹</button>
+          <button class="ib" id="btn-toggle-panel" title="Collapse/expand panel">▾</button>
+        </div>
+        <div class="panel-body">
+          <div class="pview active" data-pview="console">
+            <div id="console-out" tabindex="0"></div>
+            <form id="console-form" autocomplete="off">
+              <span id="console-prompt">$</span>
+              <input id="console-input" spellcheck="false" placeholder="Type a shell command (runs in the project folder)…">
+            </form>
+          </div>
+          <div class="pview" data-pview="problems">
+            <div class="problems-bar">
+              <button class="mini" id="btn-ai-fix-all">✨ Fix all with AI</button>
+            </div>
+            <div id="problems-list"></div>
+          </div>
+          <div class="pview" data-pview="preview">
+            <div class="preview-bar">
+              <span id="preview-file">No HTML file</span>
+              <label><input type="checkbox" id="preview-auto" checked> live</label>
+              <button class="mini" id="btn-preview-refresh">⟳ Refresh</button>
+              <button class="mini" id="btn-preview-pop">↗ New tab</button>
+            </div>
+            <iframe id="preview-frame" title="Preview" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="resizer v" data-resize="ai"></div>
+    <aside id="ai-panel" class="hidden">
+      <div class="side-head">
+        <span class="side-title">AI ASSISTANT</span>
+        <div class="side-actions">
+          <span class="ai-model" id="ai-model-label"></span>
+          <button class="ib" id="btn-ai-clear" title="New conversation">🗑</button>
+          <button class="ib" id="btn-ai-close" title="Close">✕</button>
+        </div>
+      </div>
+      <div id="ai-messages"></div>
+      <div class="ai-context">
+        <label><input type="checkbox" id="ai-ctx-file" checked> file</label>
+        <label><input type="checkbox" id="ai-ctx-sel" checked> selection</label>
+        <label><input type="checkbox" id="ai-ctx-problems" checked> problems</label>
+        <label><input type="checkbox" id="ai-ctx-console"> console</label>
+      </div>
+      <form id="ai-form">
+        <textarea id="ai-input" rows="3" placeholder="Ask about your code… (Enter to send, Shift+Enter for new line)"></textarea>
+        <div class="ai-actions">
+          <button type="button" class="mini" id="btn-ai-stop" hidden>■ Stop</button>
+          <button type="submit" class="mini primary" id="btn-ai-send">Send</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+
+  <footer id="statusbar">
+    <span id="sb-runner">● local runner: off</span>
+    <span id="sb-project"></span>
+    <span class="spacer"></span>
+    <span id="sb-check"></span>
+    <span id="sb-inline" title="AI inline completions (toggle)"></span>
+    <span id="sb-lang"></span>
+    <span id="sb-pos"></span>
+    <span class="sb-copy">© 2026 Ioannis A. Kavouras. All rights reserved.</span>
+  </footer>
+
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+  <div id="ctx-menu" hidden></div>
+
+  <div id="boot">Loading editor…</div>
+  <script src="js/boot.js"></script>
+</body>
+</html>

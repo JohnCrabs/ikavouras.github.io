@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cdev.local/schema/exec_settings.schema.json",
+  "title": "CDev exec_settings.json",
+  "description": "Per-project execution settings for the CDev editor. Values may be platform specific: {\"windows\": \"...\", \"linux\": \"...\", \"darwin\": \"...\", \"default\": \"...\"}. Commands support variables like ${file}, ${outFile}, ${projectDir} and every tool name, e.g. ${gcc}.",
+  "type": "object",
+  "definitions": {
+    "platformString": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "windows": { "type": "string" },
+            "linux": { "type": "string" },
+            "darwin": { "type": "string" },
+            "default": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "command": {
+      "description": "Shell command (string), list of commands run in sequence, or platform specific object. Variables: ${file} ${fileRel} ${fileDir} ${fileName} ${fileBase} ${fileExt} ${outDir} ${outFile} ${projectDir} ${toolsDir} ${tmpDir} ${runnerDir} ${exe} ${env:NAME} and every tool, e.g. ${gcc}. Use ${raw:name} to skip automatic quoting.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "$ref": "#/definitions/platformString" } },
+        { "$ref": "#/definitions/platformString" }
+      ]
+    },
+    "language": {
+      "type": "object",
+      "properties": {
+        "label": { "type": "string", "description": "Display name" },
+        "extensions": { "type": "array", "items": { "type": "string", "pattern": "^\\." }, "description": "File extensions, e.g. [\".c\"]" },
+        "filenames": { "type": "array", "items": { "type": "string" } },
+        "requires": { "description": "Glob(s) relative to the project that must exist for this entry to apply, e.g. \"Cargo.toml\"", "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] },
+        "tools": { "type": "array", "items": { "type": "string" }, "description": "Tools this language uses (for the New-project wizard)" },
+        "build": { "$ref": "#/definitions/command" },
+        "run": { "$ref": "#/definitions/command" },
+        "check": { "$ref": "#/definitions/command", "description": "Command that prints compiler-style diagnostics (file:line:col: error: msg) for live error checking" },
+        "setup": { "$ref": "#/definitions/command", "description": "One-time setup, e.g. create a venv" },
+        "test": { "$ref": "#/definitions/command" },
+        "clean": { "$ref": "#/definitions/command" },
+        "buildBeforeRun": { "type": "boolean", "default": true },
+        "checkOnSaved": { "type": "boolean", "description": "Run the check on the saved file instead of a temporary copy (needed for multi-file project tools like cargo)" },
+        "checkTimeout": { "type": "number", "default": 30 },
+        "cwd": { "$ref": "#/definitions/platformString", "description": "Working directory (default: project folder)" },
+        "preview": { "type": "boolean", "description": "Show in the browser preview instead of running" },
+        "browserRuntime": { "enum": ["js", "pyodide"], "description": "Fallback runtime in the browser when no runner is connected" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "const": 1 },
+    "pathMode": { "enum": ["relative", "absolute"], "description": "How the wizard wrote tool paths. Relative paths are resolved from this file's folder." },
+    "inheritDefaults": { "type": "boolean", "default": true, "description": "Merge with CDev's built-in defaults (false = only what is in this file)" },
+    "toolsDir": { "$ref": "#/definitions/platformString", "description": "Folder with portable tools, available as ${toolsDir}" },
+    "outDir": { "$ref": "#/definitions/platformString", "description": "Build output folder (default: build)" },
+    "encoding": { "type": "string", "default": "utf-8", "description": "Encoding of program output" },
+    "env": { "type": "object", "additionalProperties": { "oneOf": [{ "$ref": "#/definitions/platformString" }, { "type": "null" }] }, "description": "Extra environment variables" },
+    "path": { "type": "array", "items": { "$ref": "#/definitions/platformString" }, "description": "Folders prepended to PATH (relative to the project). Folders of absolute tool paths are added automatically." },
+    "vars": { "type": "object", "additionalProperties": { "$ref": "#/definitions/platformString" }, "description": "Custom variables usable as ${name}" },
+    "tools": {
+      "type": "object",
+      "description": "Tool name -> executable. Bare names use PATH; paths may be relative (to this file) or absolute.",
+      "additionalProperties": { "$ref": "#/definitions/platformString" }
+    },
+    "languages": { "type": "object", "additionalProperties": { "$ref": "#/definitions/language" } }
+  }
+}
