@@ -19,7 +19,7 @@
             { "label": "CPDF", "url": "src/html/demo/cpdf/index.html" },
             { "label": "CScanner", "url": "src/html/demo/cscanner/index.html" },
             { "label": "CFiles", "url": "src/html/demo/cfiles/index.html" },
-            { "label": "CFiles", "url": "src/html/demo/cdev/index.html" },
+            { "label": "CDev", "url": "src/html/demo/cdev/index.html" },
             { "label": "CTimeSheets", "url": "src/html/demo/ctimesheets/index.html" },
             { "label": "CTopoSimulator", "url": "src/html/demo/ctoposim/index.html" },
             { "label": "CGeoRef", "url": "src/html/demo/cgeoref/index.html" }
