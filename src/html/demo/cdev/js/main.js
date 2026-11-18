@@ -79,7 +79,7 @@ class App {
     if (target?.url) {
       const info = await this.runner.connect(target.url, target.token, { silent: true });
       if (info) { await this.setWorkspace(new RunnerFS(this.runner)); return; }
-      if (hash.get('runner')) toast('Could not connect to the runner from the link. Is it running?', 'warn');
+      if (hash.get('runner')) setTimeout(() => this.openRunnerDialog(this.runner.lastError), 300);
     }
     this.lastHandle = await idb.get('dirHandle');
     await this.setWorkspace(await this.scratchFS());
@@ -784,11 +784,11 @@ class App {
   }
 
   // ------------------------------------------------------------------ dialogs
-  openRunnerDialog() {
+  openRunnerDialog(error) {
     const saved = store.get('runner', {});
     const url = h('input', { value: this.runner.url || saved.url || DEFAULT_RUNNER });
     const token = h('input', { value: this.runner.token || saved.token || '', placeholder: 'printed by the runner at start', type: 'password' });
-    const status = h('div', { class: 'hint', style: { whiteSpace: 'pre-wrap', lineHeight: '1.5' } }, this.runner.connected ? `✅ Connected — runner v${this.runner.info.version} on ${this.runner.info.platform}, workspace ${this.runner.info.root}` : '⚪ Not connected');
+    const status = h('div', { class: 'hint', style: { whiteSpace: 'pre-wrap', lineHeight: '1.5' } }, this.runner.connected ? `✅ Connected — runner v${this.runner.info.version} on ${this.runner.info.platform}, workspace ${this.runner.info.root}` : (typeof error === 'string' && error ? '❌ ' + error : '⚪ Not connected'));
     const appDir = location.protocol.startsWith('http') && /github\.io$/.test(location.hostname) ? `--ui-url ${location.origin + location.pathname}` : '';
     const cmd = `python runner/cdev_runner.py --root "D:/Projects" ${appDir}`.trim();
     const body = h('div', { class: 'form' },

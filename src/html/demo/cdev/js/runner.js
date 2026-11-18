@@ -38,8 +38,9 @@ export class Runner extends Emitter {
       return this.info;
     } catch (e) {
       this.connected = false; this.info = null;
+      this.lastError = e instanceof TypeError ? await blockedHint(url) : e.message;
       this.emit('status', false);
-      if (!silent) throw e instanceof TypeError ? new Error(await blockedHint(url)) : e;
+      if (!silent) throw new Error(this.lastError);
       return null;
     }
   }

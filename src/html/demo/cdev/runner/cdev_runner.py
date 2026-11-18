@@ -557,8 +557,16 @@ def detect_tools(names, search_dirs, project_dir):
 
 # --------------------------------------------------------------------------- http
 
+def ui_origin():
+    """Origin of the hosted editor (uiUrl), e.g. https://example.com for https://example.com/apps/cdev/."""
+    u = urlparse(CFG.get("uiUrl") or "")
+    return f"{u.scheme}://{u.netloc}" if u.scheme in ("http", "https") and u.netloc else None
+
+
 def origin_allowed(origin):
     pats = DEFAULT_ORIGINS + list(CFG.get("allowOrigins") or [])
+    if ui_origin():
+        pats.append(ui_origin())
     return any(fnmatch.fnmatch(origin.lower(), p.lower()) for p in pats)
 
 

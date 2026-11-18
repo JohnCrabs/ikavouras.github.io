@@ -150,7 +150,10 @@ export async function buildZip() {
     files.push({ name: ZIP_ROOT + l.name, data: l.crlf ? l.data.replace(/\n/g, '\r\n') : l.data, mode: l.mode });
   }
   const config = { root: 'workspace', port: 8787, token: null, allowOrigins: [], serveUi: true };
-  if (location.protocol === 'https:') config.uiUrl = pageUrl();
+  if (location.protocol === 'https:') {
+    config.uiUrl = pageUrl();
+    config.allowOrigins = [location.origin]; // the site the runner was downloaded from may call it
+  }
   files.push({ name: ZIP_ROOT + 'runner/runner_config.json', data: JSON.stringify(config, null, 2) + '\n' });
   files.push({
     name: ZIP_ROOT + 'README.txt',

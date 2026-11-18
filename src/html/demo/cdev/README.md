@@ -53,7 +53,7 @@ CDev είναι ένας **στατικός** web editor (τρέχει σε GitH
    ```bash
    python runner/cdev_runner.py --root "D:/Projects" --ui-url https://USER.github.io/CDev/
    ```
-   Ο runner δέχεται από προεπιλογή αιτήματα από `https://*.github.io` και `localhost`. Για άλλο domain: `--allow-origin https://my.domain`.
+   Ο runner δέχεται από προεπιλογή αιτήματα από `https://*.github.io`, `localhost` και το domain του `uiUrl`. Ο runner που κατεβαίνει από το κουμπί **Download runner** έχει ήδη γραμμένο το site από το οποίο κατέβηκε (`uiUrl` και `allowOrigins` στο `runner/runner_config.json`). Για επιπλέον domain: `--allow-origin https://my.domain` ή πρόσθεσέ το στο `allowOrigins`.
 
 > Ο Chrome μπορεί να ζητήσει άδεια για πρόσβαση σε «συσκευές του τοπικού δικτύου» όταν μια https σελίδα μιλά στο `127.0.0.1` — πάτησε *Allow*.
 
