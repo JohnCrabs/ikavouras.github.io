@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CFiles — Text &amp; Binary File Editor</title>
+  <meta name="description" content="CFiles: browser-based viewer and editor for JSON, YAML, CSV, TXT and BIN files, with synthetic data generation.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try { var t = localStorage.getItem('cf.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <!-- YAML parser (js-yaml 4.1.0, MIT) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" defer></script>
+  <script src="js/core/utils.js" defer></script>
+  <script src="js/core/csv.js" defer></script>
+  <script src="js/core/detect.js" defer></script>
+  <script src="js/viewers/tree.js" defer></script>
+  <script src="js/viewers/table.js" defer></script>
+  <script src="js/viewers/text.js" defer></script>
+  <script src="js/viewers/binary.js" defer></script>
+  <script src="js/synthetic/data-tables.js" defer></script>
+  <script src="js/synthetic/generator.js" defer></script>
+  <script src="js/synthetic/ai.js" defer></script>
+  <script src="js/synthetic/dialog.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand">
+      <img src="assets/favicon.svg" alt="" width="26" height="26">
+      <span>CFiles</span>
+    </div>
+    <nav class="actions" aria-label="Main actions">
+      <button id="btnOpen" class="btn primary" title="Open files (Ctrl+O). You can also drop files or paste text.">Open…</button>
+      <div class="menu">
+        <button id="btnNew" class="btn" aria-haspopup="true">New ▾</button>
+        <div class="menu-list" id="menuNew" role="menu">
+          <button data-new="json" role="menuitem">JSON document</button>
+          <button data-new="yaml" role="menuitem">YAML document</button>
+          <button data-new="csv" role="menuitem">CSV table</button>
+          <button data-new="txt" role="menuitem">Text file</button>
+        </div>
+      </div>
+      <button id="btnSynth" class="btn accent" title="Generate synthetic JSON / YAML / CSV / TXT data">✨ Create Synthetic Files</button>
+      <span class="vsep"></span>
+      <button id="btnSave" class="btn" disabled title="Save / download (Ctrl+S)">Save</button>
+      <div class="menu">
+        <button id="btnConvert" class="btn" disabled aria-haspopup="true">Convert ▾</button>
+        <div class="menu-list" id="menuConvert" role="menu"></div>
+      </div>
+    </nav>
+    <div class="appbar-right">
+      <a href="html/help.html" class="btn ghost" target="_blank" rel="noopener">Help</a>
+      <button id="btnTheme" class="btn ghost icon" title="Toggle light / dark theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Open files">
+      <div class="sb-head">Open files <span id="fileCount" class="pill">0</span></div>
+      <ul id="fileList" class="file-list"></ul>
+      <div class="sb-foot">Drop files anywhere · <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste</div>
+    </aside>
+
+    <main class="main">
+      <section id="empty" class="empty">
+        <button id="dropZone" class="dropzone" type="button">
+          <span class="dz-icon" aria-hidden="true">⇪</span>
+          <strong>Drop files here or click to open</strong>
+          <span>…or paste text with <kbd>Ctrl</kbd>+<kbd>V</kbd></span>
+          <span class="dz-types">
+            <span class="badge t-json">JSON</span><span class="badge t-yaml">YAML</span><span class="badge t-csv">CSV</span><span class="badge t-txt">TXT</span><span class="badge t-bin">BIN</span>
+          </span>
+          <small>The file type is detected automatically and the matching viewer &amp; editor is loaded.</small>
+        </button>
+        <p class="empty-note">Everything runs locally in your browser — your files are never uploaded.</p>
+      </section>
+
+      <section id="docView" class="doc hidden">
+        <div class="doc-head">
+          <div class="doc-title">
+            <span id="docBadge" class="badge"></span>
+            <span id="docName" class="doc-name"></span>
+            <span id="docDirty" class="dirty-dot hidden" title="Unsaved changes">●</span>
+          </div>
+          <label class="viewas" title="Override the detected type">View as
+            <select id="viewAs">
+              <option value="json">JSON</option>
+              <option value="yaml">YAML</option>
+              <option value="csv">CSV</option>
+              <option value="txt">TXT</option>
+              <option value="bin">BIN</option>
+            </select>
+          </label>
+          <span id="detectReason" class="muted small"></span>
+        </div>
+        <div id="viewerHost" class="viewer-host"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="statusbar"><span id="stLeft">Ready</span><span id="stRight"></span></div>
+  <footer class="footer">© 2026 Ioannis A. Kavouras. All rights reserved.</footer>
+
+  <input type="file" id="fileInput" multiple hidden>
+  <div id="dropOverlay" class="drop-overlay hidden"><div>Drop to open</div></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Create Synthetic Files dialog -->
+  <dialog id="synthDialog" class="dialog">
+    <form method="dialog" class="dlg-form" id="synthForm">
+      <header class="dlg-head">
+        <h2>✨ Create Synthetic Files</h2>
+        <button value="cancel" class="btn ghost icon" aria-label="Close">✕</button>
+      </header>
+
+      <div class="dlg-tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="local" role="tab">Local generator</button>
+        <button type="button" class="tab" data-tab="ai" role="tab">AI (LLM)</button>
+      </div>
+
+      <div class="dlg-body">
+        <div class="grid4">
+          <label>Format
+            <select id="sfFormat">
+              <option value="json">JSON</option>
+              <option value="yaml">YAML</option>
+              <option value="csv">CSV</option>
+              <option value="txt">TXT</option>
+            </select>
+          </label>
+          <label>File name
+            <input id="sfName" value="synthetic" spellcheck="false">
+          </label>
+          <label>Records
+            <input id="sfCount" type="number" value="25" min="1" max="100000">
+          </label>
+          <label>Language
+            <select id="sfLocale">
+              <option value="en">English</option>
+              <option value="el">Ελληνικά</option>
+            </select>
+          </label>
+        </div>
+        <p class="note">🔒 Binary (BIN) files are intentionally excluded from synthetic generation for security reasons.</p>
+
+        <div class="tab-panel" data-panel="local">
+          <div class="grid4">
+            <label>Preset
+              <select id="sfPreset"></select>
+            </label>
+            <label>Seed (optional)
+              <input id="sfSeed" placeholder="random" spellcheck="false">
+            </label>
+            <label class="fmt-csv">CSV delimiter
+              <select id="sfDelim">
+                <option value=",">Comma ( , )</option>
+                <option value=";">Semicolon ( ; )</option>
+                <option value="&#9;">Tab</option>
+                <option value="|">Pipe ( | )</option>
+              </select>
+            </label>
+            <label class="fmt-txt">Text content
+              <select id="sfTxtMode">
+                <option value="records">Records (one per line)</option>
+                <option value="paragraphs">Paragraphs</option>
+                <option value="log">Log file</option>
+              </select>
+            </label>
+            <label class="check fmt-tree"><input type="checkbox" id="sfNested"> Nested address object</label>
+          </div>
+          <fieldset class="fields-box">
+            <legend>Fields <button type="button" id="sfAll" class="link">all</button> · <button type="button" id="sfNone" class="link">none</button></legend>
+            <div id="sfFields" class="field-grid"></div>
+          </fieldset>
+        </div>
+
+        <div class="tab-panel hidden" data-panel="ai">
+          <p class="note">No server needed. <b>WebLLM</b> runs a small model inside your browser (WebGPU, free, no key — the model is downloaded once, ~1 GB);
+            the online providers use <b>your own free API key</b>, sent only to that provider.</p>
+          <div class="grid4">
+            <label>Provider
+              <select id="aiProvider"></select>
+            </label>
+            <label>Model
+              <input id="aiModel" spellcheck="false" list="aiModels">
+              <datalist id="aiModels"></datalist>
+            </label>
+            <label class="ai-endpoint">Endpoint URL
+              <input id="aiEndpoint" spellcheck="false" placeholder="https://…/v1/chat/completions">
+            </label>
+            <label class="ai-key">API key
+              <input id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="paste your key">
+            </label>
+          </div>
+          <div class="row-inline">
+            <label class="check ai-key"><input type="checkbox" id="aiRemember"> Remember key in this browser</label>
+            <a id="aiKeyLink" class="small" href="#" target="_blank" rel="noopener"></a>
+            <label class="check"><input type="checkbox" id="aiUseFields" checked> Use selected fields from “Local generator” as schema</label>
+            <label class="check"><input type="checkbox" id="aiFallback" checked> Fall back to local generator if AI fails</label>
+          </div>
+          <label class="block">Describe the data you want
+            <textarea id="aiPrompt" rows="4" placeholder="e.g. Customers of a Greek e-shop with name, email, city, number of orders and last order date"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <footer class="dlg-foot">
+        <span id="sfMsg" class="muted small"></span>
+        <button value="cancel" class="btn">Cancel</button>
+        <button type="button" id="sfGenerate" class="btn primary">Generate</button>
+      </footer>
+    </form>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,92 @@
+/* CFiles — lookup tables for the local synthetic data generator (all values fictional) */
+(function () {
+  'use strict';
+  CF.synthData = {
+    en: {
+      male: ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Steven', 'Paul', 'Andrew', 'Joshua', 'Kevin', 'Brian', 'George', 'Edward', 'Ryan', 'Jacob', 'Ethan', 'Noah', 'Liam', 'Lucas', 'Oliver', 'Henry'],
+      female: ['Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen', 'Emily', 'Emma', 'Olivia', 'Sophia', 'Ava', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Grace', 'Chloe', 'Lily', 'Hannah', 'Natalie', 'Zoe', 'Anna', 'Laura', 'Megan', 'Rachel', 'Julia'],
+      last: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin', 'Lee', 'Thompson', 'White', 'Harris', 'Clark', 'Lewis', 'Walker', 'Hall', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Green', 'Baker', 'Adams', 'Nelson', 'Carter', 'Mitchell', 'Roberts', 'Turner', 'Phillips', 'Campbell'],
+      cities: [
+        ['New York', 'USA'], ['Chicago', 'USA'], ['Boston', 'USA'], ['Seattle', 'USA'], ['Austin', 'USA'], ['Denver', 'USA'],
+        ['London', 'United Kingdom'], ['Manchester', 'United Kingdom'], ['Edinburgh', 'United Kingdom'],
+        ['Toronto', 'Canada'], ['Vancouver', 'Canada'], ['Sydney', 'Australia'], ['Melbourne', 'Australia'],
+        ['Dublin', 'Ireland'], ['Auckland', 'New Zealand'], ['Cape Town', 'South Africa'],
+      ],
+      streets: ['Main St', 'Oak Ave', 'Maple Dr', 'Cedar Ln', 'Park Rd', 'Elm St', 'Washington Blvd', 'Lake View Dr', 'Hillside Ave', 'River Rd', 'Sunset Blvd', 'Church St', 'Mill Lane', 'High Street', 'Station Road', 'Pine Court'],
+      jobs: ['Software Engineer', 'Accountant', 'Civil Engineer', 'Surveyor', 'Graphic Designer', 'Data Analyst', 'Sales Manager', 'Nurse', 'Lawyer', 'Teacher', 'Architect', 'Support Technician', 'Project Manager', 'Business Consultant', 'Electrical Engineer', 'Marketing Specialist', 'HR Coordinator', 'Product Owner'],
+      departments: ['Engineering', 'Finance', 'Sales', 'Marketing', 'Human Resources', 'Operations', 'Legal', 'Customer Support', 'Research & Development', 'IT'],
+      products: [
+        ['Laptop', 'Electronics'], ['Wireless Mouse', 'Electronics'], ['Mechanical Keyboard', 'Electronics'], ['USB-C Hub', 'Electronics'],
+        ['27" Monitor', 'Electronics'], ['Headphones', 'Electronics'], ['Smartwatch', 'Electronics'], ['Bluetooth Speaker', 'Electronics'],
+        ['External SSD', 'Electronics'], ['Webcam', 'Electronics'], ['Office Chair', 'Furniture'], ['Standing Desk', 'Furniture'],
+        ['Desk Lamp', 'Home'], ['Coffee Maker', 'Home'], ['Water Bottle', 'Sports'], ['Running Shoes', 'Sports'], ['Yoga Mat', 'Sports'],
+        ['Backpack', 'Accessories'], ['Notebook', 'Stationery'], ['Fountain Pen', 'Stationery'],
+      ],
+      statuses: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
+      sensorStatus: ['ok', 'ok', 'ok', 'ok', 'warning', 'error', 'offline'],
+      colors: ['red', 'blue', 'green', 'black', 'white', 'yellow', 'orange', 'purple', 'grey', 'silver'],
+      words: 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' '),
+      phone: (r) => `+1 (555) ${r.int(100, 999)}-${String(r.int(0, 9999)).padStart(4, '0')}`,
+      postal: (r) => String(r.int(10000, 99999)),
+      address: (street, no) => `${no} ${street}`,
+    },
+    el: {
+      male: ['Γιώργος', 'Δημήτρης', 'Κωνσταντίνος', 'Ιωάννης', 'Νίκος', 'Παναγιώτης', 'Βασίλης', 'Χρήστος', 'Αθανάσιος', 'Μιχάλης', 'Ευάγγελος', 'Σπύρος', 'Αντώνης', 'Ανδρέας', 'Θεόδωρος', 'Στέλιος', 'Αλέξανδρος', 'Πέτρος', 'Μανώλης', 'Λευτέρης', 'Άγγελος', 'Φώτης', 'Στάθης', 'Παύλος', 'Ηλίας'],
+      female: ['Μαρία', 'Ελένη', 'Αικατερίνη', 'Βασιλική', 'Σοφία', 'Αγγελική', 'Γεωργία', 'Δήμητρα', 'Κωνσταντίνα', 'Παρασκευή', 'Ευαγγελία', 'Χριστίνα', 'Ιωάννα', 'Αναστασία', 'Δέσποινα', 'Θεοδώρα', 'Ειρήνη', 'Αλεξάνδρα', 'Νικολέτα', 'Φωτεινή', 'Ζωή', 'Μαρίνα', 'Στέλλα', 'Άννα', 'Κατερίνα'],
+      // [male form, female form]
+      lastPairs: [
+        ['Παπαδόπουλος', 'Παπαδοπούλου'], ['Παπαδάκης', 'Παπαδάκη'], ['Γεωργίου', 'Γεωργίου'], ['Οικονόμου', 'Οικονόμου'],
+        ['Βασιλείου', 'Βασιλείου'], ['Νικολάου', 'Νικολάου'], ['Ιωάννου', 'Ιωάννου'], ['Μακρής', 'Μακρή'],
+        ['Παπαγεωργίου', 'Παπαγεωργίου'], ['Κωνσταντινίδης', 'Κωνσταντινίδου'], ['Δημητρίου', 'Δημητρίου'], ['Αθανασίου', 'Αθανασίου'],
+        ['Χριστοδούλου', 'Χριστοδούλου'], ['Αλεξίου', 'Αλεξίου'], ['Καραγιάννης', 'Καραγιάννη'], ['Πετρόπουλος', 'Πετροπούλου'],
+        ['Αντωνίου', 'Αντωνίου'], ['Παππάς', 'Παππά'], ['Λαμπρόπουλος', 'Λαμπροπούλου'], ['Μιχαηλίδης', 'Μιχαηλίδου'],
+        ['Σταυρόπουλος', 'Σταυροπούλου'], ['Καλογεράκης', 'Καλογεράκη'], ['Τσακίρης', 'Τσακίρη'], ['Ζαφειρίου', 'Ζαφειρίου'],
+        ['Μαυρίδης', 'Μαυρίδου'], ['Κυριακίδης', 'Κυριακίδου'], ['Ραφαηλίδης', 'Ραφαηλίδου'], ['Αναγνώστου', 'Αναγνώστου'],
+        ['Σαββίδης', 'Σαββίδου'], ['Φραγκιαδάκης', 'Φραγκιαδάκη'],
+      ],
+      // [city, country, postal prefix]
+      cities: [
+        ['Αθήνα', 'Ελλάδα', '11'], ['Θεσσαλονίκη', 'Ελλάδα', '54'], ['Πάτρα', 'Ελλάδα', '26'], ['Ηράκλειο', 'Ελλάδα', '71'],
+        ['Λάρισα', 'Ελλάδα', '41'], ['Βόλος', 'Ελλάδα', '38'], ['Ιωάννινα', 'Ελλάδα', '45'], ['Χανιά', 'Ελλάδα', '73'],
+        ['Καβάλα', 'Ελλάδα', '65'], ['Ρόδος', 'Ελλάδα', '85'], ['Καλαμάτα', 'Ελλάδα', '24'], ['Σέρρες', 'Ελλάδα', '62'],
+        ['Κομοτηνή', 'Ελλάδα', '69'], ['Τρίκαλα', 'Ελλάδα', '42'], ['Χαλκίδα', 'Ελλάδα', '34'], ['Αλεξανδρούπολη', 'Ελλάδα', '68'],
+        ['Κέρκυρα', 'Ελλάδα', '49'], ['Ξάνθη', 'Ελλάδα', '67'], ['Κατερίνη', 'Ελλάδα', '60'], ['Λαμία', 'Ελλάδα', '35'],
+        ['Λευκωσία', 'Κύπρος', '10'], ['Λεμεσός', 'Κύπρος', '30'],
+      ],
+      streets: ['Ερμού', 'Σταδίου', 'Πανεπιστημίου', 'Αθηνάς', 'Εγνατίας', 'Τσιμισκή', 'Βασιλίσσης Σοφίας', 'Αγίου Δημητρίου', 'Κολοκοτρώνη', 'Μητροπόλεως', 'Πατησίων', 'Ακαδημίας', 'Αριστοτέλους', 'Ελευθερίου Βενιζέλου', '28ης Οκτωβρίου', 'Κηφισίας', 'Λεωφ. Αλεξάνδρας', 'Αγίας Σοφίας', 'Καραϊσκάκη', 'Μιαούλη'],
+      jobs: ['Μηχανικός Λογισμικού', 'Λογιστής', 'Πολιτικός Μηχανικός', 'Τοπογράφος Μηχανικός', 'Γραφίστας', 'Αναλυτής Δεδομένων', 'Υπεύθυνος Πωλήσεων', 'Νοσηλευτής', 'Δικηγόρος', 'Εκπαιδευτικός', 'Αρχιτέκτονας', 'Τεχνικός Υποστήριξης', 'Διευθυντής Έργου', 'Σύμβουλος Επιχειρήσεων', 'Ηλεκτρολόγος Μηχανικός', 'Στέλεχος Marketing', 'Υπεύθυνος Προσωπικού'],
+      departments: ['Μηχανική', 'Οικονομικά', 'Πωλήσεις', 'Marketing', 'Ανθρώπινο Δυναμικό', 'Λειτουργίες', 'Νομικό Τμήμα', 'Εξυπηρέτηση Πελατών', 'Έρευνα & Ανάπτυξη', 'Πληροφορική'],
+      products: [
+        ['Φορητός Υπολογιστής', 'Ηλεκτρονικά'], ['Ασύρματο Ποντίκι', 'Ηλεκτρονικά'], ['Μηχανικό Πληκτρολόγιο', 'Ηλεκτρονικά'], ['Hub USB-C', 'Ηλεκτρονικά'],
+        ['Οθόνη 27"', 'Ηλεκτρονικά'], ['Ακουστικά', 'Ηλεκτρονικά'], ['Έξυπνο Ρολόι', 'Ηλεκτρονικά'], ['Ηχείο Bluetooth', 'Ηλεκτρονικά'],
+        ['Εξωτερικός SSD', 'Ηλεκτρονικά'], ['Κάμερα Web', 'Ηλεκτρονικά'], ['Καρέκλα Γραφείου', 'Έπιπλα'], ['Γραφείο Ορθοστασίας', 'Έπιπλα'],
+        ['Φωτιστικό Γραφείου', 'Σπίτι'], ['Καφετιέρα', 'Σπίτι'], ['Παγούρι', 'Αθλητικά'], ['Παπούτσια Τρεξίματος', 'Αθλητικά'], ['Στρώμα Γιόγκα', 'Αθλητικά'],
+        ['Σακίδιο', 'Αξεσουάρ'], ['Σημειωματάριο', 'Χαρτικά'], ['Πένα', 'Χαρτικά'],
+      ],
+      statuses: ['σε αναμονή', 'σε επεξεργασία', 'απεστάλη', 'παραδόθηκε', 'ακυρώθηκε', 'επιστράφηκε'],
+      sensorStatus: ['κανονικό', 'κανονικό', 'κανονικό', 'κανονικό', 'προειδοποίηση', 'σφάλμα', 'εκτός σύνδεσης'],
+      colors: ['κόκκινο', 'μπλε', 'πράσινο', 'μαύρο', 'λευκό', 'κίτρινο', 'πορτοκαλί', 'μωβ', 'γκρι', 'ασημί'],
+      words: 'θάλασσα ουρανός σπίτι δρόμος πόλη χωριό βουνό ήλιος φως χρόνος ημέρα νύχτα άνθρωπος παιδί φίλος έργο σχέδιο ιδέα λύση στόχος ομάδα αρχή τέλος κόσμος γνώση εμπειρία ποιότητα ανάπτυξη πρόοδος δεδομένα σύστημα μέθοδος αποτέλεσμα αλλαγή επιλογή ευκαιρία προσπάθεια δύναμη αξία μέλλον παρόν ιστορία πολιτισμός τέχνη μουσική ταξίδι νέος μεγάλος μικρός όμορφος γρήγορος σημαντικός απλός καθαρός ελεύθερος σύγχρονος κάνει βλέπει γράφει δημιουργεί αλλάζει προσφέρει φέρνει ανοίγει και με για στο από στη του της'.split(' '),
+      phone: (r) => (r.chance(0.7) ? `+30 69${r.int(0, 9)} ${r.int(100, 999)} ${r.int(1000, 9999)}` : `+30 210 ${r.int(100, 999)} ${r.int(1000, 9999)}`),
+      postal: (r, prefix) => `${prefix}${r.int(1, 9)} ${String(r.int(0, 99)).padStart(2, '0')}`,
+      address: (street, no) => `${street} ${no}`,
+    },
+    companyA: ['Blue', 'Nova', 'Apex', 'Quantum', 'Silver', 'Green', 'Bright', 'Iron', 'Pixel', 'North', 'Summit', 'Vertex', 'Crystal', 'Atlas', 'Orbit', 'Aegean', 'Delta', 'Olympus'],
+    companyB: ['Systems', 'Labs', 'Solutions', 'Dynamics', 'Works', 'Logistics', 'Analytics', 'Industries', 'Technologies', 'Partners', 'Geomatics', 'Networks'],
+    companyC: ['Inc.', 'Ltd.', 'LLC', 'Group', 'Co.', 'S.A.', 'IKE'],
+    domains: ['example.com', 'example.org', 'example.net', 'mail.test'],
+    services: ['auth-service', 'api-gateway', 'billing', 'scheduler', 'storage', 'web-frontend', 'search', 'notifier'],
+    logMsgs: {
+      INFO: ['User {user} logged in from {ip}', 'Request GET /api/v1/items completed in {ms} ms', 'Job {job} finished successfully', 'Cache warmed ({n} entries)', 'Connection established to db-{n}'],
+      DEBUG: ['Payload size {n} bytes', 'Retrying operation (attempt {k})', 'Config value timeout={ms}'],
+      WARN: ['Slow query detected ({ms} ms)', 'Disk usage at {pct}%', 'Token for {user} expires soon', 'Rate limit approaching for {ip}'],
+      ERROR: ['Failed to connect to db-{n}: timeout after {ms} ms', 'Unhandled exception in job {job}', 'Payment provider returned HTTP 502', 'Permission denied for user {user}'],
+    },
+    greeklish: {
+      'ου': 'ou', 'ού': 'ou', 'αυ': 'av', 'αύ': 'av', 'ευ': 'ev', 'εύ': 'ev', 'μπ': 'b', 'ντ': 'nt', 'γκ': 'gk',
+      α: 'a', ά: 'a', β: 'v', γ: 'g', δ: 'd', ε: 'e', έ: 'e', ζ: 'z', η: 'i', ή: 'i', θ: 'th', ι: 'i', ί: 'i', ϊ: 'i', ΐ: 'i',
+      κ: 'k', λ: 'l', μ: 'm', ν: 'n', ξ: 'x', ο: 'o', ό: 'o', π: 'p', ρ: 'r', σ: 's', ς: 's', τ: 't', υ: 'y', ύ: 'y', ϋ: 'y', ΰ: 'y',
+      φ: 'f', χ: 'ch', ψ: 'ps', ω: 'o', ώ: 'o',
+    },
+  };
+})();

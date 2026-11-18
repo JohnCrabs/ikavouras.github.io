@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CFiles Help</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/styles.css">
+  <script>try { var t = localStorage.getItem('cf.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+  <style>
+    body { overflow: auto; }
+    .help { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; line-height: 1.6; flex: 1; }
+    .help h1 { margin-top: 0; }
+    .help h2 { margin-top: 32px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    .help code { font-family: var(--mono); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+    .help table { border-collapse: collapse; width: 100%; }
+    .help td, .help th { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    .help th { background: var(--panel-2); }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand"><img src="../assets/favicon.svg" alt="" width="26" height="26"><span>CFiles</span></div>
+    <div class="appbar-right"><a class="btn" href="../index.html">← Back to the editor</a></div>
+  </header>
+  <main class="help">
+    <h1>CFiles — Help</h1>
+    <p>CFiles is a browser-based viewer and editor for <b>JSON, YAML, CSV, TXT and BIN</b> files.
+      Everything runs locally in your browser: files are never uploaded anywhere.</p>
+
+    <h2>Opening files</h2>
+    <p>There is a single <b>Open…</b> action. You can also <b>drag &amp; drop</b> files anywhere on the page or <b>paste</b> text with <kbd>Ctrl</kbd>+<kbd>V</kbd>.
+      CFiles detects the type automatically and loads the matching viewer &amp; editor:</p>
+    <table>
+      <tr><th>Type</th><th>How it is detected</th><th>Viewer / editor</th></tr>
+      <tr><td><span class="badge t-json">JSON</span></td><td><code>.json</code> extension or content that parses as JSON</td><td>Key-value tree + raw source</td></tr>
+      <tr><td><span class="badge t-yaml">YAML</span></td><td><code>.yml/.yaml</code> or mostly <code>key: value</code> / <code>- item</code> lines that parse as YAML</td><td>Key-value tree (list “-” markers shown as indented dashes) + raw source</td></tr>
+      <tr><td><span class="badge t-csv">CSV</span></td><td><code>.csv/.tsv</code> or lines with a consistent delimiter (<code>, ; | tab</code>)</td><td>Editable table + raw source</td></tr>
+      <tr><td><span class="badge t-txt">TXT</span></td><td>Any other text</td><td>Text editor with line numbers, find &amp; replace</td></tr>
+      <tr><td><span class="badge t-bin">BIN</span></td><td><code>.bin</code> and other binary extensions, or content with NUL / control bytes</td><td>Two panes: HEX or OCTAL bytes + decoded text</td></tr>
+    </table>
+    <p>If the guess is wrong, use <b>View as</b> above the editor to pick another type.</p>
+
+    <h2>JSON &amp; YAML</h2>
+    <ul>
+      <li>Edit keys and values in place. Use the type selector (appears on hover) to change a value’s type.</li>
+      <li><b>+</b> adds a key/item, <b>⧉</b> duplicates, <b>✕</b> deletes.</li>
+      <li>Switch to <b>Source</b> to edit the raw text; syntax errors are reported with line/column.</li>
+      <li>Note: editing in the tree re-writes YAML, so YAML comments are not kept. Editing in Source keeps the text as you type it.</li>
+    </ul>
+
+    <h2>CSV</h2>
+    <ul>
+      <li>Click a cell to edit; <kbd>Enter</kbd>/arrows move between cells.</li>
+      <li>Click a row number or a column letter to select it, then use <b>− Row</b> / <b>− Column</b>. <b>⇅</b> sorts.</li>
+      <li>Change the delimiter or toggle the header row from the toolbar. Large tables are paged (200 rows per page).</li>
+    </ul>
+
+    <h2>BIN (binary)</h2>
+    <ul>
+      <li>Choose <b>HEX</b> or <b>OCTAL</b> for the byte pane; the choice is remembered.</li>
+      <li>The right pane shows the decoded characters (ASCII, UTF-8, Latin-1, Greek ISO-8859-7 / Windows-1253). Both panes scroll together.</li>
+      <li>Click a byte and type 2 hex digits (or 3 octal digits, max <code>377</code>) to overwrite it, or type a character in the text pane. <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes.</li>
+      <li><b>Go to offset</b> accepts <code>1024</code>, <code>0x400</code>, <code>0o2000</code>. <b>Find</b> searches text or byte sequences (e.g. <code>DE AD BE EF</code>).</li>
+      <li>The <b>Inspector</b> shows the selected byte as integers / floats in little- and big-endian.</li>
+    </ul>
+
+    <h2>Create Synthetic Files</h2>
+    <p>Generates test data as <b>JSON, YAML, CSV or TXT</b>. Binary files are intentionally excluded for security reasons.</p>
+    <ul>
+      <li><b>Local generator</b> (offline): random combinations from built-in tables (English or Greek names, cities, products, logs…). Pick a preset or individual fields; an optional seed makes results repeatable.</li>
+      <li><b>AI (LLM)</b>: describe the data in your own words. Calls go straight from your browser to the provider — no server is involved.
+        <ul>
+          <li><b>WebLLM</b> — the model runs inside your browser via WebGPU (recent Chrome / Edge). Free, no key, and your prompt never leaves the device. The first run downloads the model (~1 GB), which the browser then caches.</li>
+          <li><b>OpenRouter</b>, <b>Groq</b>, <b>Google Gemini</b> — free tiers using your own API key. The key is sent only to that provider and is stored in this browser only if you tick “Remember key”.</li>
+          <li><b>Custom</b> — any OpenAI-compatible endpoint, e.g. a local Ollama server (<code>OLLAMA_ORIGINS</code> must allow the page’s origin).</li>
+        </ul>
+        If the AI request fails, CFiles can fall back to the local generator automatically.</li>
+    </ul>
+
+    <h2>Saving &amp; converting</h2>
+    <p><b>Save</b> (<kbd>Ctrl</kbd>+<kbd>S</kbd>) downloads the file — or, in Chromium-based browsers, opens a “Save as” dialog.
+      <b>Convert</b> creates a new file, e.g. JSON → YAML, YAML → JSON, CSV ↔ JSON/YAML (array of objects).</p>
+
+    <h2>Keyboard shortcuts</h2>
+    <table>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Open files</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Save</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Paste text as a new file (when no field is focused)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>Find (text editor)</td></tr>
+    </table>
+  </main>
+  <footer class="footer">© 2026 Ioannis A. Kavouras. All rights reserved.</footer>
+</body>
+</html>
