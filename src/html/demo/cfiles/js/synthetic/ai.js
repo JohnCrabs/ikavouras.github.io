@@ -220,8 +220,12 @@
     async function attempt(m, delays) {
       for (let i = 0; ; i++) {
         const ctrl = new AbortController();
-        // Local models need time to download on first use, so no timeout for WebLLM.
-        const timer = p.style === 'webllm' ? 0 : setTimeout(() => ctrl.abort(), 90000);
+        // User cancel (dialog closed) aborts the request too.
+        const onCancel = () => ctrl.abort();
+        if (o.signal) { if (o.signal.aborted) ctrl.abort(); else o.signal.addEventListener('abort', onCancel, { once: true }); }
+        // Local models need time to download on first use, so no timeout for WebLLM. 0 = no limit.
+        const limit = o.timeoutMs || 0;
+        const timer = p.style === 'webllm' || !limit ? 0 : setTimeout(() => ctrl.abort(), limit);
         try {
           return await call(Object.assign({}, base, { model: m, signal: ctrl.signal }));
         } catch (e) {
@@ -232,6 +236,7 @@
           await sleep(wait);
         } finally {
           clearTimeout(timer);
+          if (o.signal) o.signal.removeEventListener('abort', onCancel);
         }
       }
     }
@@ -266,7 +271,11 @@
       }
       return clean(raw, o.format);
     } catch (e) {
-      if (e.name === 'AbortError') throw new Error('The AI request timed out.');
+      if (o.signal && o.signal.aborted) { const c = new Error('Cancelled.'); c.cancelled = true; throw c; }
+      if (e.name === 'AbortError') {
+        const secs = Math.round((o.timeoutMs || 0) / 1000);
+        throw new Error(`The AI request timed out after ${secs} s. Choose a longer Timeout (or "No limit"), fewer records, or a faster model.`);
+      }
       if (e instanceof TypeError && p.style !== 'webllm') throw new Error('Network/CORS error — the provider could not be reached from the browser.');
       if (isBusy(e)) throw new Error(`The provider is overloaded right now (HTTP ${e.status}). Please try again in a minute.`);
       throw e;

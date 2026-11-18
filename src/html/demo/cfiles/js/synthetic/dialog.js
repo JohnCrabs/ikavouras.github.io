@@ -6,6 +6,7 @@
   const ALLOWED = new Set(['json', 'yaml', 'csv', 'txt']); // BIN deliberately excluded (security)
   let tab = 'local';
   let busy = false;
+  let currentAbort = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -121,7 +122,7 @@
     U.store.set('cf.synth', JSON.stringify({
       format: $('sfFormat').value, count: $('sfCount').value, locale: $('sfLocale').value, preset: $('sfPreset').value,
       fields: selectedFields(), delim: $('sfDelim').value, txtMode: $('sfTxtMode').value, nested: $('sfNested').checked,
-      provider: id, prompt: $('aiPrompt').value, useFields: $('aiUseFields').checked, fallback: $('aiFallback').checked, tab,
+      provider: id, prompt: $('aiPrompt').value, useFields: $('aiUseFields').checked, fallback: $('aiFallback').checked, timeout: $('aiTimeout').value, tab,
     }));
     U.store.set(`cf.ai.${id}.model`, $('aiModel').value.trim());
     if (CF.ai.PROVIDERS[id].custom) U.store.set(`cf.ai.${id}.endpoint`, $('aiEndpoint').value.trim());
@@ -146,6 +147,7 @@
     if (s.prompt) $('aiPrompt').value = s.prompt;
     if (s.useFields !== undefined) $('aiUseFields').checked = s.useFields;
     if (s.fallback !== undefined) $('aiFallback').checked = s.fallback;
+    if (s.timeout !== undefined) $('aiTimeout').value = s.timeout;
     if (s.tab) switchTab(s.tab);
     loadProviderSettings();
   }
@@ -212,8 +214,12 @@
     busy = true;
     const btn = $('sfGenerate');
     btn.disabled = true;
-    const sp = U.el('span', {}, U.el('span', { class: 'spinner' }), ` Asking ${CF.ai.PROVIDERS[provider].label.split(' — ')[0]}…`);
+    const elapsed = U.el('b', { text: '0 s' });
+    const sp = U.el('span', {}, U.el('span', { class: 'spinner' }), ' ', elapsed, ' · ', U.el('span', { text: `Asking ${CF.ai.PROVIDERS[provider].label.split(' — ')[0]}…` }));
     msg(sp);
+    const t0 = Date.now();
+    const tick = setInterval(() => { elapsed.textContent = Math.round((Date.now() - t0) / 1000) + ' s'; }, 1000);
+    currentAbort = new AbortController();
     try {
       const text = await CF.ai.generate({
         provider, format: o.format, count: aiCount, locale: o.locale,
@@ -223,6 +229,8 @@
         model: $('aiModel').value.trim(),
         endpoint: $('aiEndpoint').value.trim(),
         key: $('aiKey').value.trim(),
+        timeoutMs: Number($('aiTimeout').value) * 1000,
+        signal: currentAbort.signal,
         onProgress: (t) => { sp.lastChild.textContent = ' ' + String(t).slice(0, 140); },
         onModelChange: (m, ids, reason) => {
           modelIds = ids;
@@ -238,11 +246,14 @@
           }
         },
       });
+      if (currentAbort.signal.aborted) { U.toast('AI request cancelled.', 'info', 2500); return; }
       CF.app.openText(o.name, text, o.format, 'synthetic (AI: ' + provider + ')');
       $('synthDialog').close();
       U.toast(`Created ${o.name} with AI.`, 'ok');
     } catch (e) {
-      if ($('aiFallback').checked) {
+      if (e.cancelled) {
+        U.toast('AI request cancelled.', 'info', 2500);
+      } else if ($('aiFallback').checked) {
         try {
           localGenerate(o);
           $('synthDialog').close();
@@ -252,6 +263,8 @@
         msg('AI error: ' + e.message, true);
       }
     } finally {
+      clearInterval(tick);
+      currentAbort = null;
       busy = false;
       btn.disabled = false;
     }
@@ -277,7 +290,8 @@
     $('sfGenerate').addEventListener('click', onGenerate);
     $('aiRefresh').addEventListener('click', refreshModels);
     $('aiModelSel').addEventListener('change', onModelSelect);
-    dlg.addEventListener('close', () => { if (!busy) msg(''); });
+    // Closing the dialog (Cancel / ✕ / Esc) while waiting cancels the AI request.
+    dlg.addEventListener('close', () => { if (busy && currentAbort) currentAbort.abort(); else msg(''); });
     // Enter inside a text field generates instead of submitting the first (close) button.
     $('synthForm').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); onGenerate(); }
