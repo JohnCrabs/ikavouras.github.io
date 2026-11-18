@@ -788,7 +788,7 @@ class App {
     const saved = store.get('runner', {});
     const url = h('input', { value: this.runner.url || saved.url || DEFAULT_RUNNER });
     const token = h('input', { value: this.runner.token || saved.token || '', placeholder: 'printed by the runner at start', type: 'password' });
-    const status = h('div', { class: 'hint' }, this.runner.connected ? `✅ Connected — runner v${this.runner.info.version} on ${this.runner.info.platform}, workspace ${this.runner.info.root}` : '⚪ Not connected');
+    const status = h('div', { class: 'hint', style: { whiteSpace: 'pre-wrap', lineHeight: '1.5' } }, this.runner.connected ? `✅ Connected — runner v${this.runner.info.version} on ${this.runner.info.platform}, workspace ${this.runner.info.root}` : '⚪ Not connected');
     const appDir = location.protocol.startsWith('http') && /github\.io$/.test(location.hostname) ? `--ui-url ${location.origin + location.pathname}` : '';
     const cmd = `python runner/cdev_runner.py --root "D:/Projects" ${appDir}`.trim();
     const body = h('div', { class: 'form' },

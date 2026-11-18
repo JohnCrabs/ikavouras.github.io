@@ -1,6 +1,20 @@
 // Client for the local CDev runner (runner/cdev_runner.py).
 import { Emitter, store } from './util.js';
 
+// Explain the most likely reason a fetch to the local runner failed.
+async function blockedHint(url) {
+  const isBrave = !!(navigator.brave && await navigator.brave.isBrave().catch(() => false));
+  const fromWeb = location.protocol === 'https:';
+  const lines = [`Cannot reach ${url}.`, '• Is the runner window open? (start_cdev.bat / python runner/cdev_runner.py)'];
+  if (fromWeb && isBrave) {
+    lines.push('• Brave blocks websites from talking to localhost by default: click the icon at the left of the address bar (or the Brave lion/Shields) → allow “Localhost access” for this site, then Connect again. (Setting: brave://settings/content/localhostAccess)');
+  } else if (fromWeb) {
+    lines.push('• Your browser may block this site from reaching your computer: click the icon at the left of the address bar → allow “Local network access” (or “Apps on device”), then Connect again.');
+  }
+  lines.push('• Origin not allowed? If this page is not on *.github.io, start the runner with --allow-origin ' + location.origin);
+  return lines.join('\n');
+}
+
 export class Runner extends Emitter {
   constructor() {
     super();
@@ -25,7 +39,7 @@ export class Runner extends Emitter {
     } catch (e) {
       this.connected = false; this.info = null;
       this.emit('status', false);
-      if (!silent) throw e instanceof TypeError ? new Error(`Cannot reach ${url}. Is the runner started?`) : e;
+      if (!silent) throw e instanceof TypeError ? new Error(await blockedHint(url)) : e;
       return null;
     }
   }
