@@ -46,15 +46,75 @@
     const id = $('aiProvider').value;
     const p = CF.ai.PROVIDERS[id];
     $('aiModel').value = U.store.get(`cf.ai.${id}.model`, p.model);
-    const dl = $('aiModels');
-    dl.textContent = '';
-    for (const m of p.models || [p.model]) dl.append(U.el('option', { value: m }));
+    fillModelList(p.models || [p.model]);
     $('aiEndpoint').value = U.store.get(`cf.ai.${id}.endpoint`, p.url);
     const saved = U.store.get(`cf.ai.${id}.key`, '');
     $('aiKey').value = saved || sessionKeys[id] || '';
     $('aiRemember').checked = !!saved;
   }
   const sessionKeys = {};
+
+  const CUSTOM = '__custom__';
+  let modelIds = [];
+
+  /** Newest versions first (e.g. gemini-3.8-flash before gemini-2.5-flash). */
+  function sortModels(ids) {
+    const ver = (id) => (id.match(/(\d+(?:\.\d+)?)/) || [0, 0])[1] * 1;
+    return Array.from(new Set(ids)).sort((a, b) => ver(b) - ver(a) || a.localeCompare(b));
+  }
+
+  /** Rebuild the Model dropdown; the hidden #aiModel input stays the source of truth. */
+  function fillModelList(ids) {
+    modelIds = sortModels(ids);
+    const sel = $('aiModelSel');
+    const cur = $('aiModel').value.trim();
+    sel.textContent = '';
+    for (const m of modelIds) sel.append(U.el('option', { value: m, text: m }));
+    if (cur && !modelIds.includes(cur)) sel.prepend(U.el('option', { value: cur, text: cur + '  (saved)' }));
+    sel.append(U.el('option', { value: CUSTOM, text: 'Other (type a model name)…' }));
+    sel.value = cur || modelIds[0] || CUSTOM;
+    if (!cur && modelIds[0]) $('aiModel').value = modelIds[0];
+    $('aiModel').classList.toggle('hidden', sel.value !== CUSTOM);
+  }
+
+  function setModel(m) {
+    $('aiModel').value = m;
+    fillModelList(modelIds);
+  }
+
+  function onModelSelect() {
+    const sel = $('aiModelSel');
+    const custom = sel.value === CUSTOM;
+    $('aiModel').classList.toggle('hidden', !custom);
+    if (custom) { $('aiModel').value = ''; $('aiModel').focus(); }
+    else $('aiModel').value = sel.value;
+  }
+
+  async function refreshModels() {
+    const id = $('aiProvider').value;
+    const btn = $('aiRefresh');
+    btn.disabled = true;
+    msg(U.el('span', {}, U.el('span', { class: 'spinner' }), ' Loading available models…'));
+    try {
+      const ids = await CF.ai.listModels(id, { key: $('aiKey').value.trim(), endpoint: $('aiEndpoint').value.trim() });
+      if (!ids.length) { msg('The provider returned no usable models.', true); return; }
+      modelIds = ids;
+      const cur = $('aiModel').value.trim();
+      if (!ids.includes(cur)) {
+        const pick = CF.ai.pickModel(id, ids);
+        setModel(pick);
+        U.store.set(`cf.ai.${id}.model`, pick);
+        msg(`${ids.length} models available — selected ${pick}.`);
+      } else {
+        setModel(cur);
+        msg(`${ids.length} models available — pick one from the Model list.`);
+      }
+    } catch (e) {
+      msg('Could not load models: ' + e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
 
   function saveSettings() {
     const id = $('aiProvider').value;
@@ -148,8 +208,7 @@
       if (!ok) return;
       U.store.set('cf.webllm.ok', '1');
     }
-    const aiCount = Math.min(o.count, 200);
-    if (o.count > 200) U.toast('AI generation is limited to 200 records per request.', 'warn');
+    const aiCount = o.count;
     busy = true;
     const btn = $('sfGenerate');
     btn.disabled = true;
@@ -165,6 +224,19 @@
         endpoint: $('aiEndpoint').value.trim(),
         key: $('aiKey').value.trim(),
         onProgress: (t) => { sp.lastChild.textContent = ' ' + String(t).slice(0, 140); },
+        onModelChange: (m, ids, reason) => {
+          modelIds = ids;
+          if (reason === 'retired') {
+            // Permanent: remember the replacement model.
+            setModel(m);
+            U.store.set(`cf.ai.${provider}.model`, m);
+            U.toast(`The previous model is no longer available — switched to ${m}.`, 'info', 6000);
+          } else {
+            // Temporary overload: keep the user's choice, just report which model answered.
+            fillModelList(ids);
+            U.toast(`Your model was busy, so ${m} was used for this request.`, 'info', 6000);
+          }
+        },
       });
       CF.app.openText(o.name, text, o.format, 'synthetic (AI: ' + provider + ')');
       $('synthDialog').close();
@@ -203,6 +275,8 @@
     provSel.addEventListener('change', () => { loadProviderSettings(); updateVisibility(); });
     for (const b of U.$$('#synthDialog .tab')) b.addEventListener('click', () => switchTab(b.dataset.tab));
     $('sfGenerate').addEventListener('click', onGenerate);
+    $('aiRefresh').addEventListener('click', refreshModels);
+    $('aiModelSel').addEventListener('change', onModelSelect);
     dlg.addEventListener('close', () => { if (!busy) msg(''); });
     // Enter inside a text field generates instead of submitting the first (close) button.
     $('synthForm').addEventListener('keydown', (e) => {
