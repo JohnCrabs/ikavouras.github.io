@@ -6,7 +6,7 @@
  * converting coordinates with viewport.convertToPdfPoint (handles page rotation and crop offsets).
  *
  * Annotation types: text, textEdit (replaces an existing line of text), ink, line (arrow flag),
- * highlight, rect, ellipse, whiteout, image.
+ * highlight, rect, ellipse, whiteout, image, stamp (exact-size box that a signature is fitted into).
  */
 (function () {
   'use strict';
@@ -25,6 +25,7 @@
     { id: 'arrow', icon: 'arrow', key: 'a' },
     { id: 'whiteout', icon: 'eraser', key: 'w' },
     { id: 'image', icon: 'image', key: 'i' },
+    { id: 'stamp', icon: 'stamp', key: 'b' },
     { id: 'sign', icon: 'sign', key: 's' },
   ];
 
@@ -37,6 +38,7 @@
     ellipse: { color: '#dc2626', stroke: 2, opacity: 1 },
     line: { color: '#111827', stroke: 2, opacity: 1 },
     arrow: { color: '#dc2626', stroke: 3, opacity: 1 },
+    stamp: { color: '#2563eb', printBorder: false },
   };
   const PROPS_FOR = {
     text: ['color', 'font', 'fontSize', 'style', 'opacity'],
@@ -49,6 +51,7 @@
     ellipse: ['color', 'stroke', 'opacity'],
     image: ['opacity'],
     whiteout: [],
+    stamp: ['color', 'printBorder'],
   };
   const CSS_FONT = { sans: 'Helvetica, Arial, sans-serif', serif: '"Times New Roman", Times, serif', mono: '"Courier New", Courier, monospace' };
   const LINE_HEIGHT = 1.2;
@@ -67,7 +70,7 @@
     fileInput: $('#file-input'), dropInput: $('#drop-input'), imageInput: $('#image-input'),
     toolGroup: $('#tool-group'), fileName: $('#file-name'),
     color: $('#prop-color'), stroke: $('#prop-stroke'), font: $('#prop-font'), fontSize: $('#prop-font-size'),
-    bold: $('#prop-bold'), italic: $('#prop-italic'), opacity: $('#prop-opacity'),
+    bold: $('#prop-bold'), italic: $('#prop-italic'), opacity: $('#prop-opacity'), printBorder: $('#prop-print-border'),
     propHint: $('#prop-hint'), zoomLabel: $('#zoom-label'), pageIndicator: $('#page-indicator'),
     undo: $('#undo-btn'), redo: $('#redo-btn'), del: $('#delete-btn'), download: $('#download-btn'),
   };
@@ -93,10 +96,12 @@
     return false;
   }
 
-  function setTool(id) {
+  function setTool(id, force) {
     if (id === 'image') { if (requireDoc()) ui.imageInput.click(); return; }
     if (id === 'sign') { if (requireDoc()) openSignature(); return; }
+    if (id === 'stamp' && !force) { if (requireDoc()) openStampDialog(); return; }
     commitEditing();
+    stampGhost.remove();
     state.tool = id;
     $$('.tool-btn').forEach((b) => b.classList.toggle('active', b.dataset.tool === id));
     ui.pages.dataset.tool = id;
@@ -121,6 +126,7 @@
     ui.bold.classList.toggle('active', !!src.bold);
     ui.italic.classList.toggle('active', !!src.italic);
     if (src.opacity != null) ui.opacity.value = src.opacity;
+    if (src.printBorder != null) ui.printBorder.checked = !!src.printBorder;
     ui.del.disabled = !a;
   }
 
@@ -152,6 +158,7 @@
   bindProp(ui.fontSize, 'fontSize', (v) => clamp(Number(v) || 12, 4, 144));
   bindProp(ui.opacity, 'opacity', Number);
   ui.font.addEventListener('change', () => { onProp('font', ui.font.value); propBatch = false; });
+  ui.printBorder.addEventListener('change', () => { onProp('printBorder', ui.printBorder.checked); propBatch = false; });
   for (const [btn, name] of [[ui.bold, 'bold'], [ui.italic, 'italic']]) {
     btn.addEventListener('mousedown', (e) => e.preventDefault()); // keep text editing focus
     btn.addEventListener('click', () => {
@@ -188,7 +195,7 @@
       if (state.pdf) state.pdf.destroy();
       // pdf-lib copy of the document, used to read the content streams for text editing.
       const libDoc = await PDFLib.PDFDocument.load(ready.bytes, { ignoreEncryption: true });
-      Object.assign(state, { bytes: ready.bytes, name: file.name, pdf: ready.pdf, libDoc, pages: [], annots: [], history: [], future: [], selectedId: null, editingId: null, current: 0 });
+      Object.assign(state, { bytes: ready.bytes, name: file.name, pdf: ready.pdf, libDoc, pages: [], annots: [], history: [], future: [], selectedId: null, editingId: null, current: 0, calib: null });
       for (let i = 1; i <= ready.pdf.numPages; i++) {
         const page = await ready.pdf.getPage(i);
         state.pages.push({ page, vp: page.getViewport({ scale: 1 }) });
@@ -422,8 +429,38 @@
   function select(id) {
     state.selectedId = id ? +id : null;
     $$('.annot', ui.pages).forEach((n) => n.classList.toggle('selected', +n.dataset.id === state.selectedId));
+    state.annots.forEach((a) => { if (cropBoxOf(a)) applyCrop(annotEl(a), a); });
     propBatch = false;
     syncProps();
+  }
+
+  /** The stamp box an image is cropped by (fit "crop"), if any. */
+  function cropBoxOf(a) {
+    if (!a || a.type !== 'image' || !a.boxId) return null;
+    const b = byId(a.boxId);
+    return b && b.type === 'stamp' && b.fit === 'crop' && b.page === a.page ? b : null;
+  }
+
+  /** On screen, a cropped image shows only the part inside its box. While it is selected the whole image is
+   *  shown, faded outside the box, so the visible part can be chosen by dragging and zooming it. */
+  function applyCrop(node, a) {
+    if (!node) return;
+    const st = node.style, b = cropBoxOf(a), s = state.scale;
+    const setMask = (v, size = '', pos = '') => {
+      for (const k of ['mask', 'webkitMask']) {
+        st[`${k}Image`] = v; st[`${k}Size`] = size; st[`${k}Position`] = pos; st[`${k}Repeat`] = v ? 'no-repeat' : '';
+      }
+    };
+    if (!b) { st.clipPath = ''; setMask(''); return; }
+    const l = (b.x - a.x) * s, tp = (b.y - a.y) * s, r = (a.x + a.w - b.x - b.w) * s, bt = (a.y + a.h - b.y - b.h) * s;
+    if (a.id === state.selectedId) {
+      st.clipPath = '';
+      setMask('linear-gradient(#000, #000), linear-gradient(rgb(0 0 0 / 0.3), rgb(0 0 0 / 0.3))',
+        `${b.w * s}px ${b.h * s}px, 100% 100%`, `${l}px ${tp}px, 0 0`);
+    } else {
+      setMask('');
+      st.clipPath = `inset(${Math.max(0, tp)}px ${Math.max(0, r)}px ${Math.max(0, bt)}px ${Math.max(0, l)}px)`;
+    }
   }
 
   function pushHistory() {
@@ -521,7 +558,7 @@
     if (a.type === 'ink' || a.type === 'line') node.append(svgLine(a));
     if (a.type === 'textEdit') node.dataset.placeholder = t('ed.typeHere');
     if (a.type === 'text') node.dataset.placeholder = t('ed.typeHere');
-    if (a.type !== 'text' && a.type !== 'textEdit') node.append(el('span', { class: 'handle', dataset: { handle: 'se' } }));
+    if (!['text', 'textEdit', 'stamp'].includes(a.type)) node.append(el('span', { class: 'handle', dataset: { handle: 'se' } }));
     styleAnnot(node, a);
     return node;
   }
@@ -559,6 +596,12 @@
     }
     if (a.type === 'rect' || a.type === 'ellipse') st.border = `${Math.max(1, a.stroke * s)}px solid ${a.color}`;
     if (a.type === 'highlight') st.background = a.color;
+    if (a.type === 'stamp') {
+      st.setProperty('--stamp', a.color);
+      st.borderWidth = `${Math.max(1, a.stroke * s)}px`;
+      node.classList.toggle('printed', !!a.printBorder);
+      node.dataset.label = a.label || '';
+    }
     if (a.type === 'ink' || a.type === 'line') {
       node.querySelectorAll('polyline').forEach((pl) => {
         pl.setAttribute('stroke', a.color);
@@ -567,6 +610,7 @@
       const head = node.querySelector('.arrow-head');
       if (head) head.setAttribute('points', arrowHead(a).map((p) => p.join(',')).join(' '));
     }
+    if (a.type === 'image') applyCrop(node, a);
     node.classList.toggle('selected', a.id === state.selectedId);
   }
 
@@ -629,6 +673,7 @@
       if (a.type === 'textEdit') return; // stays where the original text was
       const resizing = e.target.dataset.handle === 'se';
       const start = { x: a.x, y: a.y, w: a.w, h: a.h };
+      const linked = linkedTo(a).map((l) => ({ l, x: l.x, y: l.y }));
       let moved = false;
       drag((ev) => {
         const p = pagePoint(ev, pi);
@@ -641,9 +686,28 @@
         } else {
           a.x = clamp(start.x + dx, -a.w / 2, vp.width - a.w / 2);
           a.y = clamp(start.y + dy, -a.h / 2, vp.height - a.h / 2);
+          linked.forEach((k) => { k.l.x = k.x + a.x - start.x; k.l.y = k.y + a.y - start.y; styleAnnot(annotEl(k.l), k.l); });
         }
         styleAnnot(node, a);
       });
+      return;
+    }
+
+    if (tool === 'stamp') {
+      e.preventDefault();
+      const sz = state.stampSize;
+      if (!sz) return;
+      const d = DEFAULTS.stamp;
+      pushHistory();
+      const a = add({
+        type: 'stamp', page: pi, w: sz.w, h: sz.h, label: sz.label, fit: sz.fit, color: d.color, printBorder: d.printBorder, stroke: 0.5, opacity: 1,
+        x: clamp(pt.x - sz.w / 2, 0, Math.max(0, vp.width - sz.w)), y: clamp(pt.y - sz.h / 2, 0, Math.max(0, vp.height - sz.h)),
+      });
+      setTool('select');
+      select(a.id);
+      // Straight on to the box's content: an image file (e.g. a scanned stamp) or a signature.
+      if (sz.content === 'image') ui.imageInput.click();
+      else openSignature();
       return;
     }
 
@@ -677,9 +741,9 @@
       return;
     }
 
-    if (tool === 'ink' || tool === 'line' || tool === 'arrow') {
+    if (tool === 'ink' || tool === 'line' || tool === 'arrow' || tool === 'calibrate') {
       e.preventDefault();
-      const d = DEFAULTS[tool], s = state.scale;
+      const d = tool === 'calibrate' ? { color: '#e11d48', stroke: 1.5, opacity: 1 } : DEFAULTS[tool], s = state.scale;
       let pts = [[pt.x, pt.y]];
       const svg = document.createElementNS(SVG_NS, 'svg');
       svg.classList.add('ink-live');
@@ -708,6 +772,7 @@
         redraw();
       }, () => {
         svg.remove();
+        if (tool === 'calibrate') { finishCalibration(pts); return; }
         if (tool !== 'ink' && (pts.length < 2 || Math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]) < 3)) return;
         pushHistory();
         add({ type: tool === 'ink' ? 'ink' : 'line', arrow: tool === 'arrow', page: pi, ...polyFrom(pts, d.stroke + (tool === 'arrow' ? d.stroke * 8 : 0)), color: d.color, stroke: d.stroke, opacity: d.opacity });
@@ -780,6 +845,8 @@
   }
 
   function placeImage({ src, w, h }, isSignature) {
+    const box = selected();
+    if (box && box.type === 'stamp') { fitIntoBox({ src, w, h }, box, isSignature); return; }
     const pi = state.current, p = state.pages[pi], vp = p.vp, s = state.scale;
     let width = Math.min(w * 0.75, vp.width * (isSignature ? 0.3 : 0.5));
     let height = (width * h) / w;
@@ -792,6 +859,182 @@
     setTool('select');
     select(a.id);
   }
+
+  /** Signature images linked to a stamp box (they move with it). */
+  const linkedTo = (box) => (box.type === 'stamp' ? state.annots.filter((x) => x.type === 'image' && x.boxId === box.id) : []);
+
+  /** Puts an image into the box, replacing what was there. "contain": keeps its proportions, as large as fits,
+   *  centred (signatures get a small margin); "fill": stretched to exactly the box size. */
+  function fitIntoBox({ src, w, h }, box, isSignature) {
+    let r;
+    if (box.fit === 'fill') r = { x: box.x, y: box.y, w: box.w, h: box.h };
+    else if (box.fit === 'crop') {
+      const k = Math.max(box.w / w, box.h / h);
+      r = { w: w * k, h: h * k };
+      r.x = box.x + (box.w - r.w) / 2;
+      r.y = box.y + (box.h - r.h) / 2;
+    } else {
+      const pad = isSignature ? Math.min(box.w, box.h) * 0.04 : 0;
+      const k = Math.min((box.w - pad * 2) / w, (box.h - pad * 2) / h);
+      r = { w: w * k, h: h * k };
+      r.x = box.x + (box.w - r.w) / 2;
+      r.y = box.y + (box.h - r.h) / 2;
+    }
+    pushHistory();
+    linkedTo(box).forEach((x) => removeAnnot(x.id));
+    const img = add({ type: 'image', page: box.page, ...r, src, opacity: 1, boxId: box.id });
+    setTool('select');
+    if (box.fit === 'crop') { select(img.id); toast(t('stamp.cropHint'), 'info', 7000); } else select(box.id);
+  }
+
+  /* ================= Stamp box (exact size, drawing scale) ================= */
+  // Sizes are converted to PDF points (1 pt = 1/72 in). "paper": size on the printed sheet;
+  // "scale": drawing units at 1:N (paper = real / N); "calib": drawing units, with points-per-mm measured
+  // on this document (works even when the PDF is not at true paper size, e.g. plotted with "fit to paper").
+  const PT_PER_MM = 72 / 25.4;
+  const UNIT_MM = { mm: 1, cm: 10, m: 1000 };
+  const STAMP_KEY = 'cpdf.stampBox';
+  // Common stamp sizes on the printed sheet (one click fills in the form).
+  const STAMP_PRESETS = [
+    { w: 8, h: 3, unit: 'cm', content: 'image', fit: 'crop' },
+  ];
+  const stampCfg = Object.assign({ w: 40, h: 30, unit: 'mm', ref: 'paper', scale: 50, content: 'signature', fit: 'contain' }, (() => {
+    try { return JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (_) { return {}; }
+  })());
+  const stampUi = {
+    dialog: $('#stamp-dialog'), w: $('#stamp-w'), h: $('#stamp-h'), unit: $('#stamp-unit'), scale: $('#stamp-scale'),
+    info: $('#stamp-calib-info'), result: $('#stamp-result'), place: $('#stamp-place'),
+    content: $('#stamp-content'), fit: $('#stamp-fit'), presets: $('#stamp-presets'),
+  };
+  const stampGhost = el('div', { class: 'stamp-ghost' });
+  const fmt = (n, d = 2) => String(Math.round(n * 10 ** d) / 10 ** d);
+  const num = (v) => parseFloat(String(v).replace(',', '.'));
+
+  function readStampForm() {
+    stampCfg.w = num(stampUi.w.value);
+    stampCfg.h = num(stampUi.h.value);
+    stampCfg.unit = stampUi.unit.value;
+    stampCfg.scale = num(stampUi.scale.value);
+    stampCfg.ref = ($('input[name="stamp-ref"]:checked', stampUi.dialog) || {}).value || 'paper';
+    stampCfg.content = stampUi.content.value;
+    stampCfg.fit = stampUi.fit.value;
+    try { localStorage.setItem(STAMP_KEY, JSON.stringify(stampCfg)); } catch (_) { /* storage unavailable */ }
+  }
+
+  /** PDF points per entered unit for the current settings, or an error key. */
+  function stampPtsPerUnit() {
+    const mm = UNIT_MM[stampCfg.unit] || 1;
+    if (stampCfg.ref === 'calib') return state.calib ? { k: mm * state.calib } : { err: 'stamp.needCalib' };
+    if (stampCfg.ref === 'scale') return stampCfg.scale > 0 ? { k: (mm / stampCfg.scale) * PT_PER_MM } : { err: 'stamp.invalid' };
+    return { k: mm * PT_PER_MM };
+  }
+
+  /** Reads the form, refreshes the summary and returns the box size in points (null when invalid). */
+  function updateStampForm() {
+    readStampForm();
+    stampUi.scale.classList.toggle('muted', stampCfg.ref !== 'scale');
+    stampUi.info.textContent = state.calib
+      ? t('stamp.calibInfo', { unit: stampCfg.unit, mm: fmt((UNIT_MM[stampCfg.unit] * state.calib) / PT_PER_MM, 3), n: fmt(PT_PER_MM / state.calib, 1) })
+      : t('stamp.calibNone');
+    const { k, err } = stampPtsPerUnit();
+    const bad = err || (stampCfg.w > 0 && stampCfg.h > 0 ? null : 'stamp.invalid');
+    stampUi.place.disabled = !!bad;
+    stampUi.result.classList.toggle('warn', !!bad);
+    if (bad) { stampUi.result.textContent = t(bad); return null; }
+    const size = { w: stampCfg.w * k, h: stampCfg.h * k };
+    const cur = state.pages[state.current];
+    const tooBig = cur && (size.w > cur.vp.width || size.h > cur.vp.height);
+    stampUi.result.textContent = t('stamp.result', { w: fmt(size.w / PT_PER_MM, 1), h: fmt(size.h / PT_PER_MM, 1) }) + (tooBig ? ` — ${t('stamp.tooBig')}` : '');
+    stampUi.result.classList.toggle('warn', !!tooBig);
+    return size;
+  }
+
+  function openStampDialog() {
+    fillStampForm();
+    stampUi.dialog.showModal();
+  }
+
+  stampUi.presets.append(...STAMP_PRESETS.map((ps) => el('button', {
+    type: 'button', class: 'btn btn-ghost btn-sm', text: `${ps.w} × ${ps.h} ${ps.unit}`,
+    onclick: () => {
+      // Preset sizes are the physical stamp, i.e. measured on the printed sheet.
+      Object.assign(stampCfg, { w: ps.w, h: ps.h, unit: ps.unit, ref: 'paper' }, ps.content ? { content: ps.content } : {}, ps.fit ? { fit: ps.fit } : {});
+      fillStampForm();
+    },
+  })));
+
+  function fillStampForm() {
+    stampUi.w.value = stampCfg.w;
+    stampUi.h.value = stampCfg.h;
+    stampUi.unit.value = stampCfg.unit;
+    stampUi.scale.value = stampCfg.scale;
+    stampUi.content.value = stampCfg.content;
+    stampUi.fit.value = stampCfg.fit;
+    const radio = $(`input[name="stamp-ref"][value="${stampCfg.ref}"]`, stampUi.dialog) || $('input[name="stamp-ref"]', stampUi.dialog);
+    radio.checked = true;
+    updateStampForm();
+  }
+
+  stampUi.dialog.addEventListener('input', updateStampForm);
+  stampUi.dialog.addEventListener('change', updateStampForm);
+  // Typing a scale selects the "drawing scale" option.
+  stampUi.scale.addEventListener('focus', () => { $('input[name="stamp-ref"][value="scale"]', stampUi.dialog).checked = true; updateStampForm(); });
+  stampUi.place.addEventListener('click', () => {
+    const size = updateStampForm();
+    if (!size) return;
+    const extra = stampCfg.ref === 'scale' ? ` · 1:${fmt(stampCfg.scale)}` : stampCfg.ref === 'calib' ? ` · ≈1:${fmt(PT_PER_MM / state.calib, 0)}` : '';
+    state.stampSize = { ...size, fit: stampCfg.fit, content: stampCfg.content, label: `${fmt(stampCfg.w)} × ${fmt(stampCfg.h)} ${stampCfg.unit}${extra}` };
+    stampUi.dialog.close();
+    setTool('stamp', true);
+    toast(t('stamp.placeHint'), 'info', 4000);
+  });
+  $('#stamp-calib').addEventListener('click', () => {
+    readStampForm();
+    stampUi.dialog.close();
+    setTool('calibrate');
+    toast(t('stamp.calibHint'), 'info', 5000);
+  });
+
+  function finishCalibration(pts) {
+    setTool('select');
+    const len = pts.length > 1 ? Math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]) : 0;
+    if (len * state.scale < 5) { toast(t('stamp.calibShort'), 'warn'); openStampDialog(); return; }
+    const real = num(prompt(t('stamp.calibAsk', { unit: stampCfg.unit })) || '');
+    if (real > 0) {
+      state.calib = len / (real * UNIT_MM[stampCfg.unit]); // PDF points per real-world mm
+      stampCfg.ref = 'calib';
+      toast(t('stamp.calibDone', { n: fmt(PT_PER_MM / state.calib, 1) }), 'success');
+    }
+    openStampDialog();
+  }
+
+  // Preview of the box under the pointer while placing it.
+  ui.pages.addEventListener('pointermove', (e) => {
+    const page = e.target.closest('.page');
+    if (state.tool !== 'stamp' || !state.stampSize || !page) { stampGhost.remove(); return; }
+    const pi = +page.dataset.index, p = state.pages[pi], s = state.scale, { w, h } = state.stampSize;
+    const pt = pagePoint(e, pi);
+    const x = clamp(pt.x - w / 2, 0, Math.max(0, p.vp.width - w)), y = clamp(pt.y - h / 2, 0, Math.max(0, p.vp.height - h));
+    Object.assign(stampGhost.style, { left: `${x * s}px`, top: `${y * s}px`, width: `${w * s}px`, height: `${h * s}px` });
+    if (stampGhost.parentNode !== p.layer) p.layer.append(stampGhost);
+  });
+  ui.pages.addEventListener('pointerleave', () => stampGhost.remove());
+
+  let wheelAt = 0;
+  ui.pages.addEventListener('wheel', (e) => {
+    const a = selected();
+    if (e.ctrlKey || !cropBoxOf(a) || !e.target.closest(`.annot[data-id="${a.id}"]`)) return;
+    e.preventDefault();
+    if (Date.now() - wheelAt > 600) pushHistory(); // one undo step per wheel gesture
+    wheelAt = Date.now();
+    const pt = pagePoint(e, a.page), k = e.deltaY < 0 ? 1.06 : 1 / 1.06;
+    if (a.w * k < 4 || a.h * k < 4) return;
+    a.x = pt.x - (pt.x - a.x) * k;
+    a.y = pt.y - (pt.y - a.y) * k;
+    a.w *= k;
+    a.h *= k;
+    styleAnnot(annotEl(a), a);
+  }, { passive: false });
 
   const sig = {
     dialog: $('#sig-dialog'), canvas: $('#sig-canvas'), text: $('#sig-text'), preview: $('#sig-preview'),
@@ -824,6 +1067,7 @@
     sig.canvas.height = Math.round(r.height * dpr);
     sig.canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
     sig.drawn = false;
+    $('#sig-last').hidden = !sig.last;
   }
 
   sig.canvas.addEventListener('pointerdown', (e) => {
@@ -894,19 +1138,25 @@
     const img = sig.tab === 'type' ? await typedSignature() : sig.drawn ? trimCanvas(sig.canvas, window.devicePixelRatio || 1) : null;
     if (!img) return toast(sig.tab === 'type' ? t('sig.typeFirst') : t('sig.drawFirst'), 'warn');
     sig.dialog.close();
+    sig.last = img;
     placeImage(img, true);
+  });
+  $('#sig-last').addEventListener('click', () => {
+    sig.dialog.close();
+    if (sig.last) placeImage(sig.last, true);
   });
   $('#sig-file').addEventListener('change', async (e) => {
     const f = e.target.files[0];
     e.target.value = '';
     if (!f) return;
     sig.dialog.close();
-    placeImage(await imageFileToData(f), true);
+    sig.last = await imageFileToData(f);
+    placeImage(sig.last, true);
   });
 
   /* ================= Keyboard ================= */
   document.addEventListener('keydown', (e) => {
-    if (sig.dialog.open || document.querySelector('dialog.modal[open]')) return;
+    if (sig.dialog.open || stampUi.dialog.open || document.querySelector('dialog.modal[open]')) return;
     const mod = e.ctrlKey || e.metaKey;
     if (state.editingId) {
       if (e.key === 'Escape') annotEl(byId(state.editingId)).blur();
@@ -932,6 +1182,11 @@
       if (e.key === 'ArrowRight') a.x += step;
       if (e.key === 'ArrowUp') a.y -= step;
       if (e.key === 'ArrowDown') a.y += step;
+      linkedTo(a).forEach((l) => {
+        l.x += e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+        l.y += e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+        styleAnnot(annotEl(l), l);
+      });
       styleAnnot(annotEl(a), a);
       return;
     }
@@ -976,7 +1231,7 @@
     }
 
     // The bundled Unicode font has no bold/italic faces: fake them with an outline and a slant.
-    const { pushGraphicsState, popGraphicsState, setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingColor } = PDFLib;
+    const { pushGraphicsState, popGraphicsState, setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingColor, rectangle, clip, endPath } = PDFLib;
     function drawStyledText(page, a, line, opts, info) {
       const fake = info.unicode && (a.bold || a.italic);
       if (fake && a.bold) {
@@ -1023,6 +1278,12 @@
           // CSS borders sit inside the box; PDF strokes are centred on the path.
           const sw = a.stroke, b = P(a.x + sw / 2, a.y + a.h - sw / 2);
           page.drawRectangle({ x: b.x, y: b.y, width: Math.max(0, a.w - sw), height: Math.max(0, a.h - sw), rotate, borderColor: color, borderWidth: sw, borderOpacity: a.opacity });
+          break;
+        }
+        case 'stamp': {
+          if (!a.printBorder) break; // a placement guide only, unless its outline should be printed
+          const sw = a.stroke, b = P(a.x + sw / 2, a.y + a.h - sw / 2);
+          page.drawRectangle({ x: b.x, y: b.y, width: Math.max(0, a.w - sw), height: Math.max(0, a.h - sw), rotate, borderColor: color, borderWidth: sw });
           break;
         }
         case 'ellipse': {
@@ -1091,7 +1352,14 @@
         case 'image': {
           if (!images.has(a.src)) images.set(a.src, a.src.startsWith('data:image/jpeg') ? await doc.embedJpg(a.src) : await doc.embedPng(a.src));
           const b = P(a.x, a.y + a.h);
+          const crop = cropBoxOf(a);
+          if (crop) {
+            // Only the part inside the stamp box is kept: clip to the box's rectangle in PDF space.
+            const c0 = P(crop.x, crop.y), c1 = P(crop.x + crop.w, crop.y + crop.h);
+            page.pushOperators(pushGraphicsState(), rectangle(Math.min(c0.x, c1.x), Math.min(c0.y, c1.y), Math.abs(c1.x - c0.x), Math.abs(c1.y - c0.y)), clip(), endPath());
+          }
           page.drawImage(images.get(a.src), { x: b.x, y: b.y, width: a.w, height: a.h, rotate, opacity: a.opacity });
+          if (crop) page.pushOperators(popGraphicsState());
           break;
         }
         default:

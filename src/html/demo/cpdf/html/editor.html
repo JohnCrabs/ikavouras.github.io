@@ -52,6 +52,9 @@
         <span data-i18n="ed.opacity">Opacity</span>
         <input type="range" id="prop-opacity" min="0.1" max="1" step="0.05">
       </label>
+      <label class="prop prop-check" data-prop="printBorder">
+        <input type="checkbox" id="prop-print-border"><span data-i18n="ed.printBorder">Print outline</span>
+      </label>
       <span class="prop-hint" id="prop-hint"></span>
     </div>
     <div class="tb-spacer"></div>
@@ -118,8 +121,56 @@
         </label>
       </div>
       <footer class="sig-foot">
+        <button class="btn btn-ghost sig-last" type="button" id="sig-last" data-i18n="sig.last" hidden>Use previous signature</button>
         <button class="btn btn-ghost" value="cancel" data-i18n="sig.cancel">Cancel</button>
         <button class="btn btn-primary" type="button" id="sig-insert" data-i18n="sig.insert">Insert signature</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog class="sig-dialog" id="stamp-dialog">
+    <form method="dialog" class="sig-inner">
+      <header class="sig-head">
+        <h2 data-i18n="stamp.title">Stamp box</h2>
+        <button class="icon-btn" value="cancel" data-icon="x" data-i18n-attr="aria-label:sig.close"></button>
+      </header>
+      <p class="stamp-intro" data-i18n="stamp.intro">Create a box with the exact size of your stamp.</p>
+      <div class="stamp-presets" id="stamp-presets"><span data-i18n="stamp.presets">Presets:</span></div>
+      <div class="stamp-grid">
+        <label><span data-i18n="stamp.w">Width</span><input type="number" class="input" id="stamp-w" min="0" step="any"></label>
+        <label><span data-i18n="stamp.h">Height</span><input type="number" class="input" id="stamp-h" min="0" step="any"></label>
+        <label><span data-i18n="stamp.unit">Unit</span>
+          <select class="input" id="stamp-unit"><option value="mm">mm</option><option value="cm">cm</option><option value="m">m</option></select>
+        </label>
+      </div>
+      <fieldset class="stamp-ref">
+        <legend data-i18n="stamp.refLegend">The dimensions are measured…</legend>
+        <label class="stamp-radio"><input type="radio" name="stamp-ref" value="paper"><span data-i18n="stamp.refPaper">on the printed sheet (true size)</span></label>
+        <label class="stamp-radio"><input type="radio" name="stamp-ref" value="scale"><span data-i18n="stamp.refScale">in drawing units, drawing scale 1:</span>
+          <input type="number" class="input stamp-scale" id="stamp-scale" min="0" step="any"></label>
+        <label class="stamp-radio"><input type="radio" name="stamp-ref" value="calib"><span data-i18n="stamp.refCalib">in drawing units, calibrated on the drawing</span>
+          <button type="button" class="btn btn-ghost btn-sm" id="stamp-calib" data-i18n="stamp.calibrate">Calibrate…</button></label>
+        <p class="stamp-calib-info" id="stamp-calib-info"></p>
+      </fieldset>
+      <div class="stamp-grid stamp-grid-2">
+        <label><span data-i18n="stamp.content">Box content</span>
+          <select class="input" id="stamp-content">
+            <option value="signature" data-i18n="stamp.content.signature">Signature (draw, type or upload)</option>
+            <option value="image" data-i18n="stamp.content.image">Image file (e.g. scanned stamp)</option>
+          </select>
+        </label>
+        <label><span data-i18n="stamp.fit">Fit to the box</span>
+          <select class="input" id="stamp-fit">
+            <option value="contain" data-i18n="stamp.fit.contain">Keep proportions (fit inside)</option>
+            <option value="fill" data-i18n="stamp.fit.fill">Stretch to fill the box exactly</option>
+            <option value="crop" data-i18n="stamp.fit.crop">Crop with the box (choose the visible part)</option>
+          </select>
+        </label>
+      </div>
+      <div class="stamp-result" id="stamp-result"></div>
+      <footer class="sig-foot">
+        <button class="btn btn-ghost" value="cancel" data-i18n="sig.cancel">Cancel</button>
+        <button class="btn btn-primary" type="button" id="stamp-place" data-i18n="stamp.place">Place box</button>
       </footer>
     </form>
   </dialog>

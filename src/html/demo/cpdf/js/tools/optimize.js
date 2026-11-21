@@ -89,13 +89,23 @@
       accept: 'pdf', multiple: true, view: 'files',
       options: [
         { id: 'warn', type: 'note', showIf: (o, caps) => !caps.ghostscript,
-          html: { en: 'Pages are converted to images, so text is no longer selectable.', el: 'Οι σελίδες μετατρέπονται σε εικόνες, οπότε το κείμενο δεν είναι πια επιλέξιμο.' } },
+          html: { en: 'Without Ghostscript, pages are converted to images (text is no longer selectable). Install Ghostscript to keep text.', el: 'Χωρίς Ghostscript οι σελίδες γίνονται εικόνες (το κείμενο δεν είναι επιλέξιμο). Εγκαταστήστε το Ghostscript για να μείνει το κείμενο.' } },
       ],
       async run({ files, caps, progress }) {
         return eachFile(files, progress, async (f) => ({
           name: `${base(f)}_grayscale.pdf`,
           data: caps.ghostscript ? await gs(f.bytes, { op: 'grayscale' }) : await rasterize(f, { dpi: 150, quality: 0.8, gray: true, progress }),
         }));
+      },
+    },
+    {
+      id: 'pdfa', icon: 'archive', color: '#b45309', category: 'Optimize', requires: 'ghostscript',
+      name: { en: 'PDF to PDF/A', el: 'PDF σε PDF/A' },
+      desc: { en: 'Convert to PDF/A-2b, the ISO standard for long-term archiving.', el: 'Μετατροπή σε PDF/A-2b, το πρότυπο ISO για μακροχρόνια αρχειοθέτηση.' },
+      action: { en: 'Convert to PDF/A', el: 'Μετατροπή σε PDF/A' },
+      accept: 'pdf', multiple: true, view: 'files',
+      async run({ files, progress }) {
+        return eachFile(files, progress, async (f) => ({ name: `${base(f)}_pdfa.pdf`, data: await gs(f.bytes, { op: 'pdfa' }) }));
       },
     },
     {

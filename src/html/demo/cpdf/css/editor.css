@@ -306,3 +306,55 @@
 
 .text-line { transform-origin: 0 0; }
 .editor-copyright { margin-top: 28px; color: var(--muted); }
+
+/* ---------- Stamp box ---------- */
+.pages[data-tool="stamp"] .layer,
+.pages[data-tool="calibrate"] .layer { cursor: crosshair; }
+.annot-stamp {
+  --stamp: #2563eb;
+  border: 1px dashed var(--stamp);
+  background: color-mix(in srgb, var(--stamp) 5%, transparent);
+}
+.annot-stamp.printed { border-style: solid; background: transparent; }
+.annot-stamp::after {
+  content: attr(data-label);
+  position: absolute;
+  left: -1px;
+  bottom: calc(100% + 2px);
+  padding: 0 4px;
+  border-radius: 3px;
+  font: 600 10px/1.5 Inter, system-ui, sans-serif;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--stamp);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.stamp-ghost {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  pointer-events: none;
+}
+.prop-check { cursor: pointer; }
+.prop-check input { width: 16px; height: 16px; accent-color: var(--primary); }
+.stamp-intro { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+.stamp-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; }
+.stamp-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.stamp-grid .input { height: 38px; }
+.stamp-ref { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; }
+.stamp-ref legend { padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.stamp-radio { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 14px; cursor: pointer; }
+.stamp-radio input[type="radio"] { accent-color: var(--primary); }
+.stamp-radio .stamp-scale { width: 90px; height: 32px; padding: 0 8px; }
+.stamp-radio .stamp-scale.muted { opacity: 0.55; }
+.stamp-calib-info { margin: 0 0 0 24px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.stamp-result { padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: var(--surface-2); }
+.stamp-result.warn { color: #b45309; background: color-mix(in srgb, #f59e0b 14%, transparent); }
+.sig-foot .sig-last { margin-right: auto; }
+.stamp-presets { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.stamp-grid.stamp-grid-2 { grid-template-columns: 1fr 1fr; }
+/* The box outline sits above its image; clicks inside reach the image, the label grabs the box. */
+.pages .annot-stamp { z-index: 1; pointer-events: none; }
+.pages[data-tool="select"] .annot-stamp::after { pointer-events: auto; cursor: move; }

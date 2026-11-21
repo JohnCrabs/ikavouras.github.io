@@ -31,6 +31,7 @@
     info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01',
     edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
     sign: 'M3 17c3-3 5-9 7-9s-1 9 1 9 3-4 5-4 1 4 3 4h2M3 21h18',
+    stamp: 'M3 3h4M10 3h4M17 3h4M3 3v4M21 3v4M3 10v4M21 10v4M3 17v4M21 17v4M3 21h4M10 21h4M17 21h4M7 15c2-2 3-6 4.5-6s-.5 6 1 6 2-2.5 3.5-2.5',
     upload: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
     download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
     plus: 'M12 5v14M5 12h14',
@@ -410,8 +411,10 @@
   const api = {
     /** { libreoffice: bool, ghostscript: bool, server: bool } */
     caps() {
-      // Web (GitHub Pages) version: no local server, so LibreOffice / Ghostscript are never available.
-      capsPromise = capsPromise || Promise.resolve({ libreoffice: false, ghostscript: false, server: false });
+      capsPromise = capsPromise || fetch(asset('api/capabilities'), { headers: { 'X-CPDF': '1' } })
+        .then((r) => (r.ok ? r.json() : {}))
+        .then((c) => ({ libreoffice: !!c.libreoffice, ghostscript: !!c.ghostscript, server: !!c.server }))
+        .catch(() => ({ libreoffice: false, ghostscript: false, server: false }));
       return capsPromise;
     },
     async post(path, bytes, params = {}) {

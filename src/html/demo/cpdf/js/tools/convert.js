@@ -98,6 +98,20 @@
         });
       },
     },
+    {
+      id: 'office-to-pdf', icon: 'word', color: '#1d4ed8', category: 'Convert', requires: 'libreoffice',
+      name: { en: 'Office to PDF', el: 'Office σε PDF' },
+      desc: { en: 'Convert Word, Excel, PowerPoint and OpenDocument files to PDF.', el: 'Μετατρέψτε αρχεία Word, Excel, PowerPoint και OpenDocument σε PDF.' },
+      action: { en: 'Convert to PDF', el: 'Μετατροπή σε PDF' },
+      note: { en: 'Uses LibreOffice on your computer. The first conversion can take a few seconds.', el: 'Χρησιμοποιεί το LibreOffice του υπολογιστή σας. Η πρώτη μετατροπή μπορεί να πάρει λίγα δευτερόλεπτα.' },
+      accept: 'office', multiple: true, view: 'files',
+      async run({ files, progress }) {
+        return PDFTools.helpers.eachFile(files, progress, async (f) => ({
+          name: `${base(f)}.pdf`,
+          data: await PDFApp.api.post('convert', f.bytes, { to: 'pdf', name: f.name }),
+        }));
+      },
+    },
   );
 
   /* ---------- PDF → DOCX in the browser ---------- */
