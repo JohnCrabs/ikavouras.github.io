@@ -110,6 +110,9 @@
       'stamp.content.image': 'Image file (e.g. scanned stamp)', 'stamp.fit': 'Fit to the box',
       'stamp.fit.contain': 'Keep proportions (fit inside)', 'stamp.fit.fill': 'Stretch to fill the box exactly',
       'stamp.fit.crop': 'Crop with the box (choose the visible part)',
+      'stamp.behind': 'Place behind the text and lines of the PDF',
+      'stamp.behindNote': 'If the drawing has a white background fill, an image behind it will be hidden.',
+      'ed.behind': 'Behind text', 'ed.behindTip': 'Put the image underneath the text and lines of the PDF',
       'stamp.cropHint': 'Drag the image to choose the part shown in the box; scroll the wheel over it to zoom, or drag its corner. Only the part inside the box is kept. To move box and image together, drag the box label.',
     },
     el: {
@@ -196,6 +199,9 @@
       'stamp.content.image': 'Αρχείο εικόνας (π.χ. σκαναρισμένη σφραγίδα)', 'stamp.fit': 'Προσαρμογή στο πλαίσιο',
       'stamp.fit.contain': 'Διατήρηση αναλογιών (χωράει μέσα)', 'stamp.fit.fill': 'Τέντωμα ώστε να γεμίζει ακριβώς το πλαίσιο',
       'stamp.fit.crop': 'Περικοπή με το πλαίσιο (επιλογή ορατού τμήματος)',
+      'stamp.behind': 'Τοποθέτηση πίσω από τα γράμματα και τις γραμμές του PDF',
+      'stamp.behindNote': 'Αν το σχέδιο έχει λευκό γέμισμα φόντου, η εικόνα από πίσω δεν θα φαίνεται.',
+      'ed.behind': 'Πίσω από το κείμενο', 'ed.behindTip': 'Η εικόνα μπαίνει κάτω από τα γράμματα και τις γραμμές του PDF',
       'stamp.cropHint': 'Σύρετε την εικόνα για να διαλέξετε ποιο τμήμα φαίνεται στο πλαίσιο· ροδέλα πάνω της για μεγέθυνση/σμίκρυνση, ή σύρετε τη γωνία της. Κρατιέται μόνο ό,τι είναι μέσα στο πλαίσιο. Για να μετακινήσετε πλαίσιο και εικόνα μαζί, σύρετε την ετικέτα του πλαισίου.',
     },
   };

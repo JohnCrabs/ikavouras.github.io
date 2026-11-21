@@ -55,6 +55,9 @@
       <label class="prop prop-check" data-prop="printBorder">
         <input type="checkbox" id="prop-print-border"><span data-i18n="ed.printBorder">Print outline</span>
       </label>
+      <label class="prop prop-check" data-prop="behind" data-i18n-attr="title:ed.behindTip">
+        <input type="checkbox" id="prop-behind"><span data-i18n="ed.behind">Behind text</span>
+      </label>
       <span class="prop-hint" id="prop-hint"></span>
     </div>
     <div class="tb-spacer"></div>
@@ -167,6 +170,11 @@
           </select>
         </label>
       </div>
+      <label class="stamp-check">
+        <input type="checkbox" id="stamp-behind">
+        <span><span data-i18n="stamp.behind">Place behind the text and lines of the PDF</span>
+          <small data-i18n="stamp.behindNote">If the drawing has a white background fill, an image behind it will be hidden.</small></span>
+      </label>
       <div class="stamp-result" id="stamp-result"></div>
       <footer class="sig-foot">
         <button class="btn btn-ghost" value="cancel" data-i18n="sig.cancel">Cancel</button>

@@ -49,7 +49,7 @@
     highlight: ['color', 'opacity'],
     rect: ['color', 'stroke', 'opacity'],
     ellipse: ['color', 'stroke', 'opacity'],
-    image: ['opacity'],
+    image: ['opacity', 'behind'],
     whiteout: [],
     stamp: ['color', 'printBorder'],
   };
@@ -70,7 +70,7 @@
     fileInput: $('#file-input'), dropInput: $('#drop-input'), imageInput: $('#image-input'),
     toolGroup: $('#tool-group'), fileName: $('#file-name'),
     color: $('#prop-color'), stroke: $('#prop-stroke'), font: $('#prop-font'), fontSize: $('#prop-font-size'),
-    bold: $('#prop-bold'), italic: $('#prop-italic'), opacity: $('#prop-opacity'), printBorder: $('#prop-print-border'),
+    bold: $('#prop-bold'), italic: $('#prop-italic'), opacity: $('#prop-opacity'), printBorder: $('#prop-print-border'), behind: $('#prop-behind'),
     propHint: $('#prop-hint'), zoomLabel: $('#zoom-label'), pageIndicator: $('#page-indicator'),
     undo: $('#undo-btn'), redo: $('#redo-btn'), del: $('#delete-btn'), download: $('#download-btn'),
   };
@@ -127,6 +127,7 @@
     ui.italic.classList.toggle('active', !!src.italic);
     if (src.opacity != null) ui.opacity.value = src.opacity;
     if (src.printBorder != null) ui.printBorder.checked = !!src.printBorder;
+    ui.behind.checked = !!src.behind;
     ui.del.disabled = !a;
   }
 
@@ -159,6 +160,7 @@
   bindProp(ui.opacity, 'opacity', Number);
   ui.font.addEventListener('change', () => { onProp('font', ui.font.value); propBatch = false; });
   ui.printBorder.addEventListener('change', () => { onProp('printBorder', ui.printBorder.checked); propBatch = false; });
+  ui.behind.addEventListener('change', () => { onProp('behind', ui.behind.checked); propBatch = false; });
   for (const [btn, name] of [[ui.bold, 'bold'], [ui.italic, 'italic']]) {
     btn.addEventListener('mousedown', (e) => e.preventDefault()); // keep text editing focus
     btn.addEventListener('click', () => {
@@ -610,7 +612,10 @@
       const head = node.querySelector('.arrow-head');
       if (head) head.setAttribute('points', arrowHead(a).map((p) => p.join(',')).join(' '));
     }
-    if (a.type === 'image') applyCrop(node, a);
+    if (a.type === 'image') {
+      applyCrop(node, a);
+      st.mixBlendMode = a.behind ? 'multiply' : '';
+    }
     node.classList.toggle('selected', a.id === state.selectedId);
   }
 
@@ -700,7 +705,7 @@
       const d = DEFAULTS.stamp;
       pushHistory();
       const a = add({
-        type: 'stamp', page: pi, w: sz.w, h: sz.h, label: sz.label, fit: sz.fit, color: d.color, printBorder: d.printBorder, stroke: 0.5, opacity: 1,
+        type: 'stamp', page: pi, w: sz.w, h: sz.h, label: sz.label, fit: sz.fit, behind: sz.behind, color: d.color, printBorder: d.printBorder, stroke: 0.5, opacity: 1,
         x: clamp(pt.x - sz.w / 2, 0, Math.max(0, vp.width - sz.w)), y: clamp(pt.y - sz.h / 2, 0, Math.max(0, vp.height - sz.h)),
       });
       setTool('select');
@@ -882,7 +887,7 @@
     }
     pushHistory();
     linkedTo(box).forEach((x) => removeAnnot(x.id));
-    const img = add({ type: 'image', page: box.page, ...r, src, opacity: 1, boxId: box.id });
+    const img = add({ type: 'image', page: box.page, ...r, src, opacity: 1, boxId: box.id, behind: !!box.behind });
     setTool('select');
     if (box.fit === 'crop') { select(img.id); toast(t('stamp.cropHint'), 'info', 7000); } else select(box.id);
   }
@@ -904,7 +909,7 @@
   const stampUi = {
     dialog: $('#stamp-dialog'), w: $('#stamp-w'), h: $('#stamp-h'), unit: $('#stamp-unit'), scale: $('#stamp-scale'),
     info: $('#stamp-calib-info'), result: $('#stamp-result'), place: $('#stamp-place'),
-    content: $('#stamp-content'), fit: $('#stamp-fit'), presets: $('#stamp-presets'),
+    content: $('#stamp-content'), fit: $('#stamp-fit'), presets: $('#stamp-presets'), behind: $('#stamp-behind'),
   };
   const stampGhost = el('div', { class: 'stamp-ghost' });
   const fmt = (n, d = 2) => String(Math.round(n * 10 ** d) / 10 ** d);
@@ -918,6 +923,7 @@
     stampCfg.ref = ($('input[name="stamp-ref"]:checked', stampUi.dialog) || {}).value || 'paper';
     stampCfg.content = stampUi.content.value;
     stampCfg.fit = stampUi.fit.value;
+    stampCfg.behind = stampUi.behind.checked;
     try { localStorage.setItem(STAMP_KEY, JSON.stringify(stampCfg)); } catch (_) { /* storage unavailable */ }
   }
 
@@ -970,6 +976,7 @@
     stampUi.scale.value = stampCfg.scale;
     stampUi.content.value = stampCfg.content;
     stampUi.fit.value = stampCfg.fit;
+    stampUi.behind.checked = !!stampCfg.behind;
     const radio = $(`input[name="stamp-ref"][value="${stampCfg.ref}"]`, stampUi.dialog) || $('input[name="stamp-ref"]', stampUi.dialog);
     radio.checked = true;
     updateStampForm();
@@ -983,7 +990,7 @@
     const size = updateStampForm();
     if (!size) return;
     const extra = stampCfg.ref === 'scale' ? ` · 1:${fmt(stampCfg.scale)}` : stampCfg.ref === 'calib' ? ` · ≈1:${fmt(PT_PER_MM / state.calib, 0)}` : '';
-    state.stampSize = { ...size, fit: stampCfg.fit, content: stampCfg.content, label: `${fmt(stampCfg.w)} × ${fmt(stampCfg.h)} ${stampCfg.unit}${extra}` };
+    state.stampSize = { ...size, fit: stampCfg.fit, content: stampCfg.content, behind: !!stampCfg.behind, label: `${fmt(stampCfg.w)} × ${fmt(stampCfg.h)} ${stampCfg.unit}${extra}` };
     stampUi.dialog.close();
     setTool('stamp', true);
     toast(t('stamp.placeHint'), 'info', 4000);
@@ -1208,7 +1215,8 @@
 
   /* ================= Export ================= */
   async function exportPdf() {
-    const { PDFDocument, degrees, rgb, BlendMode, LineCapStyle, StandardFonts } = PDFLib;
+    const { PDFDocument, PDFName, PDFArray, degrees, rgb, BlendMode, LineCapStyle, StandardFonts } = PDFLib;
+    const underlay = new Map(); // page index -> operators drawn underneath the page's own content
     const doc = await PDFDocument.load(state.bytes, { ignoreEncryption: true });
     const pdfPages = doc.getPages();
     const images = new Map();
@@ -1353,17 +1361,40 @@
           if (!images.has(a.src)) images.set(a.src, a.src.startsWith('data:image/jpeg') ? await doc.embedJpg(a.src) : await doc.embedPng(a.src));
           const b = P(a.x, a.y + a.h);
           const crop = cropBoxOf(a);
-          if (crop) {
-            // Only the part inside the stamp box is kept: clip to the box's rectangle in PDF space.
-            const c0 = P(crop.x, crop.y), c1 = P(crop.x + crop.w, crop.y + crop.h);
-            page.pushOperators(pushGraphicsState(), rectangle(Math.min(c0.x, c1.x), Math.min(c0.y, c1.y), Math.abs(c1.x - c0.x), Math.abs(c1.y - c0.y)), clip(), endPath());
+          // Only the part inside a cropping stamp box is kept: clip to the box's rectangle in PDF space.
+          const c0 = crop && P(crop.x, crop.y), c1 = crop && P(crop.x + crop.w, crop.y + crop.h);
+          const clipOps = crop ? [rectangle(Math.min(c0.x, c1.x), Math.min(c0.y, c1.y), Math.abs(c1.x - c0.x), Math.abs(c1.y - c0.y)), clip(), endPath()] : [];
+          if (a.behind) {
+            // Behind the page's text and lines: collected here, written as a content stream placed before the page's own.
+            const name = `CPDFImg${a.id}`;
+            page.node.setXObject(PDFName.of(name), images.get(a.src).ref);
+            let gs;
+            if (a.opacity < 1) {
+              gs = `CPDFGs${a.id}`;
+              page.node.setExtGState(PDFName.of(gs), doc.context.obj({ Type: 'ExtGState', ca: a.opacity, CA: a.opacity }));
+            }
+            const ops = underlay.get(a.page) || [];
+            ops.push(pushGraphicsState(), ...clipOps,
+              ...PDFLib.drawImage(name, { x: b.x, y: b.y, width: a.w, height: a.h, rotate, xSkew: degrees(0), ySkew: degrees(0), graphicsState: gs }),
+              popGraphicsState());
+            underlay.set(a.page, ops);
+            break;
           }
+          if (crop) page.pushOperators(pushGraphicsState(), ...clipOps);
           page.drawImage(images.get(a.src), { x: b.x, y: b.y, width: a.w, height: a.h, rotate, opacity: a.opacity });
           if (crop) page.pushOperators(popGraphicsState());
           break;
         }
         default:
       }
+    }
+    for (const [pi, ops] of underlay) {
+      // Put the underlay first in /Contents, so everything already on the page is painted over it.
+      const node = pdfPages[pi].node, key = PDFName.of('Contents');
+      const ref = doc.context.register(doc.context.contentStream(ops));
+      const raw = node.get(key), list = raw && doc.context.lookup(raw);
+      if (list instanceof PDFArray) list.insert(0, ref);
+      else node.set(key, raw ? doc.context.obj([ref, raw]) : doc.context.obj([ref]));
     }
     return doc.save();
   }
